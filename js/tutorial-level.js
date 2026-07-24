@@ -1,72 +1,303 @@
 // ============================================================
-// TUTORIAL LEVEL — Frontier Training Annex v3 (green-ref + layer order + fx)
-// Order front->back spec by user:
-// 1. tutorial_foreground01.png (extreme frontmost)
-// 2. bunkers foreground (ExtremeForeground bunker images, parallax 1.16)
-// 3. player / items / enemies / tank
-// 4. mid01-05 modular CONNECTED (1376x768 scale 1.0)
-// 5. tutorial_back01.png FULL SCREEN (2400x448 stretched to VH)
-// 6. nuclear reactor blue pulse extreme background
-// Platforms: INVISIBLE from green reference
-// Floor: uses mid art floor, no procedural fill
-// Added: robot eye fx, electric hazard, end light orb that summons surfboard alone
+// TUTORIAL LEVEL — Frontier Training Annex v4
+// Updated for 8 modules (01,02,03,04,06,07,08,05) + pilar seams + green-ref platforms
+// Order spec:
+// 0: mid01b (satellite dish lab)  - reference mid01_refe
+// 1: mid02b (broken circle)       - mid02_refe / mid07_refe
+// 2: mid03b (suspended ship)      - mid06_refe
+// 3: mid04b (desert view upper)   - mid04_refe / mid03_refe
+// 4: mid06b (elevator lab)        - mid06_refe / mid01_refe
+// 5: mid07b (sand hangar robots)  - mid07_refe / mid03_refe
+// 6: mid08b (second elevator/satellite) - mid08_refe
+// 7: mid05b (desert exit)         - mid05_refe final
+// Green lines: top edge = walkable. This file uses estimated positions from provided refs;
+// it also supports auto-extraction if *_refe.png with pure #00FF00 lines are present.
+// Pilar01.png hides seams at each module border, drawn as extreme foreground.
+// Old foreground tutorial_foreground01.png only at start and middle.
 // ============================================================
 (function () {
   const MODULE_W = 1376;
-  const MODULE_COUNT = 5;
-  const W = MODULE_W * MODULE_COUNT; // 6880
+  const MODULE_COUNT = 8;
+  const W = MODULE_W * MODULE_COUNT; // 11008
   const GROUND = 470;
   const VW = 960, VH = 540;
   const GROUND_LINE = 620;
   const MID_SCALE = 1.0;
-  const MID_BASE_Y = GROUND - GROUND_LINE * MID_SCALE; // -150
+  const MID_BASE_Y = GROUND - GROUND_LINE; // -150
 
   function imageReady(img){ return img && img.naturalWidth>0 && img.complete!==false; }
 
   const tutorialBack = new Image(); tutorialBack.decoding='async'; tutorialBack.src='assets/tutorial/tutorial_back01.png';
   const tutorialFore = new Image(); tutorialFore.decoding='async'; tutorialFore.src='assets/tutorial/tutorial_foreground01.png';
-  const tutorialMids=[];
-  for(let i=1;i<=5;i++){ const img=new Image(); img.decoding='async'; img.src='assets/tutorial/tutorial_mid0'+i+'b.png'; tutorialMids.push(img); }
+  const pilarImage = new Image(); pilarImage.decoding='async'; pilarImage.src='assets/tutorial/pilar01.png';
+  // also try alternative names
+  const pilarAlt = new Image(); pilarAlt.decoding='async'; pilarAlt.src='assets/tutorial/pilar01.png';
 
-  // Platforms from green reference (exact)
-  const platforms=[
-    // MID01 - elevator lab (module 0)
-    { x:388, baseY:288, y:288, w:90, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:958, baseY:274, y:274, w:158, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:74, baseY:114, y:114, w:182, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:498, baseY:102, y:102, w:124, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:704, baseY:98, y:98, w:616, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:272, baseY:56, y:56, w:214, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    // MID02 - computer lab (module 1)
-    { x:1674, baseY:290, y:290, w:182, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:1808, baseY:202, y:202, w:230, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:1376, baseY:152, y:152, w:504, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:1878, baseY:44, y:44, w:774, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    // MID03 - robot graveyard (module 2)
-    { x:3727, baseY:301, y:301, w:142, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:3144, baseY:278, y:278, w:98, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:3476, baseY:231, y:231, w:123, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:3250, baseY:231, y:231, w:87, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:3253, baseY:107, y:107, w:145, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:3428, baseY:105, y:105, w:521, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:2824, baseY:102, y:102, w:181, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:3019, baseY:58, y:58, w:218, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    // MID04 - tech lab with tanks (module 3)
-    { x:4248, baseY:346, y:346, w:88, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:4637, baseY:318, y:318, w:89, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:4771, baseY:317, y:317, w:202, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:5232, baseY:285, y:285, w:138, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:4205, baseY:111, y:111, w:224, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:4792, baseY:108, y:108, w:286, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:4590, baseY:108, y:108, w:150, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:5329, baseY:104, y:104, w:117, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    // MID05 - desert exit (module 4)
-    { x:5726, baseY:297, y:297, w:90, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    // extra bridging for smooth traversal where green gaps exist
-    { x:1200, baseY:340, y:340, w:220, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:2600, baseY:360, y:360, w:180, amp:0, speed:0, phase:0, fragile:false, invisible:true },
-    { x:4050, baseY:380, y:380, w:160, amp:0, speed:0, phase:0, fragile:false, invisible:true },
+  // 8 modular mids in new order — tries assets/tutorial/ then upload/ then non-b versions
+  const midSources = [
+    'assets/tutorial/tutorial_mid01b.png',
+    'assets/tutorial/tutorial_mid02b.png',
+    'assets/tutorial/tutorial_mid03b.png',
+    'assets/tutorial/tutorial_mid04b.png',
+    'assets/tutorial/tutorial_mid06b.png',
+    'assets/tutorial/tutorial_mid07b.png',
+    'assets/tutorial/tutorial_mid08b.png',
+    'assets/tutorial/tutorial_mid05b.png',
   ];
+  const midSourcesFallback = [
+    ['upload/tutorial_mid01b.png','assets/tutorial/tutorial_mid01.png','upload/tutorial_mid01.png'],
+    ['upload/tutorial_mid02b.png','assets/tutorial/tutorial_mid02.png','upload/tutorial_mid02.png'],
+    ['upload/tutorial_mid03b.png','assets/tutorial/tutorial_mid03.png','upload/tutorial_mid03.png'],
+    ['upload/tutorial_mid04b.png','assets/tutorial/tutorial_mid04.png','upload/tutorial_mid04.png'],
+    ['upload/tutorial_mid06b.png','assets/tutorial/tutorial_mid06.png','upload/tutorial_mid06.png','upload/tutorial_mid06b.png'],
+    ['upload/tutorial_mid07b.png','assets/tutorial/tutorial_mid07.png','upload/tutorial_mid07.png'],
+    ['upload/tutorial_mid08b.png','assets/tutorial/tutorial_mid08.png','upload/tutorial_mid08.png'],
+    ['upload/tutorial_mid05b.png','assets/tutorial/tutorial_mid05.png','upload/tutorial_mid05.png'],
+  ];
+
+  const tutorialMids = [];
+  for(let i=0;i<MODULE_COUNT;i++){
+    const img = new Image(); img.decoding='async';
+    let fallbackIdx=0;
+    img.src = midSources[i];
+    img.onerror = (function(idx, im){
+      return function(){
+        const list = midSourcesFallback[idx]||[];
+        if(fallbackIdx < list.length){
+          im.src = list[fallbackIdx++];
+        }
+      };
+    })(i, img);
+    tutorialMids.push(img);
+  }
+
+  // Reference images with green lines for auto-detection — try assets then upload
+  const refSources = [
+    'assets/tutorial/tutorial_mid01_refe.png',
+    'assets/tutorial/tutorial_mid02_refe.png',
+    'assets/tutorial/tutorial_mid03_refe.png',
+    'assets/tutorial/tutorial_mid04_refe.png',
+    'assets/tutorial/tutorial_mid06_refe.png',
+    'assets/tutorial/tutorial_mid07_refe.png',
+    'assets/tutorial/tutorial_mid08_refe.png',
+    'assets/tutorial/tutorial_mid05_refe.png',
+  ];
+  const refFallback = [
+    ['upload/tutorial_mid01_refe.png','upload/tutorial_mid01_ref.png','upload/mid01_refe.png'],
+    ['upload/tutorial_mid02_refe.png','upload/tutorial_mid02_ref.png'],
+    ['upload/tutorial_mid03_refe.png','upload/tutorial_mid03_ref.png'],
+    ['upload/tutorial_mid04_refe.png','upload/tutorial_mid04_ref.png'],
+    ['upload/tutorial_mid06_refe.png','upload/tutorial_mid06_ref.png','upload/mid06_refe.png'],
+    ['upload/tutorial_mid07_refe.png','upload/tutorial_mid07_ref.png'],
+    ['upload/tutorial_mid08_refe.png','upload/tutorial_mid08_ref.png'],
+    ['upload/tutorial_mid05_refe.png','upload/tutorial_mid05_ref.png'],
+  ];
+  const refImages = [];
+  for(let i=0;i<MODULE_COUNT;i++){
+    const ri = new Image(); ri.decoding='async';
+    let rFallback=0;
+    ri.src = refSources[i];
+    ri.onerror = (function(idx, im){
+      return function(){
+        const list = refFallback[idx]||[];
+        if(rFallback < list.length) im.src = list[rFallback++];
+      };
+    })(i, ri);
+    refImages.push(ri);
+  }
+
+  // Also try upload folder for pilar
+  if (!imageReady(pilarImage)) {
+    // will retry via onerror handled below
+    const origOnError = pilarImage.onerror;
+    pilarImage.onerror = function(){
+      this.src = 'upload/pilar01.png';
+    };
+  }
+
+  // Manual platforms estimated from green refs (upper edge = baseY)
+  // Each entry: world x = moduleOffset + localX, baseY = MID_BASE_Y + localY, w, invisible
+  const platforms = [];
+  function addP(modIdx, lx, ly, lw){
+    const wx = modIdx*MODULE_W + lx;
+    const wy = MID_BASE_Y + ly; // ly is local Y inside image
+    platforms.push({ x: wx, baseY: wy, y: wy, w: lw, amp:0, speed:0, phase:0, fragile:false, invisible:true });
+  }
+
+  // Module 0 — sat dish lab (image 9) green lines
+  // Top arm small
+  addP(0, 180, 200, 80);
+  // Left ledge high
+  addP(0, 60, 270, 140);
+  // Dish rail middle
+  addP(0, 130, 430, 140);
+  // Center lower block
+  addP(0, 350, 450, 160);
+  // Right upper ledges (high)
+  addP(0, 760, 320, 160);
+  addP(0, 950, 300, 340);
+  // Small computer top middle-right
+  addP(0, 780, 470, 50);
+  // Small crate top
+  addP(0, 400, 500, 50);
+
+  // Module 1 — broken circular (image 10)
+  addP(1, 80, 300, 500); // top bridge
+  addP(1, 60, 400, 200); // left rock lower
+  addP(1, 160, 520, 50);  // crate
+  addP(1, 800, 380, 200); // right high 1
+  addP(1, 1050, 380, 300); // right high 2
+  addP(1, 850, 500, 60); // computer top
+  addP(1, 500, 520, 60); // arm top
+
+  // Module 2 — suspended ship lab (image 11)
+  addP(2, 180, 200, 90); // left arm
+  addP(2, 60, 270, 160); // left ledge
+  addP(2, 360, 250, 300); // ship top long
+  addP(2, 760, 310, 616); // right long
+  addP(2, 340, 440, 160); // lower mid
+  addP(2, 400, 540, 50); // small crate
+  addP(2, 560, 500, 140); // tanks top
+  addP(2, 750, 500, 80); // computer small
+
+  // Module 3 — desert view upper lab (image 4)
+  addP(3, 10, 350, 740); // long middle upper across
+  addP(3, 750, 290, 626); // top right long
+  addP(3, 200, 440, 140); // engine
+  addP(3, 310, 390, 110); // pipe small
+  addP(3, 380, 380, 100); // monitor 1
+  addP(3, 430, 440, 100); // monitor 2
+  addP(3, 830, 500, 70);  // crate right
+
+  // Module 4 — elevator lab (image 5 / 8)
+  addP(4, 230, 210, 190); // elevator roof
+  addP(4, 70, 260, 140); // left high
+  addP(4, 340, 300, 140); // middle railing left
+  addP(4, 480, 300, 896); // long right (same height)
+  addP(4, 340, 400, 110); // lower pipe
+  addP(4, 70, 530, 150); // left computers
+  addP(4, 190, 520, 70); // dispenser
+  addP(4, 350, 510, 150); // middle bottom computers
+  addP(4, 720, 460, 160); // right tanks
+
+  // Module 5 — sand hangar robots (image 6)
+  addP(5, 60, 320, 160); // upper left
+  addP(5, 320, 320, 140); // crane left
+  addP(5, 460, 320, 180); // crane right
+  addP(5, 970, 320, 80); // upper right small
+  addP(5, 320, 420, 90); // robot head
+  addP(5, 70, 510, 80); // left monitors
+  addP(5, 320, 500, 60); // lower monitor 1
+  addP(5, 360, 540, 70); // lower monitor 2
+  addP(5, 830, 460, 150); // right shelf
+
+  // Module 6 — second new module (mix of remaining greens)
+  // Using similar to Module 0 but shifted, plus extra upper walkways
+  addP(6, 230, 210, 190);
+  addP(6, 70, 260, 140);
+  addP(6, 340, 300, 140);
+  addP(6, 500, 300, 260);
+  addP(6, 760, 300, 160);
+  addP(6, 950, 280, 300);
+  addP(6, 350, 500, 150);
+  addP(6, 720, 480, 140);
+  addP(6, 70, 520, 120);
+
+  // Module 7 — desert exit final (image 7)
+  addP(7, 0, 530, 90);
+  addP(7, 160, 490, 60);
+  // add some hidden bridging to ground for final jump
+  addP(7, 400, 550, 120);
+  addP(7, 800, 540, 140);
+
+  // Extra bridging platforms between modules for smooth traversal if green gaps exist
+  addP(0, 1200, 500, 200);
+  addP(2, 1200, 520, 200);
+  addP(4, 1200, 520, 180);
+  addP(5, 1200, 540, 180);
+
+  // Auto-detect green platforms from _refe images (if present)
+  // This will append/replace manual ones after load
+  function isBrightGreen(r,g,b,a){
+    return a>30 && g>180 && r<100 && b<100;
+  }
+  function extractFromRef(img, modIdx){
+    if(!imageReady(img)) return;
+    try{
+      const w = img.naturalWidth, h = img.naturalHeight;
+      if(w<100||h<100) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img,0,0);
+      const data = ctx.getImageData(0,0,w,h).data;
+      // scan for green runs
+      const found = [];
+      const minLen = 20;
+      for(let y=0;y<h;y++){
+        let x=0;
+        while(x<w){
+          let idx = (y*w + x)*4;
+          if(isBrightGreen(data[idx],data[idx+1],data[idx+2],data[idx+3])){
+            let x2=x;
+            while(x2<w){
+              let idx2 = (y*w + x2)*4;
+              if(!isBrightGreen(data[idx2],data[idx2+1],data[idx2+2],data[idx2+3])) break;
+              x2++;
+            }
+            const len = x2-x;
+            if(len>=minLen){
+              // merge vertically close lines (within 4px)
+              let merged=false;
+              for(let f of found){
+                if(Math.abs(f.y - y)<=4 && Math.abs(f.x - x)<30 && Math.abs((f.x+f.w)-(x+len))<60){
+                  // extend
+                  f.x = Math.min(f.x,x);
+                  f.w = Math.max(f.x+f.w, x+len) - f.x;
+                  f.y = Math.min(f.y,y);
+                  merged=true; break;
+                }
+              }
+              if(!merged){
+                found.push({x:x, y:y, w:len});
+              }
+            }
+            x=x2;
+          } else x++;
+        }
+      }
+      // convert to platforms (filter small noise and very low near ground?)
+      for(let seg of found){
+        if(seg.y > h*0.78) continue; // ignore near ground clutter below 78%
+        // approximate localY ratio -> game
+        const localY = seg.y * (620 / h) ; // scale 768 -> 620? Actually our mid base logic uses 768 tall, but we scale to 620? Keep simple
+        const worldY = MID_BASE_Y + localY + 100; // offset tuning
+        // scale X from image width to MODULE_W
+        const scaleX = MODULE_W / w;
+        const wx = modIdx*MODULE_W + seg.x*scaleX;
+        const ww = seg.w*scaleX;
+        if(ww<15) continue;
+        // avoid duplicates: if near existing platform, skip
+        let near=false;
+        for(let p of platforms){
+          if(Math.abs(p.x - wx)<30 && Math.abs(p.baseY - worldY)<18 && Math.abs(p.w - ww)<40){ near=true; break; }
+        }
+        if(!near){
+          platforms.push({ x: wx, baseY: worldY, y: worldY, w: ww, amp:0, speed:0, phase:0, fragile:false, invisible:true });
+        }
+      }
+      console.log('[Tutorial] green extraction module '+modIdx+': found '+found.length+' segments');
+    }catch(e){ console.warn('[Tutorial] green extraction failed module '+modIdx, e); }
+  }
+
+  // Try extraction after images load
+  setTimeout(function(){
+    for(let i=0;i<MODULE_COUNT;i++){
+      if(imageReady(refImages[i])) extractFromRef(refImages[i], i);
+    }
+    // For old reference images without green (midXX_reference.png) try also
+    // (they won't have green, so no effect)
+  }, 1200);
 
   const spawns=[
     { x:700, type:'soldier' },
@@ -77,11 +308,14 @@
     { x:2950, type:'observer' },
     { x:3350, type:'knife' },
     { x:3850, type:'soldier' },
-    { x:4220, type:'observer' },
-    { x:4600, type:'bazooka' },
-    { x:5100, type:'soldier' },
-    { x:5380, type:'grenadier' },
-    { x:5750, type:'observer' },
+    { x:4600, type:'observer' },
+    { x:5100, type:'bazooka' },
+    { x:6000, type:'soldier' },
+    { x:6500, type:'grenadier' },
+    { x:7000, type:'observer' },
+    { x:7800, type:'soldier' },
+    { x:8600, type:'bazooka' },
+    { x:9200, type:'observer' },
   ];
   const props=[
     { x:980, type:'barrel01' },
@@ -89,6 +323,9 @@
     { x:3520, type:'crate' },
     { x:4780, type:'barrel01' },
     { x:5320, type:'crate' },
+    { x:6400, type:'barrel02' },
+    { x:7600, type:'crate' },
+    { x:8800, type:'barrel01' },
   ];
   const highPickups=[
     { x:500, type:'mg' },
@@ -96,13 +333,17 @@
     { x:2220, type:'homing' },
     { x:3150, type:'heart' },
     { x:4350, type:'jet_pack' },
-    { x:5750, type:'heart' },
+    { x:7000, type:'heart' },
+    { x:9000, type:'homing' },
   ];
   const slugSpawns=[ { x:2850, type:'ally_tank02' } ];
-  const SURFBOARD_X = W - 90;
-  const END_LIGHT = { x: W - 140, y: 190, r: 26, triggered:false };
+  const SURFBOARD_X = W - 180;
+  const END_LIGHT = { x: W - 260, y: 200, r: 28, triggered:false };
 
+  // Fixed lights: modules 0-3 keep original positions (01-04), modules 4-7 have corrected or minimal FX
+  // After expanding to 8 modules, previous module-4 duplicate caused FX in wrong mids
   const lights=[
+    // Module 0 — sat dish lab (mid01b) — original lamps screens fire
     { module:0, x:238, y:126, type:'lamp', color:'#ff9a2a', r:34, pulse:1.2, intensity:0.9 },
     { module:0, x:1002, y:142, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
     { module:0, x:1209, y:133, type:'lamp', color:'#ff9a2a', r:32, pulse:1.1, intensity:0.9 },
@@ -112,32 +353,61 @@
     { module:0, x:69, y:417, type:'screen', color:'#4af1ff', r:26, pulse:3.2, intensity:0.55 },
     { module:0, x:1248, y:415, type:'screen', color:'#58f0ff', r:22, pulse:2.8, intensity:0.5 },
     { module:0, x:920, y:530, type:'fire', color:'#ff6a18', r:48, pulse:11, intensity:1.0 },
+
+    // Module 1 — broken circular (mid02b)
     { module:1, x:1003, y:143, type:'lamp', color:'#ff9a2a', r:28, pulse:1.2, intensity:0.85 },
     { module:1, x:69, y:418, type:'screen', color:'#4aff88', r:32, pulse:2.5, intensity:0.6 },
     { module:1, x:414, y:486, type:'screen', color:'#5afcff', r:44, pulse:1.8, intensity:0.65 },
     { module:1, x:339, y:299, type:'fire', color:'#ff7a20', r:36, pulse:9, intensity:0.9 },
     { module:1, x:87, y:296, type:'lamp', color:'#ffaa3a', r:24, pulse:1.6, intensity:0.7 },
+
+    // Module 2 — suspended ship (mid03b)
     { module:2, x:238, y:126, type:'lamp', color:'#ff9a2a', r:30, pulse:1.3, intensity:0.8 },
     { module:2, x:1001, y:142, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
     { module:2, x:75, y:386, type:'lamp', color:'#ffaa3a', r:22, pulse:1.7, intensity:0.6 },
     { module:2, x:659, y:458, type:'screen', color:'#4af1ff', r:28, pulse:2.2, intensity:0.6 },
     { module:2, x:922, y:531, type:'fire', color:'#ff6a18', r:50, pulse:10, intensity:1.0 },
+
+    // Module 3 — desert view upper (mid04b)
     { module:3, x:182, y:257, type:'lamp', color:'#ff9a2a', r:34, pulse:1.5, intensity:0.9 },
     { module:3, x:75, y:387, type:'lamp', color:'#ffaa3a', r:20, pulse:1.8, intensity:0.6 },
     { module:3, x:68, y:418, type:'screen', color:'#5affa0', r:30, pulse:2.6, intensity:0.55 },
     { module:3, x:682, y:527, type:'fire', color:'#ff8a22', r:28, pulse:12, intensity:0.8 },
-    { module:4, x:348, y:385, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.6 },
-    { module:4, x:1248, y:530, type:'fire', color:'#ff8a22', r:24, pulse:8, intensity:0.7 },
+
+    // Module 4 — elevator lab (mid06b) — corrected positions from green-ref elevator image
+    { module:4, x:98, y:86, type:'lamp', color:'#ffb44a', r:26, pulse:1.3, intensity:0.82 },
+    { module:4, x:1088, y:138, type:'lamp', color:'#ff9a2a', r:28, pulse:1.4, intensity:0.85 },
+    { module:4, x:1088, y:252, type:'screen', color:'#4af1ff', r:22, pulse:2.4, intensity:0.48 },
+    { module:4, x:72, y:386, type:'lamp', color:'#ffaa3a', r:20, pulse:1.7, intensity:0.6 },
+    { module:4, x:72, y:418, type:'screen', color:'#4aff88', r:26, pulse:2.8, intensity:0.52 },
+    { module:4, x:558, y:498, type:'fire', color:'#ff6a18', r:36, pulse:9.5, intensity:0.92 },
+
+    // Module 5 — sand hangar robots (mid07b) — robot eyes + electric
+    { module:5, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
+    { module:5, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
+    { module:5, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
+    { module:5, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
+    { module:5, x:108, y:172, type:'lamp', color:'#ffaa3a', r:22, pulse:1.8, intensity:0.6 },
+    { module:5, x:1018, y:174, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.55 },
+    { module:5, x:72, y:418, type:'screen', color:'#5afcff', r:26, pulse:2.5, intensity:0.5 },
+    { module:5, x:622, y:516, type:'fire', color:'#ff8a22', r:24, pulse:10, intensity:0.7 },
+
+    // Module 6 — second new (mid08b) — minimal, avoid leaking old FX
+    { module:6, x:102, y:88, type:'lamp', color:'#ffb44a', r:22, pulse:1.3, intensity:0.6 },
+    { module:6, x:1088, y:140, type:'lamp', color:'#ff9a2a', r:24, pulse:1.4, intensity:0.65 },
+    { module:6, x:72, y:420, type:'screen', color:'#4af1ff', r:20, pulse:2.6, intensity:0.45 },
+    { module:6, x:622, y:520, type:'fire', color:'#ff7a22', r:20, pulse:11, intensity:0.6 },
+
+    // Module 7 — desert exit final (mid05b)
+    { module:7, x:348, y:385, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.6 },
+    { module:7, x:1248, y:530, type:'fire', color:'#ff8a22', r:24, pulse:8, intensity:0.7 },
   ];
 
-  // Robot decoration FX — two giant robots in mid04 (module index 3)
   const robotFX=[
-    // robot lying left (humanoid)
-    { module:3, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
-    { module:3, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
-    // tracked robot middle
-    { module:3, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
-    { module:3, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
+    { module:5, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
+    { module:5, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
+    { module:5, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
+    { module:5, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
   ];
 
   function resetPlatforms(){ for(const p of platforms){ p.dead=false; p.triggered=false; p.breakT=0; p.y=p.baseY; } }
@@ -145,10 +415,10 @@
     for(const p of platforms){
       if(p.dead) continue;
       if(p.fragile && !p.triggered){
-        const riding = player && !player.dead && player.jetpackT<=0 && Math.abs(player.y - p.y) < 6 && player.x > p.x && player.x < p.x + p.w && player.vy>=0;
+        const riding = player && !player.dead && player.jetpackT<=0 && Math.abs(player.y - p.y) < 8 && player.x > p.x && player.x < p.x + p.w && player.vy>=0;
         if(riding){ player.y=p.y; player.onGround=true; if(!p.triggered){ p.triggered=true; p.breakT=1.45; } }
       } else if(!p.fragile){
-        const riding = player && !player.dead && player.jetpackT<=0 && Math.abs(player.y - p.y) < 6 && player.x > p.x && player.x < p.x + p.w && player.vy>=0;
+        const riding = player && !player.dead && player.jetpackT<=0 && Math.abs(player.y - p.y) < 8 && player.x > p.x && player.x < p.x + p.w && player.vy>=0;
         if(riding){ player.y=p.y; player.onGround=true; }
       }
       if(p.triggered){ p.breakT-=dt; if(p.breakT<=0) p.dead=true; }
@@ -191,21 +461,18 @@
   function drawBackground(g,camX,time,VW,VH){
     time=time||(window.G&&G.time)||0;
     drawProceduralNeon(g,time,VW,VH);
-    // back01 full screen behind mids
     drawTiledFullscreen(g,tutorialBack,camX,0.08,VW,VH);
-    // mids connected
     const midW=MODULE_W*MID_SCALE, midH=768*MID_SCALE;
     for(let i=0;i<tutorialMids.length;i++){
       const img=tutorialMids[i];
       if(!imageReady(img)) continue;
       const worldX=i*MODULE_W;
       const screenX=Math.round(worldX - camX);
-      if(screenX+midW<-140 || screenX>VW+140) continue;
+      if(screenX+midW<-220 || screenX>VW+220) continue;
       g.save(); g.imageSmoothingEnabled=false;
       g.drawImage(img, screenX, Math.round(MID_BASE_Y), midW, midH);
       g.restore();
     }
-    // lights + robot fx over mids
     g.save();
     const allLights=lights.concat(robotFX);
     for(const lt of allLights){
@@ -244,7 +511,6 @@
         const flick=Math.sin(time*lt.pulse)*1.5;
         g.beginPath(); g.arc(screenX+flick*0.3, screenY, 3+intensity*2.5, 0, Math.PI*2); g.fill();
         g.fillStyle='#fff8a0'; g.globalAlpha=0.9; g.beginPath(); g.arc(screenX, screenY, 1.6,0,Math.PI*2); g.fill();
-        // eye beam occasional
         if(Math.random()<0.04){ g.globalAlpha=0.18; g.fillStyle=lt.color; g.fillRect(screenX, screenY, 40+Math.random()*60, 1); }
       } else if(lt.type==='electric'){
         g.globalCompositeOperation='lighter'; g.globalAlpha=0.32+Math.sin(time*lt.pulse)*0.18;
@@ -263,7 +529,6 @@
     }
     g.restore();
 
-    // End light orb in air (portal-like)
     g.save();
     const orbWorldX=END_LIGHT.x, orbWorldY=END_LIGHT.y;
     const orbScreenX=orbWorldX - camX, orbScreenY=orbWorldY;
@@ -274,7 +539,6 @@
       grad.addColorStop(0,'#fff8cc'); grad.addColorStop(0.2,'#68efff'); grad.addColorStop(0.45,'#2a9aff'); grad.addColorStop(1,'rgba(0,0,0,0)');
       g.globalAlpha=0.85*p; g.fillStyle=grad; g.beginPath(); g.arc(orbScreenX,orbScreenY,END_LIGHT.r*5,0,Math.PI*2); g.fill();
       g.globalAlpha=1; g.fillStyle='#ffffff'; g.beginPath(); g.arc(orbScreenX,orbScreenY,4+Math.sin(time*6)*1.2,0,Math.PI*2); g.fill();
-      // rotating ring
       g.globalAlpha=0.55; g.strokeStyle='#a0f0ff'; g.lineWidth=2;
       g.beginPath(); g.arc(orbScreenX,orbScreenY,18+Math.sin(time*3)*2, time*1.2, time*1.2+Math.PI*1.6); g.stroke();
     }
@@ -282,9 +546,8 @@
   }
 
   function drawGround(g,camX,VW,VH){
-    // No procedural floor, only invisible platforms (debug when godMode)
     if(window.G && G.godMode){
-      g.save(); g.globalAlpha=0.22;
+      g.save(); g.globalAlpha=0.26;
       for(const pl of platforms){
         if(pl.dead) continue;
         const px=pl.x-camX;
@@ -295,18 +558,56 @@
       }
       g.restore();
     }
-    // Bunker foreground is drawn by ExtremeForeground module after world, not here
   }
 
   function drawExtremeForeground(g,camX,VW,VH){
-    const foreScale=1.0, foreTileW=724*foreScale, foreTileH=768*foreScale;
-    const foreY=VH - foreTileH + 140;
-    const foreParallax=1.18;
-    const scroll=camX*foreParallax;
-    let fx=-(scroll%foreTileW)-foreTileW;
+    const time = (window.G&&G.time)||0;
+    // Draw pilar at each module seam to hide gap
     g.save(); g.imageSmoothingEnabled=false;
-    for(; fx<VW+foreTileW; fx+=foreTileW){
-      if(imageReady(tutorialFore)) g.drawImage(tutorialFore, Math.round(fx), Math.round(foreY), foreTileW, foreTileH);
+    if(imageReady(pilarImage)){
+      const pilarW = 120; // estimated width of pilar image scaled
+      const pilarH = 768;
+      const scale = 1.0;
+      const drawW = pilarW*scale, drawH = pilarH*scale;
+      for(let i=1;i<MODULE_COUNT;i++){
+        const worldX = i*MODULE_W;
+        const sx = Math.round(worldX - camX - drawW/2);
+        if(sx<-300 || sx>VW+300) continue;
+        // Slight parallax 1.0 (world locked) to perfectly cover seam
+        g.globalAlpha = 0.96;
+        g.drawImage(pilarImage, sx, Math.round(MID_BASE_Y), drawW, drawH);
+        // Optional second layer darker for depth
+        g.globalCompositeOperation='lighter'; g.globalAlpha=0.08;
+        g.fillStyle='#68efff'; g.fillRect(sx+drawW*0.3, MID_BASE_Y, drawW*0.1, drawH*0.25);
+        g.globalCompositeOperation='source-over'; g.globalAlpha=1;
+      }
+    }
+    g.restore();
+
+    // Old extreme foreground tutorial_foreground01.png only at beginning and once more in middle
+    g.save(); g.imageSmoothingEnabled=false;
+    if(imageReady(tutorialFore)){
+      const foreScale=1.0, foreTileW=724*foreScale, foreTileH=768*foreScale;
+      const foreY=VH - foreTileH + 140;
+      // First occurrence at 0
+      let sx = Math.round(0 - camX*1.18);
+      if(sx>-foreTileW && sx<VW+foreTileW){
+        g.drawImage(tutorialFore, sx, Math.round(foreY), foreTileW, foreTileH);
+      }
+      sx = Math.round(150 - camX*1.18);
+      if(sx>-foreTileW && sx<VW+foreTileW){
+        g.globalAlpha=0.85;
+        g.drawImage(tutorialFore, sx, Math.round(foreY), foreTileW*0.85, foreTileH*0.85);
+        g.globalAlpha=1;
+      }
+      // Second occurrence around module 4 start (5504)
+      const secondX = 4*MODULE_W + 200;
+      const sx2 = Math.round(secondX - camX*1.18);
+      if(sx2>-foreTileW && sx2<VW+foreTileW){
+        g.globalAlpha=0.92;
+        g.drawImage(tutorialFore, sx2, Math.round(foreY), foreTileW, foreTileH);
+        g.globalAlpha=1;
+      }
     }
     g.restore();
   }

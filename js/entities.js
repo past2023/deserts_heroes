@@ -934,13 +934,12 @@
   }
 
   function drawAllyTank02(g, sx, s) {
-    // Modular drill tank v2: improved vibration and firing feedback
+    // Drill tank v3: hammer-drill style (no spin), vibrates left-right like hammer drill
+    // + heavier smoke from 2 exhaust pipes at turret top-left
     const facing = s.facing;
     const time = (window.G ? G.time : 0);
     const moveSpeed = Math.abs(s.vx);
-    const bob = Math.sin((s.tread || 0) * 0.08) * 1.2 + (moveSpeed > 10 ? Math.sin(time*18)*0.6 : 0);
-    const wheelVibX = moveSpeed > 4 ? Math.sin(time*28) * 0.8 : 0;
-    const wheelVibY = moveSpeed > 4 ? Math.cos(time*34) * 1.2 : 0;
+    const bob = Math.sin((s.tread || 0) * 0.08) * 1.0 + (moveSpeed > 10 ? Math.sin(time*16)*0.5 : 0);
     const scale = 0.62;
     const width = 400 * scale, height = 274 * scale;
     const left = -width / 2, top = -height + bob;
@@ -953,68 +952,68 @@
     if (facing < 0) g.scale(-1, 1);
     if (s.flash > 0) g.filter = 'brightness(0) invert(1)';
 
-    // Chassis with slight shake when moving
+    // Chassis vibration - very subtle, hammer drill chassis vibrates even when idle
     g.save();
-    if (moveSpeed > 8) g.translate(Math.sin(time*22)*0.7, Math.cos(time*26)*0.6);
+    const chassisVibX = (moveSpeed>2 || s.occupied) ? Math.sin(time*28)*0.5 : Math.sin(time*12)*0.18;
+    const chassisVibY = (moveSpeed>2) ? Math.cos(time*34)*0.6 : Math.cos(time*18)*0.22;
+    g.translate(chassisVibX, chassisVibY);
     if (allyTank02Art.chassis.naturalWidth > 0) g.drawImage(allyTank02Art.chassis, left, top, width, height);
     else g.drawImage(allyTank02Art.full, left, top, width, height);
     g.restore();
 
-    // Wheels: vibrate horizontally/vertically + tread spin illusion
+    // Wheels: subtle vertical bob when moving, no spin
     if (allyTank02Art.wheels.naturalWidth > 0) {
       g.save();
-      g.translate(wheelVibX, wheelVibY);
-      // subtle tread travel via clipping? we simulate by small x jitter
-      if (moveSpeed > 4) {
-        const treadShift = ((s.tread || 0) % 20) - 10;
-        g.translate(treadShift*0.05, 0);
-      }
+      const wheelBobY = moveSpeed>4 ? Math.cos(time*22)*0.9 : 0;
+      g.translate(0, wheelBobY);
       g.globalAlpha = 0.97;
       g.drawImage(allyTank02Art.wheels, left, top, width, height);
-      // extra spark when moving fast
-      if (moveSpeed > 80 && Math.random() < 0.15) {
-        g.globalCompositeOperation='lighter'; g.globalAlpha=0.6; g.fillStyle='#8a7a4a';
-        g.fillRect(left+width*0.18+Math.random()*width*0.4, top+height*0.72, 6, 2);
-      }
       g.restore();
     }
 
-    // Turret: vibrate constantly + recoil kick when firing
+    // Turret: constant micro-vibration + recoil kick back when firing
     if (allyTank02Art.turret.naturalWidth > 0) {
       g.save();
       const rec = Math.max(0, s.recoil);
-      const recoilX = rec * 6.5; // move back when fire
-      const recoilY = Math.sin(time*28)*(rec>0?1.2:0) + (moveSpeed>10?Math.sin(time*18)*0.8:0);
-      const vibX = (moveSpeed>10?Math.sin(time*24)*0.6:0) + Math.sin(time*12)*0.25;
-      const vibY = (moveSpeed>10?Math.cos(time*20)*0.5:0) + Math.cos(time*16)*0.2;
-      g.translate(-recoilX + vibX, recoilY + vibY);
-      // muzzle flash glow when recent fire
+      const recoilX = rec * 5.5;
+      // Hammer drill vibration extends to turret slightly
+      const hammerVib = (s.occupied || moveSpeed>2) ? Math.sin(time*32)*0.6 : 0;
+      const vibX = -recoilX + hammerVib + (moveSpeed>10?Math.sin(time*18)*0.4:0);
+      const vibY = (moveSpeed>6?Math.cos(time*24)*0.45:0) + Math.sin(time*16)*0.18;
+      g.translate(vibX, vibY);
       if (rec > 0.2) {
-        g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=0.55*rec/10;
-        g.fillStyle='#ffec8a'; g.beginPath(); g.arc(left+width*0.84, top+height*0.42, 12+rec, 0, Math.PI*2); g.fill(); g.restore();
+        g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=0.48*rec/10;
+        g.fillStyle='#ffec8a'; g.beginPath(); g.arc(left+width*0.84, top+height*0.42, 12+rec*0.9, 0, Math.PI*2); g.fill(); g.restore();
       }
       g.drawImage(allyTank02Art.turret, left, top, width, height);
       g.restore();
     }
 
-    // Drill point: original file size, piston in/out horizontally + spin
+    // DRILL: hammer drill only - in/out horizontally, slight vertical vibration, NO rotation
     if (allyTank02Art.drill.naturalWidth > 0) {
       g.save();
-      s.drillSpin = (s.drillSpin || 0) + (moveSpeed > 2 || s.occupied ? 0.52 : 0.10);
-      const piston = Math.sin(time*11 + (s.tread||0)*0.35) * 9 + (moveSpeed>12?3:0);
-      // Keep original file size, just shift horizontally for piston
-      g.translate(piston, Math.sin(time*16)*0.8);
-      g.translate(left + width*0.78, top + height*0.58);
-      g.rotate(s.drillSpin);
-      g.translate(-(left + width*0.78), -(top + height*0.58));
-      // draw full-size drill file (same size as chassis) - keeps original size
+      // Hammer drill motion: fast in/out horizontally + micro vertical shake
+      const drillActive = s.occupied || moveSpeed>2;
+      const basePiston = drillActive ? 6 : 1.5;
+      // Main hammer stroke: sin at high frequency for piston action
+      const hammerStroke = Math.sin(time*26) * (drillActive ? 7.5 : 1.2) + Math.sin(time*48)* (drillActive?2.2:0.4);
+      // Slow push-pull drift
+      const slowPush = Math.sin(time*3.2 + (s.tread||0)*0.2) * (drillActive?3.5:0.8);
+      const pistonX = basePiston + hammerStroke + slowPush;
+      const vibY = (drillActive? Math.sin(time*34)*0.9 : Math.sin(time*16)*0.25);
+      const vibX2 = drillActive ? Math.sin(time*52)*0.5 : 0;
+      g.translate(pistonX + vibX2, vibY);
+      // Draw drill at same size, no rotation
       g.drawImage(allyTank02Art.drill, left, top, width, height);
       g.restore();
-      // glow when occupied / drilling
       if (s.occupied) {
-        g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.52 + Math.sin(time * 9) * 0.22;
-        g.fillStyle = '#ff8a24'; g.beginPath(); g.arc(left+width*0.82+piston, top+height*0.58, 9, 0, Math.PI * 2); g.fill();
-        g.fillStyle = '#ffe8a0'; g.beginPath(); g.arc(left+width*0.82+piston, top+height*0.58, 4, 0, Math.PI * 2); g.fill();
+        g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.48 + Math.sin(time * 13) * 0.18;
+        g.fillStyle = '#ff8a24'; g.beginPath(); g.arc(left+width*0.86+pistonX, top+height*0.58+vibY, 8, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#ffe8a0'; g.beginPath(); g.arc(left+width*0.86+pistonX, top+height*0.58+vibY, 3.2, 0, Math.PI * 2); g.fill();
+        // impact spark at drill tip when hammering
+        if (drillActive && Math.random()<0.28) {
+          g.globalAlpha=0.7; g.fillStyle='#ffb347'; g.beginPath(); g.arc(left+width*0.92+pistonX, top+height*0.58+vibY + (Math.random()-0.5)*4, 1.8,0,Math.PI*2); g.fill();
+        }
         g.restore();
       }
     }
@@ -1022,26 +1021,43 @@
     g.filter = 'none';
     g.restore();
 
-    // exhaust smog - 2 turret/chassis exhausts + main
-    if (Math.random() < (moveSpeed>60?0.42:0.18)) {
-      // main rear exhaust
+    // Exhaust: main rear + 2 top-left turret exhaust pipes (heavier smoke as requested)
+    const exhaustActive = s.occupied || moveSpeed>2;
+    if (Math.random() < (exhaustActive?0.58:0.22) || moveSpeed>40) {
+      // main rear exhaust - darker
       G.particles.push({
-        kind: 'smoke', x: s.x - facing * 64, y: s.y - 54 + Math.sin(time*12)*2,
-        vx: -facing * rnd(30, 70) + rnd(-12, 12), vy: rnd(-55, -12),
-        t: 0, life: 0.55 + Math.random() * 0.45,
-        color: moveSpeed>80?'#4a3a32':'#3a3a44', size: 4 + Math.random() * 5.5, grav: -18, drag: 0.86
+        kind: 'smoke', x: s.x - facing * 66, y: s.y - 56 + Math.sin(time*10)*1.5,
+        vx: -facing * rnd(28, 68) + rnd(-10, 10), vy: rnd(-52, -10),
+        t: 0, life: 0.58 + Math.random() * 0.52,
+        color: moveSpeed>70?'#3d2e29':'#3a3a42', size: 4.2 + Math.random() * 5.8, grav: -16, drag: 0.84
       });
-    }
-    if (Math.random() < 0.22) {
-      // turret 2 exhausts - small smog puffs near turret top
-      for(let k=0;k<2;k++){
-        const offsetY = k===0 ? -12 : 4;
+      if (moveSpeed>60 && Math.random()<0.35) {
         G.particles.push({
-          kind: 'smoke', x: s.x + facing*(12 + (k*4)) , y: s.y -62 + offsetY + Math.sin(time*8+k)*1.5,
-          vx: -facing*rnd(8,22)+rnd(-6,6), vy: rnd(-42,-14),
-          t: 0, life: 0.45+Math.random()*0.35,
-          color: '#2d2a28', size: 2.5+Math.random()*3.5, grav:-12, drag:0.88
+          kind: 'ember', x: s.x - facing*66, y: s.y -54,
+          vx: -facing*rnd(20,50)+rnd(-8,8), vy: rnd(-30,-8),
+          t:0, life:0.25+Math.random()*0.25, color:'#ff8a24', size:1.5+Math.random()*2.2, grav:-8, drag:0.9
         });
+      }
+    }
+    // Two exhaust pipes at turret top-left - continuous light smoke, heavier when moving/occupied
+    if (Math.random() < (exhaustActive?0.52:0.14)) {
+      for(let k=0;k<2;k++){
+        const offsetX = -18 + k*7; // top-left relative to turret
+        const offsetY = -68 + k*9;
+        G.particles.push({
+          kind: 'smoke', x: s.x + facing*offsetX, y: s.y + offsetY + Math.sin(time*8+k)*0.8,
+          vx: -facing*rnd(6,18)+rnd(-8,8) + (moveSpeed>2? -facing*4:0), vy: rnd(-52,-18),
+          t: 0, life: 0.62+Math.random()*0.58,
+          color: k===0 ? '#2a2522' : '#302c28', size: 3.0+Math.random()*4.2, grav:-14, drag:0.86
+        });
+        // occasional darker puff
+        if (Math.random()<0.18) {
+          G.particles.push({
+            kind: 'smoke', x: s.x + facing*offsetX, y: s.y + offsetY,
+            vx: -facing*rnd(10,24), vy: rnd(-38,-16),
+            t:0, life:0.48+Math.random()*0.42, color:'#1e1a18', size:2.2+Math.random()*3.0, grav:-10, drag:0.88
+          });
+        }
       }
     }
   }
