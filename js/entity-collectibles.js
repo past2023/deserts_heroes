@@ -33,14 +33,13 @@
     const phase=pow.t*(pow.state==='free'?9:2.5);
     g.save();g.translate(Math.round(sx),Math.round(pow.y-bounce));if(pow.facing<0)g.scale(-1,1);
     const layer=function(img,px,py,angle,ox,oy){if(!img||!img.naturalWidth)return;g.save();g.translate((px-sourceW/2)*scale+(ox||0),(py-sourceH)*scale+(oy||0));if(angle)g.rotate(angle);g.drawImage(img,-px*scale,-py*scale,sourceW*scale,sourceH*scale);g.restore()};
-    // hand_down is always the first/background layer by art contract.
-    layer(parts.hand_down,sourceW*.62,sourceH*.37,pow.state==='free'?Math.sin(phase)*.08:0,0,0);
-    const stride=pow.state==='free'?Math.sin(phase)*.08:0;
-    layer(parts.leg02,sourceW*.34,sourceH*.62,-stride,0,0);
-    layer(parts.leg01,sourceW*.61,sourceH*.62,stride,0,0);
-    layer(parts.torso,sourceW*.5,sourceH*.38,Math.sin(phase*.45)*.015,0,0);
-    if(parts.head)layer(parts.head,sourceW*.42,sourceH*.2,Math.sin(phase*.35)*.04,0,-1);
-    layer(parts.hand_up,sourceW*.68,sourceH*.29,pow.state==='free'?-0.25+Math.sin(phase)*.28:Math.sin(phase)*.025,0,pow.state==='free'?-3:0);
+    // Use full.png as base (includes 2 hands in natural down position).
+    layer(parts.full,sourceW*.5,sourceH*.5,0,0,0);
+    // When waiting (tied): full.png shows 2 hands down. No extra hand sprites.
+    // When liberated (free): overlay hand_up at raised position = 1 hand up, other stays down from full.
+    if(pow.state==='free'){
+      layer(parts.hand_up,sourceW*.68,sourceH*.29,-0.25+Math.sin(phase)*.28,0,-3);
+    }
     g.restore();return true;
   }
 

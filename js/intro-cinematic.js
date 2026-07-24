@@ -641,25 +641,19 @@
     const typeSpeed=32;
     const revealed=Math.floor(elapsed*typeSpeed);
 
-    const blockW=640, blockH=210, blockX=W/2 - blockW/2, blockY=H/2 - blockH/2 + 8;
     const fade=Math.min(1,local/0.9,(STORY_TIME-local)/1.05);
-    g.save(); g.globalAlpha=fade;
-    g.fillStyle='rgba(3,10,22,0.62)'; g.fillRect(blockX-18, blockY-26, blockW+36, blockH+36);
-    g.strokeStyle='rgba(90,220,255,0.22)'; g.lineWidth=1; g.strokeRect(blockX-18+0.5, blockY-26+0.5, blockW+36-1, blockH+36-1);
-    g.globalAlpha=fade*0.10; g.fillStyle='#00eaff';
-    for(let y=blockY-26;y<blockY+blockH+10;y+=4) g.fillRect(blockX-18, y, blockW+36, 1);
-    g.restore();
 
     g.save(); g.globalAlpha=fade;
     let charCount=0;
     g.textBaseline='middle';
+    const startY = 180;
     for(let i=0;i<lines.length;i++){
       const line=lines[i];
       const lineStart=lines.slice(0,i).reduce((a,l)=>a+l.length+12,0);
       let visibleCount=0;
       if(revealed>lineStart) visibleCount=Math.min(line.length, revealed-lineStart);
       const visibleText=line.slice(0,visibleCount);
-      const y=blockY + 26 + i*62;
+      const y=startY + i*62;
       g.font='bold 16px "Courier New", monospace';
       const fullWidth=g.measureText(line).width;
       const targetX=W/2;
@@ -792,6 +786,7 @@
 
     g.save();
     g.translate(W/2, H/2); g.scale(zoom, zoom); g.translate(-W/2, -H/2);
+    g.globalAlpha=1; g.globalCompositeOperation='source-over';
     drawLayer('spacePlanet', 125, p, fallbackSpacePlanet);
     // Planet atmospheric glow enhanced
     g.save(); g.globalCompositeOperation='lighter';
@@ -808,7 +803,9 @@
     drawShip(shipX, shipY, 0.38 + shipP * 0.46, now / 1000, slideShips[1], local, slideFire[1]);
 
     // More asteroids + parallax dust
+    g.save(); g.globalAlpha=1; g.globalCompositeOperation='source-over';
     drawLayer('spaceAsteroids', 250, p, fallbackAsteroids);
+    g.restore();
     g.save(); g.globalCompositeOperation='lighter';
     for(let i=0;i<22;i++){
       const x=((now*0.04 + i*97)%(W+160))-80;
