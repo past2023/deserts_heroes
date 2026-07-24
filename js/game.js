@@ -1214,72 +1214,245 @@
     }
   }
 
+  // Deterministic star data for the character select background
+  let charSelStars = null;
+  function initCharSelStars() {
+    charSelStars = [];
+    let seed = 7331;
+    function rng() { seed = (seed * 1664525 + 1013904223) | 0; return (seed >>> 0) / 4294967296; }
+    for (let i = 0; i < 280; i++) {
+      charSelStars.push({
+        x: rng() * VW, y: rng() * VH,
+        size: rng() < 0.82 ? 1 : 2,
+        speed: 0.08 + rng() * 0.35,
+        phase: rng() * 100,
+        twinkle: rng() * 6.28,
+        color: rng() < 0.2 ? '#68efff' : rng() < 0.4 ? '#b58cff' : '#ffffff',
+      });
+    }
+  }
+
   function drawCharacterSelect() {
-    const menuCam = (G.time * 18) % (Level.W - VW);
-    Level.drawBackground(g, menuCam, G.time, VW, VH);
-    Level.drawGround(g, menuCam, VW, VH);
-    g.fillStyle = 'rgba(5,9,18,0.58)';
+    if (!charSelStars) initCharSelStars();
+
+    // ---- Starry space background with nebula ----
+    const grad = g.createRadialGradient(VW / 2, VH / 2, 30, VW / 2, VH / 2, 520);
+    grad.addColorStop(0, '#0d1b3e');
+    grad.addColorStop(0.35, '#070f28');
+    grad.addColorStop(0.7, '#040917');
+    grad.addColorStop(1, '#010308');
+    g.fillStyle = grad;
     g.fillRect(0, 0, VW, VH);
 
-    text(tr('characterSelect.title'), VW / 2, 43, 30, '#ffe28a', 'center');
-    text(tr('characterSelect.storyPremise'), VW / 2, 68, 11, '#b9dff0', 'center');
+    // Nebula glow
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    for (let n = 0; n < 3; n++) {
+      const nx = VW * (0.2 + n * 0.3) + Math.sin(G.time * 0.08 + n * 2.1) * 20;
+      const ny = VH * (0.3 + n * 0.18) + Math.cos(G.time * 0.06 + n * 1.3) * 15;
+      const nr = 150 + n * 60 + Math.sin(G.time * 0.1 + n) * 20;
+      const ng = g.createRadialGradient(nx, ny, 5, nx, ny, nr);
+      const colors = ['rgba(104,239,255,0.05)', 'rgba(180,140,255,0.04)', 'rgba(255,180,80,0.03)'];
+      ng.addColorStop(0, colors[n]);
+      ng.addColorStop(0.5, colors[n]);
+      ng.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = ng;
+      g.beginPath();
+      g.arc(nx, ny, nr, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.restore();
+
+    // Twinkling stars with slow drift
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    for (const s of charSelStars) {
+      const driftX = Math.sin(G.time * s.speed + s.phase) * 6;
+      const alpha = 0.3 + Math.abs(Math.sin(G.time * 1.2 + s.twinkle)) * 0.7;
+      g.globalAlpha = alpha * 0.6;
+      g.fillStyle = s.color;
+      g.fillRect(Math.round(s.x + driftX), Math.round(s.y), s.size, s.size);
+      if (s.size > 1) {
+        g.globalAlpha = alpha * 0.2;
+        g.fillRect(Math.round(s.x + driftX) - 1, Math.round(s.y) - 1, 4, 4);
+      }
+    }
+    g.restore();
+
+    // Subtle scanline overlay
+    g.fillStyle = 'rgba(255,255,255,0.012)';
+    for (let y = 0; y < VH; y += 3) g.fillRect(0, y, VW, 1);
+
+    // ---- Title ----
+    g.save();
+    const titleY = 48;
+    g.font = 'bold 28px "Courier New", monospace';
+    g.textAlign = 'center';
+    g.fillStyle = 'rgba(0,0,0,0.7)';
+    g.fillText(tr('characterSelect.title'), VW / 2 + 2, titleY + 2);
+    g.fillStyle = '#ffe28a';
+    g.fillText(tr('characterSelect.title'), VW / 2, titleY);
+    // underline glow
+    g.globalCompositeOperation = 'lighter';
+    g.globalAlpha = 0.25 + Math.sin(G.time * 3) * 0.1;
+    g.fillStyle = '#68efff';
+    g.fillRect(VW / 2 - 170, titleY + 6, 340, 2);
+    g.restore();
+
+    // Mode indicator
     text(tr(G.pendingMode === 'survival' ? 'menu.survival' : 'menu.arcade'),
       VW - 18, 35, 11, '#ffb347', 'right');
 
-    const cardW = 286, cardH = 392, gap = 16, startX = 35, cardY = 83;
+    // ---- Character cards ----
+    const cardW = 286, cardH = 392, gap = 18, startX = 35, cardY = 76;
     for (let i = 0; i < Characters.roster.length; i++) {
       const character = Characters.roster[i];
       const x = startX + i * (cardW + gap);
       const selected = i === G.characterSel;
+
       g.save();
-      g.fillStyle = selected ? 'rgba(24,39,55,0.78)' : 'rgba(8,13,22,0.62)';
-      g.fillRect(x, cardY, cardW, cardH);
-      g.strokeStyle = selected ? character.accent : 'rgba(165,180,195,0.32)';
-      g.lineWidth = selected ? 3 : 1;
-      g.strokeRect(x + 1, cardY + 1, cardW - 2, cardH - 2);
+
+      // Card shadow
+      g.fillStyle = 'rgba(0,0,0,0.5)';
+      g.fillRect(x + 4, cardY + 4, cardW, cardH);
+
+      // Card background with gradient
+      const bgGrad = g.createLinearGradient(x, cardY, x, cardY + cardH);
       if (selected) {
-        g.globalCompositeOperation = 'lighter';
-        g.globalAlpha = 0.32 + Math.sin(G.time * 6) * 0.1;
+        bgGrad.addColorStop(0, 'rgba(20,35,55,0.92)');
+        bgGrad.addColorStop(1, 'rgba(8,15,28,0.92)');
+      } else {
+        bgGrad.addColorStop(0, 'rgba(10,18,30,0.85)');
+        bgGrad.addColorStop(1, 'rgba(4,8,16,0.85)');
+      }
+      g.fillStyle = bgGrad;
+      g.fillRect(x, cardY, cardW, cardH);
+
+      // Border
+      if (selected) {
         g.strokeStyle = character.accent;
-        g.lineWidth = 7;
-        g.strokeRect(x + 5, cardY + 5, cardW - 10, cardH - 10);
+        g.lineWidth = 2;
+        g.strokeRect(x + 0.5, cardY + 0.5, cardW - 1, cardH - 1);
+
+        // Animated outer glow
+        g.globalCompositeOperation = 'lighter';
+        g.globalAlpha = 0.35 + Math.sin(G.time * 5) * 0.18;
+        g.strokeStyle = character.accent;
+        g.lineWidth = 5;
+        g.strokeRect(x + 4, cardY + 4, cardW - 8, cardH - 8);
+
+        // Corner accents
+        g.globalAlpha = 0.7;
+        g.lineWidth = 3;
+        const cSize = 16;
+        g.beginPath();
+        g.moveTo(x + cSize, cardY); g.lineTo(x, cardY); g.lineTo(x, cardY + cSize);
+        g.moveTo(x + cardW - cSize, cardY + cardH); g.lineTo(x + cardW, cardY + cardH); g.lineTo(x + cardW, cardY + cardH - cSize);
+        g.moveTo(x + cardW - cSize, cardY); g.lineTo(x + cardW, cardY); g.lineTo(x + cardW, cardY + cSize);
+        g.moveTo(x + cSize, cardY + cardH); g.lineTo(x, cardY + cardH); g.lineTo(x, cardY + cardH - cSize);
+        g.stroke();
+        g.globalCompositeOperation = 'source-over';
+      } else {
+        g.strokeStyle = 'rgba(100,120,140,0.35)';
+        g.lineWidth = 1;
+        g.strokeRect(x + 0.5, cardY + 0.5, cardW - 1, cardH - 1);
       }
       g.restore();
 
+      // Portrait
       const portrait = Sprites.getCharacterPortrait(character.id);
       if (portrait) {
         g.save();
-        g.globalAlpha = selected ? 1 : 0.68;
-        g.drawImage(portrait, x + 53, cardY + 10, 180, 180);
+        g.globalAlpha = selected ? 1 : 0.65;
+        // Subtle portrait glow when selected
+        if (selected) {
+          g.shadowColor = character.accent;
+          g.shadowBlur = 12;
+        }
+        g.drawImage(portrait, x + 53, cardY + 12, 180, 180);
+        if (selected) g.shadowBlur = 0;
+        // Portrait frame
+        g.strokeStyle = selected ? character.accent : 'rgba(120,140,160,0.25)';
+        g.lineWidth = 1;
+        g.strokeRect(x + 53, cardY + 12, 180, 180);
         g.restore();
       } else {
         const preview = Sprites.getCharacterFrame(character.id, 'idle', G.time, 0);
-        Sprites.draw(g, preview, x + cardW / 2, cardY + 188, 1, selected ? 1 : 0.68);
+        Sprites.draw(g, preview, x + cardW / 2, cardY + 188, 1, selected ? 1 : 0.65);
       }
 
-      text(tr(character.nameKey), x + cardW / 2, cardY + 215, 20,
-        selected ? '#ffffff' : '#c3c9ce', 'center');
-      text(tr(character.roleKey), x + cardW / 2, cardY + 235, 10,
-        selected ? character.accent : '#89939d', 'center');
-      drawWrapped(tr(character.bioKey), x + cardW / 2, cardY + 254,
-        cardW - 28, 13, 9, selected ? '#dce8ee' : '#929ba4');
+      // Name
+      g.save();
+      g.font = 'bold 20px "Courier New", monospace';
+      g.textAlign = 'center';
+      g.fillStyle = 'rgba(0,0,0,0.7)';
+      g.fillText(tr(character.nameKey), x + cardW / 2 + 1, cardY + 207 + 1);
+      g.fillStyle = selected ? '#ffffff' : '#b0bcc8';
+      g.fillText(tr(character.nameKey), x + cardW / 2, cardY + 207);
 
+      // Role
+      g.font = 'bold 10px "Courier New", monospace';
+      g.fillStyle = 'rgba(0,0,0,0.7)';
+      g.fillText(tr(character.roleKey), x + cardW / 2 + 1, cardY + 226 + 1);
+      g.fillStyle = selected ? character.accent : '#708090';
+      g.fillText(tr(character.roleKey), x + cardW / 2, cardY + 226);
+
+      // Separator line
+      g.strokeStyle = selected ? character.accent : 'rgba(100,120,140,0.25)';
+      g.globalAlpha = selected ? 0.6 : 0.3;
+      g.beginPath();
+      g.moveTo(x + 20, cardY + 235);
+      g.lineTo(x + cardW - 20, cardY + 235);
+      g.stroke();
+      g.globalAlpha = 1;
+      g.restore();
+
+      // Bio
+      drawWrapped(tr(character.bioKey), x + cardW / 2, cardY + 246, cardW - 28, 13, 9,
+        selected ? '#c0d0e0' : '#708090');
+
+      // Stats
       const statX = x + 14, statW = cardW - 28;
       drawSelectStat(tr('characterSelect.speed'), character.speed, 310,
-        statX, cardY + 304, statW, character.accent);
+        statX, cardY + 300, statW, character.accent);
       drawSelectStat(tr('characterSelect.jump'), Math.abs(character.jumpVelocity), 840,
-        statX, cardY + 326, statW, character.accent);
+        statX, cardY + 320, statW, character.accent);
       drawSelectStat(tr('characterSelect.armor'), character.maxArmor, 2,
-        statX, cardY + 348, statW, character.accent);
+        statX, cardY + 340, statW, character.accent);
       drawSelectStat(tr('characterSelect.ammo'), character.ammoMultiplier, 1,
-        statX, cardY + 370, statW, character.accent);
+        statX, cardY + 360, statW, character.accent);
 
+      // High score
       const hi = characterHi(G.pendingMode, character.id);
-      text(tr('hud.high') + ' ' + String(hi).padStart(7, '0'),
-        x + cardW - 12, cardY + 387, 9, selected ? '#ffe28a' : '#757d84', 'right');
+      g.save();
+      g.font = 'bold 9px "Courier New", monospace';
+      g.textAlign = 'right';
+      g.fillStyle = selected ? 'rgba(255,226,138,0.6)' : 'rgba(117,125,132,0.5)';
+      g.fillText(tr('hud.high') + ' ' + String(hi).padStart(7, '0'), x + cardW - 12, cardY + 383);
+      g.restore();
+
+      // Selection indicator
+      if (selected) {
+        g.save();
+        g.globalAlpha = 0.5 + Math.sin(G.time * 6) * 0.3;
+        g.fillStyle = character.accent;
+        g.font = 'bold 24px "Courier New", monospace';
+        g.textAlign = 'center';
+        g.fillText('>', x - 14, cardY + cardH / 2 + 8);
+        g.fillText('<', x + cardW + 14, cardY + cardH / 2 + 8);
+        g.restore();
+      }
     }
 
-    text(tr('characterSelect.hint'), VW / 2, 515, 12, '#ffffff', 'center');
+    // Bottom hint
+    g.save();
+    g.font = 'bold 12px "Courier New", monospace';
+    g.textAlign = 'center';
+    const pulse = 0.4 + Math.sin(G.time * 4) * 0.25;
+    g.globalAlpha = pulse;
+    g.fillStyle = '#68efff';
+    g.fillText(tr('characterSelect.hint'), VW / 2, 513);
+    g.restore();
   }
 
   // ---------- schermate ----------
