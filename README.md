@@ -36,14 +36,14 @@ Standard Gamepad API controllers are detected automatically in gameplay, menus, 
 
 ## Gameplay
 
-* **Three playable explorers**: after choosing Arcade or Survival, select Juan P. (balanced), Elena K. (fast/agile), or Sergio H. (slow with two armor points). Each has a full PNG animation set, portrait, localized bio, stats card, saved last selection, and separate per-character high scores.
+* **Three playable explorers**: after choosing Arcade or Survival, select from a redesigned character-select screen with a glass-morphism card (centered 880×470), identity section (name, class badge with diamond bullet, bio), portrait frame, and 4 color-coded stat bars (Speed=cyan, Jump=neon-green, Armor=orange, Ammo=red) on a deep-space nebula animated background.
 * **Mission entrance**: the selected explorer arrives in a short in-engine cinematic on a twin-rocket flying surfboard, jumps to the ground, and starts the mission while the board accelerates away.
 * **Two modes**: *Arcade Mission* (single extended mission ~26,000px with final boss) and *Survival* (endless waves in an arena, separate high score). Mode selected from menu with Up/Down.
 * **Enemies**: rifle soldiers, grenadiers, melee attackers, elite bazooka troops, sandbag turrets, helicopters, and tanks.
 * **Mini-boss**: Gunship helicopter with HP bar, bullet spreads, and bombing runs.
 * **Final boss**: An original armored fortress with arc cannon, machine gun, and infantry reinforcements. It enrages below 35% HP.
 * **Chain combo**: close-range kills increase score multiplier (up to x3). Chain breaks if hit.
-* **POWs**: rescue bound prisoners for points and weapon crates.
+* **POWs**: rescue bound prisoners for points and weapon crates. Prisoners show 2 hands down while tied, 1 hand raised when liberated (fixed 3-arm bug).
 * **Weapons**: Pistol (infinite), Heavy Machine Gun (H), Spread (S), Rocket (R), Flame Shot (F), plus a shoulder-mounted secondary launcher. The launcher fires grenades from the weapon beside the player's head. A cyan **T** upgrade loads 10 target-seeking guided missiles; after the tenth missile it automatically returns to the normal grenade stock.
 * **Rideable allied assault tank**: the complete supplied 180×120 PNG animation set is active for idle, movement, firing, cannon recoil, jump suspension, hit, critical damage, and staged destruction. Normal Fire uses a lower cyan coaxial laser with limited ground-target angle correction; Up+Fire remains anti-air and Secondary fires the explosive shell. It has 3 armor points, crushes infantry, blocks light bullets, and ejects the pilot at zero armor.
 * **Destructibles**: wooden crates (loot: weapons, grenades, points) and red explosive barrels that chain-react and damage everyone — bait enemies near them.
