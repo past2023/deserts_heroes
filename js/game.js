@@ -286,12 +286,10 @@
     G.spawnIdx = 0;
     G.bannerT = 0;
     G.tutorial = effectiveMode === 'tutorial' ? {
-      phase: 'intro',
       hintT: 0,
       completed: {},
       surfboard: null,
       outroT: 0,
-      exitTriggered: false,
     } : null;
 
     if (effectiveMode === 'survival') {
@@ -417,102 +415,70 @@
       }
     }
 
-    const LIGHT = Level.END_LIGHT || { x: Level.W - 260, y: 200, r: 28 };
+    // Spawn surfboard early (visible waiting at exit from module 5 onwards)
     const SURF_X = (Level.SURFBOARD_X !== undefined ? Level.SURFBOARD_X : Level.W - 180);
-
-    // Trigger when near end light OR near surfboard X
-    const dxLight = p.x - LIGHT.x, dyLight = (p.y - 36) - LIGHT.y;
-    const distLight = Math.hypot(dxLight, dyLight);
-    const nearLight = distLight < 110;
-    const nearSurfX = p.x > SURF_X - 60;
-
-    if (!t.exitTriggered && (nearLight || nearSurfX)) {
-      t.exitTriggered = true;
-      t.outroT = 0;
-      t.boardMounted = false;
-      t.approachT = 0;
-      const boardY = nearLight ? LIGHT.y + 55 : Level.GROUND - 180;
-      const boardX = nearLight ? LIGHT.x : SURF_X;
-      t.surfboard = {
-        x: boardX,
-        y: boardY,
-        vx: 40,
-        vy: -5,
-        active: true,
-        boardT: 0,
-        exhaustT: 0,
-      };
-      // small jump cue
-      if (p.onGround) { p.vy = -320; p.onGround = false; }
-      SFX.introFly();
-      Dialogue.say('player', 'tutorial.hint.board', 3.5);
-      G.camLockL = 0; G.camLockR = Level.W + 2000;
+    if (!t.surfboard && p.x > 4 * 1376) { // visible from ~module 5
+      const boardY = Level.GROUND - 180;
+      t.surfboard = { x: SURF_X, y: boardY, vx: 0, vy: 0, active: true, boardT: 0, exhaustT: 0, mounted: false };
     }
 
-    if (t.exitTriggered) {
+    // Auto-mount when player approaches the waiting surfboard
+    if (t.surfboard && !t.surfboard.mounted) {
+      const board = t.surfboard;
+      board.boardT += dt;
+      // Gentle hover
+      board.vy = Math.sin(board.boardT * 3) * 6;
+      board.y += board.vy * dt;
+
+      const dx = Math.abs(p.x - board.x);
+      const dy = Math.abs(p.y - board.y);
+      const near = dx < 85 && dy < 55 && !p.dead;
+
+      if (near) {
+        // Auto-mount: lock player to board
+        t.surfboard.mounted = true;
+        t.exitTriggered = true;
+        t.outroT = 0;
+        p.inv = 999;
+        p.vx = 0; p.vy = 0;
+        p.onGround = true;
+        SFX.introJump();
+        for(let i=0;i<12;i++) G.particles.push({kind:'spark', x:p.x, y:p.y-10, vx:(Math.random()-0.5)*120, vy:-20-Math.random()*80, t:0, life:0.25+Math.random()*0.25, color:'#ffe28a', size:2+Math.random()*2.5, grav:120});
+        G.camLockR = Level.W + 2000;
+      }
+
+      // Draw "BOARD" hint near exit
+      if (!t.exitTriggered && p.x > 7 * 1376) {
+        Dialogue.say('player', 'tutorial.hint.board', 5.0);
+      }
+    }
+
+    if (t.exitTriggered && t.surfboard && t.surfboard.mounted) {
       t.outroT += dt;
       const board = t.surfboard;
-      if (!board) return;
       board.boardT += dt;
       board.exhaustT -= dt;
+
+      // Exhaust particles
       if (board.exhaustT <= 0) {
         const bx = board.x - 48;
         for (const oy of [-8, 5]) {
-          G.particles.push({ kind: 'smoke', x: bx - Math.random() * 8, y: board.y + oy,
-            vx: -80 - Math.random() * 100, vy: (Math.random() - 0.5) * 45,
-            t: 0, life: 0.42 + Math.random() * 0.25,
-            color: Math.random() < 0.35 ? '#68717a' : '#3f464d',
-            size: 5 + Math.random() * 6, grav: -24, drag: 0.7 });
-          G.particles.push({ kind: 'spark', x: bx, y: board.y + oy,
-            vx: -180 - Math.random() * 170, vy: (Math.random() - 0.5) * 70,
-            t: 0, life: 0.09 + Math.random() * 0.08,
-            color: Math.random() < 0.4 ? '#ffffff' : '#ffb347',
-            size: 2 + Math.random() * 2, grav: 0 });
+          G.particles.push({ kind: 'smoke', x: bx - Math.random() * 8, y: board.y + oy, vx: -80 - Math.random() * 100, vy: (Math.random() - 0.5) * 45, t: 0, life: 0.42 + Math.random() * 0.25, color: Math.random() < 0.35 ? '#68717a' : '#3f464d', size: 5 + Math.random() * 6, grav: -24, drag: 0.7 });
+          G.particles.push({ kind: 'spark', x: bx, y: board.y + oy, vx: -180 - Math.random() * 170, vy: (Math.random() - 0.5) * 70, t: 0, life: 0.09 + Math.random() * 0.08, color: Math.random() < 0.4 ? '#ffffff' : '#ffb347', size: 2 + Math.random() * 2, grav: 0 });
         }
         board.exhaustT = 0.032;
       }
 
-      // Mounting logic: player jumps to board
-      if (!t.boardMounted) {
-        t.approachT += dt;
-        const targetX = board.x;
-        const targetY = board.y - 12;
-        const dx = targetX - p.x, dy = targetY - p.y;
-        // gentle homing to board before mount
-        if (Math.abs(dx) < 70 && Math.abs(dy) < 40) {
-          t.boardMounted = true;
-          p.inv = 999;
-          p.vx = 0; p.vy = 0;
-          SFX.introJump();
-          // burst effect on mount
-          for(let i=0;i<12;i++) G.particles.push({kind:'spark', x:p.x, y:p.y-10, vx:(Math.random()-0.5)*120, vy:-20-Math.random()*80, t:0, life:0.25+Math.random()*0.25, color:'#ffe28a', size:2+Math.random()*2.5, grav:120});
-        } else {
-          // nudge player toward board if close
-          if (t.approachT > 0.15) {
-            p.vx += Math.sign(dx) * 420 * dt;
-            if (Math.abs(dx) < 120 && p.onGround) p.vy = -380;
-          }
-        }
-      }
+      // Player locked to board
+      p.x = board.x;
+      p.y = board.y - 6 + Math.sin(board.boardT*8)*1.2;
+      p.vx = board.vx; p.vy = board.vy;
+      p.onGround = true;
+      p.inv = 999;
 
-      if (t.boardMounted) {
-        // player locked to board
-        p.x = board.x;
-        p.y = board.y - 6 + Math.sin(board.boardT*8)*1.2;
-        p.vx = board.vx; p.vy = board.vy;
-        p.onGround = true;
-        p.inv = 999;
-      }
-
-      // board accelerates off screen
-      if (t.boardMounted) {
-        board.vx += 560 * dt;
-        board.vy -= 42 * dt;
-      } else {
-        // idle hover before mount
-        board.vx = 18 + Math.sin(board.boardT*2)*4;
-        board.vy = Math.sin(board.boardT*3)*6;
-      }
+      // Accelerate off screen
+      board.vx += 560 * dt;
+      board.vy -= 42 * dt;
       board.x += board.vx * dt;
       board.y += board.vy * dt;
 
@@ -522,16 +488,7 @@
       if (t.outroT > 2.8) {
         try {
           localStorage.setItem('dh_tutorial_done', '1');
-          const reward = {
-            score: G.score + 1000,
-            lives: G.lives,
-            characterId: G.player.characterId,
-            weapon: 'mg',
-            ammo: 80,
-            grenades: 6,
-            homingMissiles: 5,
-            armor: G.player.maxArmor
-          };
+          const reward = { score: G.score + 1000, lives: G.lives, characterId: G.player.characterId, weapon: 'mg', ammo: 80, grenades: 6, homingMissiles: 5, armor: G.player.maxArmor };
           sessionStorage.setItem('dh_tutorial_reward', JSON.stringify(reward));
         } catch (e) {}
         SFX.stopMusic();
@@ -542,16 +499,14 @@
   }
 
   function drawTutorialBoard(g, camX) {
-    if (!G.tutorial || !G.tutorial.surfboard || !G.tutorial.surfboard.active) return;
+    if (!G.tutorial || !G.tutorial.surfboard) return;
     const b = G.tutorial.surfboard;
     const sx = b.x - camX;
     if (sx < -320 || sx > VW + 320) return;
-    const t = G.tutorial;
-    const playerOnBoard = t.exitTriggered && t.boardMounted;
+    const mounted = !!b.mounted;
     // draw board
-    Sprites.drawRocketBoard(g, sx, b.y, 1, b.boardT, playerOnBoard ? 1.0 : 0.65);
-    if (playerOnBoard) {
-      // draw player riding board (slightly above)
+    Sprites.drawRocketBoard(g, sx, b.y, 1, b.boardT, mounted ? 1.0 : 0.65);
+    if (mounted) {
       const p = G.player;
       if (p) {
         const rider = Sprites.getPlayerFrame('idle', G.time, 0);
@@ -559,7 +514,7 @@
         Sprites.draw(g, rider, sx, b.y - 6 + bob, 1);
       }
     } else {
-      // prompt BOARD before mount
+      // hint text
       const pulse = 0.6 + Math.sin((G.time||0)*5)*0.35;
       if (pulse>0.4) {
         g.fillStyle = '#000'; g.font = 'bold 11px "Courier New", monospace'; g.textAlign='center';
@@ -828,11 +783,9 @@
     else if (G.mode === 'tutorial') {
       handleSpawns();
       updateTutorial(dt);
-      if (G.tutorial && G.tutorial.exitTriggered) {
-        // During outro, we already returned from updateTutorial after handling particles and camera via early return? Ensure we still update systems lightly then exit
-        // If exitTriggered active, tutorial update handled camera and particles and will redirect soon; skip rest for first frame after attach
-        if (G.tutorial.outroT > 0 && G.tutorial.outroT < 1.8) {
-          // still allow some updates for visual continuity but not game logic
+      if (G.tutorial && G.tutorial.surfboard && G.tutorial.surfboard.mounted) {
+        // During board ride: skip game logic, only update particles and camera
+        if (G.tutorial.outroT > 0 && G.tutorial.outroT < 2.2) {
           Level.updatePlatforms(dt, G.player);
           Entities.updateSlugs(dt);
           Entities.updateParticles(dt);
@@ -1507,7 +1460,7 @@
     if (G.mode === 'tutorial') drawTutorialBoard(g, cam);
     const introDrewPlayer = drawIntroActors(cam);
     // During tutorial outro, player is drawn as rider inside drawTutorialBoard, so skip normal draw when mounted
-    const skipNormalPlayer = G.mode === 'tutorial' && G.tutorial && G.tutorial.exitTriggered && G.tutorial.boardMounted;
+    const skipNormalPlayer = G.mode === 'tutorial' && G.tutorial && G.tutorial.surfboard && G.tutorial.surfboard.mounted;
     if (G.player && !introDrewPlayer && !skipNormalPlayer) Entities.drawPlayer(g, cam);
     Entities.drawGrenades(g, cam);
     Entities.drawBullets(g, cam);

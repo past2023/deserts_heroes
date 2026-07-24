@@ -1,19 +1,8 @@
 // ============================================================
 // TUTORIAL LEVEL — Frontier Training Annex v4
-// Updated for 8 modules (01,02,03,04,06,07,08,05) + pilar seams + green-ref platforms
-// Order spec:
-// 0: mid01b (satellite dish lab)  - reference mid01_refe
-// 1: mid02b (broken circle)       - mid02_refe / mid07_refe
-// 2: mid03b (suspended ship)      - mid06_refe
-// 3: mid04b (desert view upper)   - mid04_refe / mid03_refe
-// 4: mid06b (elevator lab)        - mid06_refe / mid01_refe
-// 5: mid07b (sand hangar robots)  - mid07_refe / mid03_refe
-// 6: mid08b (second elevator/satellite) - mid08_refe
-// 7: mid05b (desert exit)         - mid05_refe final
-// Green lines: top edge = walkable. This file uses estimated positions from provided refs.
-// Note: _refe.png files contain 3D concept reference with green geometry outlines,
-// NOT platform markers. Platforms are defined manually below.
-// Pilar01.png hides seams at each module border, drawn as extreme foreground.
+// Updated for 8 modules (01,02,03,04,06,07,08,05) + pilar seams
+// Platforms extracted from tutorial_midXX_refe.png reference lines.
+// Pilar01.png hides seams at each module border.
 // Old foreground tutorial_foreground01.png only at start and middle.
 // ============================================================
 (function () {
@@ -31,10 +20,8 @@
   const tutorialBack = new Image(); tutorialBack.decoding='async'; tutorialBack.src='assets/tutorial/tutorial_back01.png';
   const tutorialFore = new Image(); tutorialFore.decoding='async'; tutorialFore.src='assets/tutorial/tutorial_foreground01.png';
   const pilarImage = new Image(); pilarImage.decoding='async'; pilarImage.src='assets/tutorial/pilar01.png';
-  // also try alternative names
-  const pilarAlt = new Image(); pilarAlt.decoding='async'; pilarAlt.src='assets/tutorial/pilar01.png';
 
-  // 8 modular mids in new order — tries assets/tutorial/ then upload/ then non-b versions
+  // 8 modular mids
   const midSources = [
     'assets/tutorial/tutorial_mid01b.png',
     'assets/tutorial/tutorial_mid02b.png',
@@ -64,118 +51,163 @@
     img.onerror = (function(idx, im){
       return function(){
         const list = midSourcesFallback[idx]||[];
-        if(fallbackIdx < list.length){
-          im.src = list[fallbackIdx++];
-        }
+        if(fallbackIdx < list.length){ im.src = list[fallbackIdx++]; }
       };
     })(i, img);
     tutorialMids.push(img);
   }
 
-  // Reference images — not used for platform extraction (3D concept art)
-
-  // Also try upload folder for pilar
   if (!imageReady(pilarImage)) {
-    // will retry via onerror handled below
-    const origOnError = pilarImage.onerror;
-    pilarImage.onerror = function(){
-      this.src = 'upload/pilar01.png';
-    };
+    pilarImage.onerror = function(){ this.src = 'upload/pilar01.png'; };
   }
 
-  // Manual platforms estimated from the module art.
-  // Each entry: world x = moduleOffset + localX, baseY = MID_BASE_Y + localY, w, invisible
+  // Platforms extracted from tutorial_midXX_refe.png reference lines.
+  // The top of each green/black reference line = walkable surface.
+  // Module-to-refe mapping: 0=mid01, 1=mid02, 2=mid03, 3=mid04,
+  // 4=mid06, 5=mid07, 6=mid08, 7=mid05 (desert exit).
+  // Coords: local x in image (0-1376), image row (0-768), width.
+  // Game coords: worldX = modIdx*MODULE_W + lx, gameY = MID_BASE_Y + ly = -150 + ly.
   const platforms = [];
   function addP(modIdx, lx, ly, lw){
     const wx = modIdx*MODULE_W + lx;
-    const wy = MID_BASE_Y + ly; // ly is local Y inside image
+    const wy = MID_BASE_Y + ly;
     platforms.push({ x: wx, baseY: wy, y: wy, w: lw, amp:0, speed:0, phase:0, fragile:false, invisible:true });
   }
 
-  // Module 0 — sat dish lab (mid01b)
-  addP(0, 180, 200, 80);
-  addP(0, 60, 270, 140);
-  addP(0, 130, 430, 140);
-  addP(0, 350, 450, 160);
-  addP(0, 760, 320, 160);
-  addP(0, 950, 300, 340);
-  addP(0, 780, 470, 50);
-  addP(0, 400, 500, 50);
+  // Module 0 — mid01b (satellite dish lab)
+  addP(0, 452, 213, 19);
+  addP(0, 382, 214, 12);
+  addP(0, 397, 214, 13);
+  addP(0, 327, 215, 29);
+  addP(0, 366, 215, 12);
+  addP(0, 594, 259, 21);
+  addP(0, 1122, 259, 16);
+  addP(0, 1175, 259, 14);
+  addP(0, 1234, 259, 16);
+  addP(0, 231, 260, 20);
+  addP(0, 545, 260, 32);
+  addP(0, 939, 260, 19);
+  addP(0, 760, 261, 12);
+  addP(0, 113, 264, 22);
+  addP(0, 141, 264, 17);
+  addP(0, 502, 264, 19);
+  addP(0, 190, 266, 25);
+  addP(0, 78, 267, 12);
+  addP(0, 654, 498, 12);
 
-  // Module 1 — broken circular (mid02b)
-  addP(1, 80, 300, 500);
-  addP(1, 60, 400, 200);
-  addP(1, 160, 520, 50);
-  addP(1, 800, 380, 200);
-  addP(1, 1050, 380, 300);
-  addP(1, 850, 500, 60);
-  addP(1, 500, 520, 60);
+  // Module 1 — mid02b (broken circular)
+  addP(1, 934, 257, 379);
+  addP(1, 73, 306, 473);
+  addP(1, 547, 322, 379);
 
-  // Module 2 — suspended ship lab (mid03b)
-  addP(2, 180, 200, 90);
-  addP(2, 60, 270, 160);
-  addP(2, 360, 250, 300);
-  addP(2, 760, 310, 616);
-  addP(2, 340, 440, 160);
-  addP(2, 400, 540, 50);
-  addP(2, 560, 500, 140);
-  addP(2, 750, 500, 80);
+  // Module 2 — mid03b (suspended ship)
+  addP(2, 278, 212, 14);
+  addP(2, 305, 212, 44);
+  addP(2, 440, 212, 40);
+  addP(2, 385, 213, 16);
+  addP(2, 401, 213, 21);
+  addP(2, 423, 213, 13);
+  addP(2, 611, 259, 12);
+  addP(2, 726, 261, 17);
+  addP(2, 754, 261, 18);
+  addP(2, 812, 261, 14);
+  addP(2, 831, 261, 32);
+  addP(2, 908, 261, 13);
+  addP(2, 921, 261, 24);
+  addP(2, 973, 261, 26);
+  addP(2, 1041, 261, 18);
+  addP(2, 1075, 261, 12);
+  addP(2, 1088, 261, 23);
+  addP(2, 1112, 261, 16);
+  addP(2, 1164, 261, 22);
+  addP(2, 1211, 261, 15);
+  addP(2, 1275, 262, 17);
+  addP(2, 228, 263, 23);
+  addP(2, 209, 264, 18);
 
-  // Module 3 — desert view upper (mid04b)
-  addP(3, 10, 350, 740);
-  addP(3, 750, 290, 626);
-  addP(3, 200, 440, 140);
-  addP(3, 310, 390, 110);
-  addP(3, 380, 380, 100);
-  addP(3, 430, 440, 100);
-  addP(3, 830, 500, 70);
+  // Module 3 — mid04b (desert view upper)
+  addP(3, 588, 259, 14);
+  addP(3, 486, 260, 12);
+  addP(3, 519, 260, 13);
+  addP(3, 560, 260, 12);
+  addP(3, 603, 260, 12);
+  addP(3, 130, 261, 28);
+  addP(3, 697, 261, 25);
+  addP(3, 725, 261, 12);
+  addP(3, 742, 261, 12);
+  addP(3, 810, 261, 40);
+  addP(3, 111, 262, 18);
+  addP(3, 166, 262, 45);
+  addP(3, 1295, 265, 31);
+  addP(3, 215, 266, 74);
+  addP(3, 1275, 266, 20);
+  addP(3, 1231, 267, 13);
+  addP(3, 1251, 267, 24);
+  addP(3, 1212, 271, 19);
+  addP(3, 1163, 445, 12);
+  addP(3, 1183, 447, 13);
+  addP(3, 1113, 449, 18);
+  addP(3, 1149, 449, 12);
+  addP(3, 630, 497, 22);
 
-  // Module 4 — elevator lab (mid06b)
-  addP(4, 230, 210, 190);
-  addP(4, 70, 260, 140);
-  addP(4, 340, 300, 140);
-  addP(4, 480, 300, 896);
-  addP(4, 340, 400, 110);
-  addP(4, 70, 530, 150);
-  addP(4, 190, 520, 70);
-  addP(4, 350, 510, 150);
-  addP(4, 720, 460, 160);
+  // Module 4 — mid06b (elevator lab)
+  addP(4, 299, 209, 26);
+  addP(4, 89, 263, 15);
+  addP(4, 124, 265, 18);
+  addP(4, 156, 265, 81);
+  addP(4, 142, 266, 12);
+  addP(4, 1213, 271, 12);
+  addP(4, 1225, 271, 56);
+  addP(4, 1148, 272, 12);
+  addP(4, 1297, 273, 16);
+  addP(4, 985, 289, 44);
+  addP(4, 942, 290, 16);
+  addP(4, 1033, 292, 43);
+  addP(4, 487, 422, 119);
+  addP(4, 904, 452, 14);
 
-  // Module 5 — sand hangar robots (mid07b)
-  addP(5, 60, 320, 160);
-  addP(5, 320, 320, 140);
-  addP(5, 460, 320, 180);
-  addP(5, 970, 320, 80);
-  addP(5, 320, 420, 90);
-  addP(5, 70, 510, 80);
-  addP(5, 320, 500, 60);
-  addP(5, 360, 540, 70);
-  addP(5, 830, 460, 150);
+  // Module 5 — mid07b (sand hangar robots)
+  addP(5, 160, 259, 193);
+  addP(5, 128, 260, 13);
+  addP(5, 1265, 271, 13);
+  addP(5, 1280, 271, 36);
+  addP(5, 371, 282, 22);
+  addP(5, 929, 289, 21);
+  addP(5, 985, 289, 13);
+  addP(5, 771, 466, 14);
+  addP(5, 785, 469, 21);
 
-  // Module 6 — second new (mid08b)
-  addP(6, 230, 210, 190);
-  addP(6, 70, 260, 140);
-  addP(6, 340, 300, 140);
-  addP(6, 500, 300, 260);
-  addP(6, 760, 300, 160);
-  addP(6, 950, 280, 300);
-  addP(6, 350, 500, 150);
-  addP(6, 720, 480, 140);
-  addP(6, 70, 520, 120);
+  // Module 6 — mid08b (second elevator/satellite)
+  addP(6, 289, 208, 47);
+  addP(6, 89, 255, 96);
+  addP(6, 188, 266, 22);
+  addP(6, 1154, 270, 98);
+  addP(6, 1108, 271, 18);
+  addP(6, 1258, 273, 38);
+  addP(6, 1299, 276, 12);
+  addP(6, 949, 287, 19);
+  addP(6, 1005, 288, 70);
+  addP(6, 969, 289, 19);
+  addP(6, 478, 420, 126);
 
-  // Module 7 — desert exit final (mid05b)
-  addP(7, 0, 530, 90);
-  addP(7, 160, 490, 60);
-  addP(7, 400, 550, 120);
-  addP(7, 800, 540, 140);
+  // Module 7 — mid05b (desert exit final)
+  addP(7, 888, 417, 14);
+  addP(7, 258, 451, 36);
+  addP(7, 31, 469, 58);
 
-  // Extra bridging platforms between modules for smooth traversal
-  addP(0, 1200, 500, 200);
-  addP(2, 1200, 520, 200);
-  addP(4, 1200, 520, 180);
-  addP(5, 1200, 540, 180);
-  // No auto-extraction from reference images: those are 3D concept reference
-  // with green geometric outlines, NOT platform markers.
+  // Bridging platforms between modules
+  addP(0, 1250, 500, 180);
+  addP(1, 1300, 400, 150);
+  addP(2, 1280, 500, 150);
+  addP(3, 1300, 450, 150);
+  addP(5, 1300, 450, 150);
+  addP(6, 1300, 450, 150);
+
+  // Ground-level nudge platforms for player to reach structures
+  addP(0, 100, 450, 60);
+  addP(0, 200, 450, 60);
+  addP(1, 0, 450, 60);
+  addP(2, 0, 450, 60);
 
   const spawns=[
     { x:700, type:'soldier' },
@@ -218,10 +250,9 @@
   const SURFBOARD_X = W - 180;
   const END_LIGHT = { x: W - 260, y: 200, r: 28, triggered:false };
 
-  // Fixed lights: modules 0-3 keep original positions (01-04), modules 4-7 have corrected or minimal FX
-  // After expanding to 8 modules, previous module-4 duplicate caused FX in wrong mids
+  // Light FX matched to module art
   const lights=[
-    // Module 0 — sat dish lab (mid01b) — original lamps screens fire
+    // Module 0 — mid01b (satellite dish lab)
     { module:0, x:238, y:126, type:'lamp', color:'#ff9a2a', r:34, pulse:1.2, intensity:0.9 },
     { module:0, x:1002, y:142, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
     { module:0, x:1209, y:133, type:'lamp', color:'#ff9a2a', r:32, pulse:1.1, intensity:0.9 },
@@ -232,57 +263,51 @@
     { module:0, x:1248, y:415, type:'screen', color:'#58f0ff', r:22, pulse:2.8, intensity:0.5 },
     { module:0, x:920, y:530, type:'fire', color:'#ff6a18', r:48, pulse:11, intensity:1.0 },
 
-    // Module 1 — broken circular (mid02b)
+    // Module 1 — mid02b (broken circular)
     { module:1, x:1003, y:143, type:'lamp', color:'#ff9a2a', r:28, pulse:1.2, intensity:0.85 },
     { module:1, x:69, y:418, type:'screen', color:'#4aff88', r:32, pulse:2.5, intensity:0.6 },
     { module:1, x:414, y:486, type:'screen', color:'#5afcff', r:44, pulse:1.8, intensity:0.65 },
     { module:1, x:339, y:299, type:'fire', color:'#ff7a20', r:36, pulse:9, intensity:0.9 },
     { module:1, x:87, y:296, type:'lamp', color:'#ffaa3a', r:24, pulse:1.6, intensity:0.7 },
 
-    // Module 2 — suspended ship (mid03b)
+    // Module 2 — mid03b (suspended ship)
     { module:2, x:238, y:126, type:'lamp', color:'#ff9a2a', r:30, pulse:1.3, intensity:0.8 },
     { module:2, x:1001, y:142, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
     { module:2, x:75, y:386, type:'lamp', color:'#ffaa3a', r:22, pulse:1.7, intensity:0.6 },
     { module:2, x:659, y:458, type:'screen', color:'#4af1ff', r:28, pulse:2.2, intensity:0.6 },
     { module:2, x:922, y:531, type:'fire', color:'#ff6a18', r:50, pulse:10, intensity:1.0 },
 
-    // Module 3 — desert view upper (mid04b) — big robot eyes + electric FX live here
+    // Module 3 — mid04b (desert view upper + big robots)
     { module:3, x:182, y:257, type:'lamp', color:'#ff9a2a', r:34, pulse:1.5, intensity:0.9 },
     { module:3, x:75, y:387, type:'lamp', color:'#ffaa3a', r:20, pulse:1.8, intensity:0.6 },
     { module:3, x:68, y:418, type:'screen', color:'#5affa0', r:30, pulse:2.6, intensity:0.55 },
     { module:3, x:682, y:527, type:'fire', color:'#ff8a22', r:28, pulse:12, intensity:0.8 },
-    // Big robots in mid04b
     { module:3, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
     { module:3, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
     { module:3, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
     { module:3, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
 
-    // Module 4 — elevator lab (mid06b) — corrected positions from green-ref elevator image
-    { module:4, x:98, y:86, type:'lamp', color:'#ffb44a', r:26, pulse:1.3, intensity:0.82 },
-    { module:4, x:1088, y:138, type:'lamp', color:'#ff9a2a', r:28, pulse:1.4, intensity:0.85 },
-    { module:4, x:1088, y:252, type:'screen', color:'#4af1ff', r:22, pulse:2.4, intensity:0.48 },
-    { module:4, x:72, y:386, type:'lamp', color:'#ffaa3a', r:20, pulse:1.7, intensity:0.6 },
-    { module:4, x:72, y:418, type:'screen', color:'#4aff88', r:26, pulse:2.8, intensity:0.52 },
-    { module:4, x:558, y:498, type:'fire', color:'#ff6a18', r:36, pulse:9.5, intensity:0.92 },
+    // Module 4 — mid05b (desert exit)
+    { module:4, x:300, y:300, type:'lamp', color:'#ffaa3a', r:22, pulse:1.6, intensity:0.6 },
 
-    // Module 5 — sand hangar robots (mid07b)
-    { module:5, x:108, y:172, type:'lamp', color:'#ffaa3a', r:22, pulse:1.8, intensity:0.6 },
-    { module:5, x:1018, y:174, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.55 },
-    { module:5, x:72, y:418, type:'screen', color:'#5afcff', r:26, pulse:2.5, intensity:0.5 },
-    { module:5, x:622, y:516, type:'fire', color:'#ff8a22', r:24, pulse:10, intensity:0.7 },
+    // Module 5 — mid06b (elevator lab)
+    { module:5, x:100, y:260, type:'lamp', color:'#ffb44a', r:26, pulse:1.3, intensity:0.7 },
+    { module:5, x:1090, y:260, type:'lamp', color:'#ff9a2a', r:24, pulse:1.4, intensity:0.7 },
+    { module:5, x:70, y:420, type:'screen', color:'#4af1ff', r:22, pulse:2.4, intensity:0.5 },
+    { module:5, x:558, y:498, type:'fire', color:'#ff6a18', r:36, pulse:9.5, intensity:0.9 },
 
-    // Module 6 — second new (mid08b) — minimal, avoid leaking old FX
-    { module:6, x:102, y:88, type:'lamp', color:'#ffb44a', r:22, pulse:1.3, intensity:0.6 },
-    { module:6, x:1088, y:140, type:'lamp', color:'#ff9a2a', r:24, pulse:1.4, intensity:0.65 },
-    { module:6, x:72, y:420, type:'screen', color:'#4af1ff', r:20, pulse:2.6, intensity:0.45 },
-    { module:6, x:622, y:520, type:'fire', color:'#ff7a22', r:20, pulse:11, intensity:0.6 },
+    // Module 6 — mid07b (sand hangar robots)
+    { module:6, x:160, y:250, type:'lamp', color:'#ffaa3a', r:20, pulse:1.6, intensity:0.6 },
+    { module:6, x:1000, y:280, type:'lamp', color:'#ffaa3a', r:18, pulse:1.5, intensity:0.55 },
+    { module:6, x:70, y:420, type:'screen', color:'#5afcff', r:22, pulse:2.5, intensity:0.5 },
+    { module:6, x:622, y:510, type:'fire', color:'#ff8a22', r:24, pulse:10, intensity:0.7 },
 
-    // Module 7 — desert exit final (mid05b)
-    { module:7, x:348, y:385, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.6 },
-    { module:7, x:1248, y:530, type:'fire', color:'#ff8a22', r:24, pulse:8, intensity:0.7 },
+    // Module 7 — mid08b (second elevator/satellite)
+    { module:7, x:290, y:200, type:'lamp', color:'#ffb44a', r:20, pulse:1.3, intensity:0.6 },
+    { module:7, x:1100, y:260, type:'lamp', color:'#ff9a2a', r:22, pulse:1.4, intensity:0.65 },
+    { module:7, x:70, y:420, type:'screen', color:'#4af1ff', r:20, pulse:2.6, intensity:0.45 },
+    { module:7, x:622, y:510, type:'fire', color:'#ff7a22', r:20, pulse:11, intensity:0.6 },
   ];
-
-
 
   function resetPlatforms(){ for(const p of platforms){ p.dead=false; p.triggered=false; p.breakT=0; p.y=p.baseY; } }
   function updatePlatforms(dt,player){
@@ -348,8 +373,7 @@
       g.restore();
     }
     g.save();
-    const allLights=lights;
-    for(const lt of allLights){
+    for(const lt of lights){
       const worldX=lt.module*MODULE_W + lt.x*MID_SCALE;
       const screenX=worldX - camX;
       if(screenX<-140 || screenX>VW+140) continue;
@@ -403,6 +427,7 @@
     }
     g.restore();
 
+    // End beacon light
     g.save();
     const orbWorldX=END_LIGHT.x, orbWorldY=END_LIGHT.y;
     const orbScreenX=orbWorldX - camX, orbScreenY=orbWorldY;
@@ -436,21 +461,16 @@
 
   function drawExtremeForeground(g,camX,VW,VH){
     const time = (window.G&&G.time)||0;
-    // Draw pilar at each module seam to hide gap
     g.save(); g.imageSmoothingEnabled=false;
     if(imageReady(pilarImage)){
-      const pilarW = 120; // estimated width of pilar image scaled
-      const pilarH = 768;
-      const scale = 1.0;
+      const pilarW = 120, pilarH = 768, scale = 1.0;
       const drawW = pilarW*scale, drawH = pilarH*scale;
       for(let i=1;i<MODULE_COUNT;i++){
         const worldX = i*MODULE_W;
         const sx = Math.round(worldX - camX - drawW/2);
         if(sx<-300 || sx>VW+300) continue;
-        // Slight parallax 1.0 (world locked) to perfectly cover seam
         g.globalAlpha = 0.96;
         g.drawImage(pilarImage, sx, Math.round(MID_BASE_Y), drawW, drawH);
-        // Optional second layer darker for depth
         g.globalCompositeOperation='lighter'; g.globalAlpha=0.08;
         g.fillStyle='#68efff'; g.fillRect(sx+drawW*0.3, MID_BASE_Y, drawW*0.1, drawH*0.25);
         g.globalCompositeOperation='source-over'; g.globalAlpha=1;
@@ -458,30 +478,17 @@
     }
     g.restore();
 
-    // Old extreme foreground tutorial_foreground01.png only at beginning and once more in middle
     g.save(); g.imageSmoothingEnabled=false;
     if(imageReady(tutorialFore)){
       const foreScale=1.0, foreTileW=724*foreScale, foreTileH=768*foreScale;
       const foreY=VH - foreTileH + 140;
-      // First occurrence at 0
       let sx = Math.round(0 - camX*1.18);
-      if(sx>-foreTileW && sx<VW+foreTileW){
-        g.drawImage(tutorialFore, sx, Math.round(foreY), foreTileW, foreTileH);
-      }
+      if(sx>-foreTileW && sx<VW+foreTileW) g.drawImage(tutorialFore, sx, Math.round(foreY), foreTileW, foreTileH);
       sx = Math.round(150 - camX*1.18);
-      if(sx>-foreTileW && sx<VW+foreTileW){
-        g.globalAlpha=0.85;
-        g.drawImage(tutorialFore, sx, Math.round(foreY), foreTileW*0.85, foreTileH*0.85);
-        g.globalAlpha=1;
-      }
-      // Second occurrence around module 4 start (5504)
+      if(sx>-foreTileW && sx<VW+foreTileW){ g.globalAlpha=0.85; g.drawImage(tutorialFore, sx, Math.round(foreY), foreTileW*0.85, foreTileH*0.85); g.globalAlpha=1; }
       const secondX = 4*MODULE_W + 200;
       const sx2 = Math.round(secondX - camX*1.18);
-      if(sx2>-foreTileW && sx2<VW+foreTileW){
-        g.globalAlpha=0.92;
-        g.drawImage(tutorialFore, sx2, Math.round(foreY), foreTileW, foreTileH);
-        g.globalAlpha=1;
-      }
+      if(sx2>-foreTileW && sx2<VW+foreTileW){ g.globalAlpha=0.92; g.drawImage(tutorialFore, sx2, Math.round(foreY), foreTileW, foreTileH); g.globalAlpha=1; }
     }
     g.restore();
   }
@@ -489,12 +496,10 @@
   function nightAmount(){ return 0.78; }
   function isLavaGap(){ return false; }
   function updateHazards(dt){
-    // Falling ambient particles (data stream / stardust)
     if(window.G && G.particles && Math.random()<dt*18){
       const x = (window.G ? G.camX : 0) + Math.random() * 960;
-      const y = -10;
       G.particles.push({
-        kind:'spark', x:x, y:y,
+        kind:'spark', x:x, y:-10,
         vx:(Math.random()-0.5)*12, vy:80+Math.random()*160,
         t:0, life:2+Math.random()*3,
         color:Math.random()<0.3?'#68efff':'#8ab5ff',
