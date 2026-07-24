@@ -2,7 +2,7 @@
 (function () {
   const canvas=document.getElementById('galactic-map'),g=canvas.getContext('2d');
   g.imageSmoothingEnabled=false;const W=960,H=540;
-  MusicTracks.play('symphony');
+  MusicTracks.play('overture');
   const query=new URLSearchParams(location.search),mode=query.get('mode')||'arcade';
   const character=query.get('character')||localStorage.getItem('dh_character')||'juan_p';
   const language=localStorage.getItem('dh_language')||'en';

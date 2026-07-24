@@ -44,8 +44,6 @@
     overture: 'assets/audio/Star_Map_Overture.mp3',
     level1: 'assets/audio/Sandbyte_Ambush.mp3',
     space: 'assets/audio/Star_Map01.mp3',
-    symphony: 'assets/audio/Star_Map_Symphony.mp3',
-    reverie: 'assets/audio/Star_Map_Reverie.mp3',
   };
   const audio = new Audio();
   audio.loop = true;
