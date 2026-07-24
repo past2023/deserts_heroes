@@ -10,8 +10,9 @@
 // 5: mid07b (sand hangar robots)  - mid07_refe / mid03_refe
 // 6: mid08b (second elevator/satellite) - mid08_refe
 // 7: mid05b (desert exit)         - mid05_refe final
-// Green lines: top edge = walkable. This file uses estimated positions from provided refs;
-// it also supports auto-extraction if *_refe.png with pure #00FF00 lines are present.
+// Green lines: top edge = walkable. This file uses estimated positions from provided refs.
+// Note: _refe.png files contain 3D concept reference with green geometry outlines,
+// NOT platform markers. Platforms are defined manually below.
 // Pilar01.png hides seams at each module border, drawn as extreme foreground.
 // Old foreground tutorial_foreground01.png only at start and middle.
 // ============================================================
@@ -71,40 +72,7 @@
     tutorialMids.push(img);
   }
 
-  // Reference images with green lines for auto-detection — try assets then upload
-  const refSources = [
-    'assets/tutorial/tutorial_mid01_refe.png',
-    'assets/tutorial/tutorial_mid02_refe.png',
-    'assets/tutorial/tutorial_mid03_refe.png',
-    'assets/tutorial/tutorial_mid04_refe.png',
-    'assets/tutorial/tutorial_mid06_refe.png',
-    'assets/tutorial/tutorial_mid07_refe.png',
-    'assets/tutorial/tutorial_mid08_refe.png',
-    'assets/tutorial/tutorial_mid05_refe.png',
-  ];
-  const refFallback = [
-    ['upload/tutorial_mid01_refe.png','upload/tutorial_mid01_ref.png','upload/mid01_refe.png'],
-    ['upload/tutorial_mid02_refe.png','upload/tutorial_mid02_ref.png'],
-    ['upload/tutorial_mid03_refe.png','upload/tutorial_mid03_ref.png'],
-    ['upload/tutorial_mid04_refe.png','upload/tutorial_mid04_ref.png'],
-    ['upload/tutorial_mid06_refe.png','upload/tutorial_mid06_ref.png','upload/mid06_refe.png'],
-    ['upload/tutorial_mid07_refe.png','upload/tutorial_mid07_ref.png'],
-    ['upload/tutorial_mid08_refe.png','upload/tutorial_mid08_ref.png'],
-    ['upload/tutorial_mid05_refe.png','upload/tutorial_mid05_ref.png'],
-  ];
-  const refImages = [];
-  for(let i=0;i<MODULE_COUNT;i++){
-    const ri = new Image(); ri.decoding='async';
-    let rFallback=0;
-    ri.src = refSources[i];
-    ri.onerror = (function(idx, im){
-      return function(){
-        const list = refFallback[idx]||[];
-        if(rFallback < list.length) im.src = list[rFallback++];
-      };
-    })(i, ri);
-    refImages.push(ri);
-  }
+  // Reference images — not used for platform extraction (3D concept art)
 
   // Also try upload folder for pilar
   if (!imageReady(pilarImage)) {
@@ -115,7 +83,7 @@
     };
   }
 
-  // Manual platforms estimated from green refs (upper edge = baseY)
+  // Manual platforms estimated from the module art.
   // Each entry: world x = moduleOffset + localX, baseY = MID_BASE_Y + localY, w, invisible
   const platforms = [];
   function addP(modIdx, lx, ly, lw){
@@ -124,75 +92,67 @@
     platforms.push({ x: wx, baseY: wy, y: wy, w: lw, amp:0, speed:0, phase:0, fragile:false, invisible:true });
   }
 
-  // Module 0 — sat dish lab (image 9) green lines
-  // Top arm small
+  // Module 0 — sat dish lab (mid01b)
   addP(0, 180, 200, 80);
-  // Left ledge high
   addP(0, 60, 270, 140);
-  // Dish rail middle
   addP(0, 130, 430, 140);
-  // Center lower block
   addP(0, 350, 450, 160);
-  // Right upper ledges (high)
   addP(0, 760, 320, 160);
   addP(0, 950, 300, 340);
-  // Small computer top middle-right
   addP(0, 780, 470, 50);
-  // Small crate top
   addP(0, 400, 500, 50);
 
-  // Module 1 — broken circular (image 10)
-  addP(1, 80, 300, 500); // top bridge
-  addP(1, 60, 400, 200); // left rock lower
-  addP(1, 160, 520, 50);  // crate
-  addP(1, 800, 380, 200); // right high 1
-  addP(1, 1050, 380, 300); // right high 2
-  addP(1, 850, 500, 60); // computer top
-  addP(1, 500, 520, 60); // arm top
+  // Module 1 — broken circular (mid02b)
+  addP(1, 80, 300, 500);
+  addP(1, 60, 400, 200);
+  addP(1, 160, 520, 50);
+  addP(1, 800, 380, 200);
+  addP(1, 1050, 380, 300);
+  addP(1, 850, 500, 60);
+  addP(1, 500, 520, 60);
 
-  // Module 2 — suspended ship lab (image 11)
-  addP(2, 180, 200, 90); // left arm
-  addP(2, 60, 270, 160); // left ledge
-  addP(2, 360, 250, 300); // ship top long
-  addP(2, 760, 310, 616); // right long
-  addP(2, 340, 440, 160); // lower mid
-  addP(2, 400, 540, 50); // small crate
-  addP(2, 560, 500, 140); // tanks top
-  addP(2, 750, 500, 80); // computer small
+  // Module 2 — suspended ship lab (mid03b)
+  addP(2, 180, 200, 90);
+  addP(2, 60, 270, 160);
+  addP(2, 360, 250, 300);
+  addP(2, 760, 310, 616);
+  addP(2, 340, 440, 160);
+  addP(2, 400, 540, 50);
+  addP(2, 560, 500, 140);
+  addP(2, 750, 500, 80);
 
-  // Module 3 — desert view upper lab (image 4)
-  addP(3, 10, 350, 740); // long middle upper across
-  addP(3, 750, 290, 626); // top right long
-  addP(3, 200, 440, 140); // engine
-  addP(3, 310, 390, 110); // pipe small
-  addP(3, 380, 380, 100); // monitor 1
-  addP(3, 430, 440, 100); // monitor 2
-  addP(3, 830, 500, 70);  // crate right
+  // Module 3 — desert view upper (mid04b)
+  addP(3, 10, 350, 740);
+  addP(3, 750, 290, 626);
+  addP(3, 200, 440, 140);
+  addP(3, 310, 390, 110);
+  addP(3, 380, 380, 100);
+  addP(3, 430, 440, 100);
+  addP(3, 830, 500, 70);
 
-  // Module 4 — elevator lab (image 5 / 8)
-  addP(4, 230, 210, 190); // elevator roof
-  addP(4, 70, 260, 140); // left high
-  addP(4, 340, 300, 140); // middle railing left
-  addP(4, 480, 300, 896); // long right (same height)
-  addP(4, 340, 400, 110); // lower pipe
-  addP(4, 70, 530, 150); // left computers
-  addP(4, 190, 520, 70); // dispenser
-  addP(4, 350, 510, 150); // middle bottom computers
-  addP(4, 720, 460, 160); // right tanks
+  // Module 4 — elevator lab (mid06b)
+  addP(4, 230, 210, 190);
+  addP(4, 70, 260, 140);
+  addP(4, 340, 300, 140);
+  addP(4, 480, 300, 896);
+  addP(4, 340, 400, 110);
+  addP(4, 70, 530, 150);
+  addP(4, 190, 520, 70);
+  addP(4, 350, 510, 150);
+  addP(4, 720, 460, 160);
 
-  // Module 5 — sand hangar robots (image 6)
-  addP(5, 60, 320, 160); // upper left
-  addP(5, 320, 320, 140); // crane left
-  addP(5, 460, 320, 180); // crane right
-  addP(5, 970, 320, 80); // upper right small
-  addP(5, 320, 420, 90); // robot head
-  addP(5, 70, 510, 80); // left monitors
-  addP(5, 320, 500, 60); // lower monitor 1
-  addP(5, 360, 540, 70); // lower monitor 2
-  addP(5, 830, 460, 150); // right shelf
+  // Module 5 — sand hangar robots (mid07b)
+  addP(5, 60, 320, 160);
+  addP(5, 320, 320, 140);
+  addP(5, 460, 320, 180);
+  addP(5, 970, 320, 80);
+  addP(5, 320, 420, 90);
+  addP(5, 70, 510, 80);
+  addP(5, 320, 500, 60);
+  addP(5, 360, 540, 70);
+  addP(5, 830, 460, 150);
 
-  // Module 6 — second new module (mix of remaining greens)
-  // Using similar to Module 0 but shifted, plus extra upper walkways
+  // Module 6 — second new (mid08b)
   addP(6, 230, 210, 190);
   addP(6, 70, 260, 140);
   addP(6, 340, 300, 140);
@@ -203,112 +163,19 @@
   addP(6, 720, 480, 140);
   addP(6, 70, 520, 120);
 
-  // Module 7 — desert exit final (image 7)
+  // Module 7 — desert exit final (mid05b)
   addP(7, 0, 530, 90);
   addP(7, 160, 490, 60);
-  // add some hidden bridging to ground for final jump
   addP(7, 400, 550, 120);
   addP(7, 800, 540, 140);
 
-  // Extra bridging platforms between modules for smooth traversal if green gaps exist
+  // Extra bridging platforms between modules for smooth traversal
   addP(0, 1200, 500, 200);
   addP(2, 1200, 520, 200);
   addP(4, 1200, 520, 180);
   addP(5, 1200, 540, 180);
-
-  // Auto-detect green platforms from _refe images (if present)
-  // This will append/replace manual ones after load
-  function isBrightGreen(r,g,b,a){
-    return a>30 && g>120 && r<100 && b<80;
-  }
-  function extractFromRef(img, modIdx){
-    if(!imageReady(img)) return;
-    try{
-      const w = img.naturalWidth, h = img.naturalHeight;
-      if(w<100||h<100) return;
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img,0,0);
-      const data = ctx.getImageData(0,0,w,h).data;
-      // scan for green runs (use short len to catch thin ref lines)
-      const found = [];
-      const minLen = 5;
-      for(let y=0;y<h;y++){
-        let x=0;
-        while(x<w){
-          let idx = (y*w + x)*4;
-          if(isBrightGreen(data[idx],data[idx+1],data[idx+2],data[idx+3])){
-            let x2=x;
-            while(x2<w){
-              let idx2 = (y*w + x2)*4;
-              if(!isBrightGreen(data[idx2],data[idx2+1],data[idx2+2],data[idx2+3])) break;
-              x2++;
-            }
-            const len = x2-x;
-            if(len>=minLen){
-              // merge vertically close lines (within 6px)
-              let merged=false;
-              for(let f of found){
-                if(Math.abs(f.y - y)<=6 && Math.abs(f.x - x)<40 && Math.abs((f.x+f.w)-(x+len))<80){
-                  f.x = Math.min(f.x,x);
-                  f.w = Math.max(f.x+f.w, x+len) - f.x;
-                  f.y = Math.min(f.y,y);
-                  merged=true; break;
-                }
-              }
-              if(!merged){
-                found.push({x:x, y:y, w:len});
-              }
-            }
-            x=x2;
-          } else x++;
-        }
-      }
-      // convert to platforms (filter small noise and very low near ground?)
-      for(let seg of found){
-        if(seg.y > h*0.75) continue; // ignore near ground clutter below 75%
-        // Map image Y to game world Y (image 768 tall, MID_BASE_Y=-150, GROUND=470)
-        // The top of image (y=0) maps to ~y=40, bottom of image maps to ~y=620
-        const localY = (seg.y / h) * 580 + 40;
-        const worldY = localY;
-        // scale X from image width to MODULE_W
-        const scaleX = MODULE_W / w;
-        const wx = modIdx*MODULE_W + seg.x*scaleX;
-        const ww = seg.w*scaleX;
-        if(ww<20) continue;
-        // avoid duplicates: if near existing platform, skip
-        let near=false;
-        for(let p of platforms){
-          if(Math.abs(p.x - wx)<30 && Math.abs(p.baseY - worldY)<20 && Math.abs(p.w - ww)<40){ near=true; break; }
-        }
-        if(!near){
-          platforms.push({ x: wx, baseY: worldY, y: worldY, w: ww, amp:0, speed:0, phase:0, fragile:false, invisible:true });
-        }
-      }
-      console.log('[Tutorial] green extraction module '+modIdx+': found '+found.length+' segments');
-    }catch(e){ console.warn('[Tutorial] green extraction failed module '+modIdx, e); }
-  }
-
-  // Try extraction after images load + also try _reference.png files
-  setTimeout(function(){
-    for(let i=0;i<MODULE_COUNT;i++){
-      if(imageReady(refImages[i])) extractFromRef(refImages[i], i);
-    }
-    // Also try older _reference.png naming (half resolution)
-    const oldRefs = [
-      'assets/tutorial/tutorial_mid01_reference.png',
-      'assets/tutorial/tutorial_mid02_reference.png',
-      'assets/tutorial/tutorial_mid03_reference.png',
-      'assets/tutorial/tutorial_mid04_reference.png',
-      'assets/tutorial/tutorial_mid05_reference.png',
-    ];
-    for(let i=0;i<oldRefs.length;i++){
-      const im = new Image();
-      im.onload = function(){ extractFromRef(im, i); };
-      im.src = oldRefs[i];
-    }
-  }, 1200);
+  // No auto-extraction from reference images: those are 3D concept reference
+  // with green geometric outlines, NOT platform markers.
 
   const spawns=[
     { x:700, type:'soldier' },
@@ -415,7 +282,7 @@
     { module:7, x:1248, y:530, type:'fire', color:'#ff8a22', r:24, pulse:8, intensity:0.7 },
   ];
 
-  const robotFX=[];
+
 
   function resetPlatforms(){ for(const p of platforms){ p.dead=false; p.triggered=false; p.breakT=0; p.y=p.baseY; } }
   function updatePlatforms(dt,player){
@@ -481,7 +348,7 @@
       g.restore();
     }
     g.save();
-    const allLights=lights.concat(robotFX);
+    const allLights=lights;
     for(const lt of allLights){
       const worldX=lt.module*MODULE_W + lt.x*MID_SCALE;
       const screenX=worldX - camX;
@@ -621,13 +488,26 @@
 
   function nightAmount(){ return 0.78; }
   function isLavaGap(){ return false; }
-  function updateHazards(){}
+  function updateHazards(dt){
+    // Falling ambient particles (data stream / stardust)
+    if(window.G && G.particles && Math.random()<dt*18){
+      const x = (window.G ? G.camX : 0) + Math.random() * 960;
+      const y = -10;
+      G.particles.push({
+        kind:'spark', x:x, y:y,
+        vx:(Math.random()-0.5)*12, vy:80+Math.random()*160,
+        t:0, life:2+Math.random()*3,
+        color:Math.random()<0.3?'#68efff':'#8ab5ff',
+        size:1+Math.random()*2, grav:0, drag:0.3
+      });
+    }
+  }
   function playerTouchesLaser(){ return false; }
 
   window.TutorialLevel={
     W:W, GROUND:GROUND, VIEW_W:960, VIEW_H:540,
     platforms:platforms, spawns:spawns, props:props, highPickups:highPickups,
-    slugSpawns:slugSpawns, SURFBOARD_X:SURFBOARD_X, END_LIGHT:END_LIGHT, lights:lights, robotFX:robotFX,
+    slugSpawns:slugSpawns, SURFBOARD_X:SURFBOARD_X, END_LIGHT:END_LIGHT, lights:lights,
     duneSpec:null, mountainSpec:null, skySpec:null,
     nightAmount:nightAmount, isLavaGap:isLavaGap, updateHazards:updateHazards,
     playerTouchesLaser:playerTouchesLaser, resetPlatforms:resetPlatforms,
