@@ -33,7 +33,7 @@
   // also try alternative names
   const pilarAlt = new Image(); pilarAlt.decoding='async'; pilarAlt.src='assets/tutorial/pilar01.png';
 
-  // 8 modular mids in new order
+  // 8 modular mids in new order — tries assets/tutorial/ then upload/ then non-b versions
   const midSources = [
     'assets/tutorial/tutorial_mid01b.png',
     'assets/tutorial/tutorial_mid02b.png',
@@ -44,32 +44,34 @@
     'assets/tutorial/tutorial_mid08b.png',
     'assets/tutorial/tutorial_mid05b.png',
   ];
-  // fallback list for clean versions without 'b'
   const midSourcesFallback = [
-    'assets/tutorial/tutorial_mid01.png',
-    'assets/tutorial/tutorial_mid02.png',
-    'assets/tutorial/tutorial_mid03.png',
-    'assets/tutorial/tutorial_mid04.png',
-    'assets/tutorial/tutorial_mid06.png',
-    'assets/tutorial/tutorial_mid07.png',
-    'assets/tutorial/tutorial_mid08.png',
-    'assets/tutorial/tutorial_mid05.png',
+    ['upload/tutorial_mid01b.png','assets/tutorial/tutorial_mid01.png','upload/tutorial_mid01.png'],
+    ['upload/tutorial_mid02b.png','assets/tutorial/tutorial_mid02.png','upload/tutorial_mid02.png'],
+    ['upload/tutorial_mid03b.png','assets/tutorial/tutorial_mid03.png','upload/tutorial_mid03.png'],
+    ['upload/tutorial_mid04b.png','assets/tutorial/tutorial_mid04.png','upload/tutorial_mid04.png'],
+    ['upload/tutorial_mid06b.png','assets/tutorial/tutorial_mid06.png','upload/tutorial_mid06.png','upload/tutorial_mid06b.png'],
+    ['upload/tutorial_mid07b.png','assets/tutorial/tutorial_mid07.png','upload/tutorial_mid07.png'],
+    ['upload/tutorial_mid08b.png','assets/tutorial/tutorial_mid08.png','upload/tutorial_mid08.png'],
+    ['upload/tutorial_mid05b.png','assets/tutorial/tutorial_mid05.png','upload/tutorial_mid05.png'],
   ];
 
   const tutorialMids = [];
   for(let i=0;i<MODULE_COUNT;i++){
     const img = new Image(); img.decoding='async';
+    let fallbackIdx=0;
     img.src = midSources[i];
-    // if fails, try fallback
     img.onerror = (function(idx, im){
       return function(){
-        if(midSourcesFallback[idx]) im.src = midSourcesFallback[idx];
+        const list = midSourcesFallback[idx]||[];
+        if(fallbackIdx < list.length){
+          im.src = list[fallbackIdx++];
+        }
       };
     })(i, img);
     tutorialMids.push(img);
   }
 
-  // Reference images with green lines for auto-detection (optional)
+  // Reference images with green lines for auto-detection — try assets then upload
   const refSources = [
     'assets/tutorial/tutorial_mid01_refe.png',
     'assets/tutorial/tutorial_mid02_refe.png',
@@ -80,10 +82,37 @@
     'assets/tutorial/tutorial_mid08_refe.png',
     'assets/tutorial/tutorial_mid05_refe.png',
   ];
+  const refFallback = [
+    ['upload/tutorial_mid01_refe.png','upload/tutorial_mid01_ref.png','upload/mid01_refe.png'],
+    ['upload/tutorial_mid02_refe.png','upload/tutorial_mid02_ref.png'],
+    ['upload/tutorial_mid03_refe.png','upload/tutorial_mid03_ref.png'],
+    ['upload/tutorial_mid04_refe.png','upload/tutorial_mid04_ref.png'],
+    ['upload/tutorial_mid06_refe.png','upload/tutorial_mid06_ref.png','upload/mid06_refe.png'],
+    ['upload/tutorial_mid07_refe.png','upload/tutorial_mid07_ref.png'],
+    ['upload/tutorial_mid08_refe.png','upload/tutorial_mid08_ref.png'],
+    ['upload/tutorial_mid05_refe.png','upload/tutorial_mid05_ref.png'],
+  ];
   const refImages = [];
   for(let i=0;i<MODULE_COUNT;i++){
-    const ri = new Image(); ri.decoding='async'; ri.src = refSources[i];
+    const ri = new Image(); ri.decoding='async';
+    let rFallback=0;
+    ri.src = refSources[i];
+    ri.onerror = (function(idx, im){
+      return function(){
+        const list = refFallback[idx]||[];
+        if(rFallback < list.length) im.src = list[rFallback++];
+      };
+    })(i, ri);
     refImages.push(ri);
+  }
+
+  // Also try upload folder for pilar
+  if (!imageReady(pilarImage)) {
+    // will retry via onerror handled below
+    const origOnError = pilarImage.onerror;
+    pilarImage.onerror = function(){
+      this.src = 'upload/pilar01.png';
+    };
   }
 
   // Manual platforms estimated from green refs (upper edge = baseY)
@@ -311,7 +340,10 @@
   const SURFBOARD_X = W - 180;
   const END_LIGHT = { x: W - 260, y: 200, r: 28, triggered:false };
 
+  // Fixed lights: modules 0-3 keep original positions (01-04), modules 4-7 have corrected or minimal FX
+  // After expanding to 8 modules, previous module-4 duplicate caused FX in wrong mids
   const lights=[
+    // Module 0 — sat dish lab (mid01b) — original lamps screens fire
     { module:0, x:238, y:126, type:'lamp', color:'#ff9a2a', r:34, pulse:1.2, intensity:0.9 },
     { module:0, x:1002, y:142, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
     { module:0, x:1209, y:133, type:'lamp', color:'#ff9a2a', r:32, pulse:1.1, intensity:0.9 },
@@ -321,28 +353,52 @@
     { module:0, x:69, y:417, type:'screen', color:'#4af1ff', r:26, pulse:3.2, intensity:0.55 },
     { module:0, x:1248, y:415, type:'screen', color:'#58f0ff', r:22, pulse:2.8, intensity:0.5 },
     { module:0, x:920, y:530, type:'fire', color:'#ff6a18', r:48, pulse:11, intensity:1.0 },
+
+    // Module 1 — broken circular (mid02b)
     { module:1, x:1003, y:143, type:'lamp', color:'#ff9a2a', r:28, pulse:1.2, intensity:0.85 },
     { module:1, x:69, y:418, type:'screen', color:'#4aff88', r:32, pulse:2.5, intensity:0.6 },
     { module:1, x:414, y:486, type:'screen', color:'#5afcff', r:44, pulse:1.8, intensity:0.65 },
     { module:1, x:339, y:299, type:'fire', color:'#ff7a20', r:36, pulse:9, intensity:0.9 },
     { module:1, x:87, y:296, type:'lamp', color:'#ffaa3a', r:24, pulse:1.6, intensity:0.7 },
+
+    // Module 2 — suspended ship (mid03b)
     { module:2, x:238, y:126, type:'lamp', color:'#ff9a2a', r:30, pulse:1.3, intensity:0.8 },
     { module:2, x:1001, y:142, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
     { module:2, x:75, y:386, type:'lamp', color:'#ffaa3a', r:22, pulse:1.7, intensity:0.6 },
     { module:2, x:659, y:458, type:'screen', color:'#4af1ff', r:28, pulse:2.2, intensity:0.6 },
     { module:2, x:922, y:531, type:'fire', color:'#ff6a18', r:50, pulse:10, intensity:1.0 },
+
+    // Module 3 — desert view upper (mid04b)
     { module:3, x:182, y:257, type:'lamp', color:'#ff9a2a', r:34, pulse:1.5, intensity:0.9 },
     { module:3, x:75, y:387, type:'lamp', color:'#ffaa3a', r:20, pulse:1.8, intensity:0.6 },
     { module:3, x:68, y:418, type:'screen', color:'#5affa0', r:30, pulse:2.6, intensity:0.55 },
     { module:3, x:682, y:527, type:'fire', color:'#ff8a22', r:28, pulse:12, intensity:0.8 },
-    { module:4, x:182, y:257, type:'lamp', color:'#ff9a2a', r:34, pulse:1.5, intensity:0.9 },
-    { module:4, x:75, y:387, type:'lamp', color:'#ffaa3a', r:20, pulse:1.8, intensity:0.6 },
-    { module:4, x:68, y:418, type:'screen', color:'#5affa0', r:30, pulse:2.6, intensity:0.55 },
-    { module:4, x:682, y:527, type:'fire', color:'#ff8a22', r:28, pulse:12, intensity:0.8 },
+
+    // Module 4 — elevator lab (mid06b) — corrected positions from green-ref elevator image
+    { module:4, x:98, y:86, type:'lamp', color:'#ffb44a', r:26, pulse:1.3, intensity:0.82 },
+    { module:4, x:1088, y:138, type:'lamp', color:'#ff9a2a', r:28, pulse:1.4, intensity:0.85 },
+    { module:4, x:1088, y:252, type:'screen', color:'#4af1ff', r:22, pulse:2.4, intensity:0.48 },
+    { module:4, x:72, y:386, type:'lamp', color:'#ffaa3a', r:20, pulse:1.7, intensity:0.6 },
+    { module:4, x:72, y:418, type:'screen', color:'#4aff88', r:26, pulse:2.8, intensity:0.52 },
+    { module:4, x:558, y:498, type:'fire', color:'#ff6a18', r:36, pulse:9.5, intensity:0.92 },
+
+    // Module 5 — sand hangar robots (mid07b) — robot eyes + electric
     { module:5, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
     { module:5, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
     { module:5, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
     { module:5, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
+    { module:5, x:108, y:172, type:'lamp', color:'#ffaa3a', r:22, pulse:1.8, intensity:0.6 },
+    { module:5, x:1018, y:174, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.55 },
+    { module:5, x:72, y:418, type:'screen', color:'#5afcff', r:26, pulse:2.5, intensity:0.5 },
+    { module:5, x:622, y:516, type:'fire', color:'#ff8a22', r:24, pulse:10, intensity:0.7 },
+
+    // Module 6 — second new (mid08b) — minimal, avoid leaking old FX
+    { module:6, x:102, y:88, type:'lamp', color:'#ffb44a', r:22, pulse:1.3, intensity:0.6 },
+    { module:6, x:1088, y:140, type:'lamp', color:'#ff9a2a', r:24, pulse:1.4, intensity:0.65 },
+    { module:6, x:72, y:420, type:'screen', color:'#4af1ff', r:20, pulse:2.6, intensity:0.45 },
+    { module:6, x:622, y:520, type:'fire', color:'#ff7a22', r:20, pulse:11, intensity:0.6 },
+
+    // Module 7 — desert exit final (mid05b)
     { module:7, x:348, y:385, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.6 },
     { module:7, x:1248, y:530, type:'fire', color:'#ff8a22', r:24, pulse:8, intensity:0.7 },
   ];
