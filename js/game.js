@@ -1200,19 +1200,6 @@
     }
   }
 
-  function drawSelectStat(label, value, max, x, y, width, color) {
-    text(label, x, y + 8, 9, '#d5dbe3');
-    const bx = x + 66;
-    const bw = width - 66;
-    g.fillStyle = 'rgba(3,7,13,0.65)';
-    g.fillRect(bx, y, bw, 9);
-    const segments = 8;
-    for (let i = 0; i < segments; i++) {
-      const sw = bw / segments - 2;
-      g.fillStyle = (i + 0.5) / segments <= value / max ? color : 'rgba(100,115,130,0.22)';
-      g.fillRect(bx + i * bw / segments + 1, y + 1, sw, 7);
-    }
-  }
 
   // Deterministic star data for the character select background
   let charSelStars = null;
@@ -1232,67 +1219,63 @@
     }
   }
 
-  // Retro pixel-box: draw a colored rectangle with 1px bright border and 2px shadow
-  function retroBox(x, y, w, h, fill, border, shadow) {
-    if (shadow !== false) {
-      g.fillStyle = 'rgba(0,0,0,0.55)';
-      g.fillRect(x + 3, y + 3, w, h);
+  // Draw a progress bar for the character select stats
+  function drawStatBar(x, y, w, h, value, max, fillColor) {
+    const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
+    // Background track
+    g.fillStyle = '#333333';
+    g.beginPath();
+    g.moveTo(x + h / 2, y);
+    g.lineTo(x + w - h / 2, y);
+    g.quadraticCurveTo(x + w, y, x + w, y + h / 2);
+    g.quadraticCurveTo(x + w, y + h, x + w - h / 2, y + h);
+    g.lineTo(x + h / 2, y + h);
+    g.quadraticCurveTo(x, y + h, x, y + h / 2);
+    g.quadraticCurveTo(x, y, x + h / 2, y);
+    g.fill();
+    // Fill foreground
+    if (ratio > 0) {
+      const fillW = (w - 4) * ratio;
+      g.fillStyle = fillColor;
+      g.beginPath();
+      g.moveTo(x + 2 + h / 2, y + 2);
+      g.lineTo(x + 2 + fillW - h / 2, y + 2);
+      g.quadraticCurveTo(x + 2 + fillW, y + 2, x + 2 + fillW, y + h / 2);
+      g.quadraticCurveTo(x + 2 + fillW, y + h - 2, x + 2 + fillW - h / 2, y + h - 2);
+      g.lineTo(x + 2 + h / 2, y + h - 2);
+      g.quadraticCurveTo(x + 2, y + h - 2, x + 2, y + h / 2);
+      g.quadraticCurveTo(x + 2, y + 2, x + 2 + h / 2, y + 2);
+      g.fill();
+      // Highlight line on top
+      g.globalAlpha = 0.35;
+      g.fillStyle = '#ffffff';
+      g.fillRect(x + 4, y + 2, fillW - 4, 2);
+      g.globalAlpha = 1;
     }
-    g.fillStyle = fill;
-    g.fillRect(x, y, w, h);
-    if (border) {
-      g.fillStyle = border;
-      g.fillRect(x, y, w, 1);
-      g.fillRect(x, y + h - 1, w, 1);
-      g.fillRect(x, y, 1, h);
-      g.fillRect(x + w - 1, y, 1, h);
-    }
-  }
-
-  // Retro colored text on black background
-  function retroText(str, x, y, size, color) {
-    const key = str.replace(/\s+/g, '_');
-    g.save();
-    g.font = 'bold ' + size + 'px "Courier New", monospace';
-    g.textAlign = 'left';
-    // Draw on each char individually
-    let cursor = x;
-    for (const ch of str) {
-      if (ch === ' ') { cursor += g.measureText(' ').width; continue; }
-      const cw = g.measureText(ch).width;
-      // Shadow
-      g.fillStyle = 'rgba(0,0,0,0.85)';
-      g.fillText(ch, cursor + 2, y + 2);
-      // Text
-      g.fillStyle = color;
-      g.fillText(ch, cursor, y);
-      cursor += cw;
-    }
-    g.restore();
   }
 
   function drawCharacterSelect() {
     if (!charSelStars) initCharSelStars();
 
-    // ---- Deep space background ----
+    // ---- Layer 0: Deep space background ----
     const grad = g.createRadialGradient(VW / 2, VH / 2, 30, VW / 2, VH / 2, 520);
-    grad.addColorStop(0, '#0d1b3e');
-    grad.addColorStop(0.35, '#070f28');
-    grad.addColorStop(0.7, '#040917');
-    grad.addColorStop(1, '#010308');
+    grad.addColorStop(0, '#0a1628');
+    grad.addColorStop(0.35, '#060e1c');
+    grad.addColorStop(0.7, '#030712');
+    grad.addColorStop(1, '#010408');
     g.fillStyle = grad;
     g.fillRect(0, 0, VW, VH);
 
-    // Nebula
+    // Nebula glow
     g.save();
     g.globalCompositeOperation = 'lighter';
     for (let n = 0; n < 3; n++) {
-      const nx = VW * (0.2 + n * 0.3) + Math.sin(G.time * 0.08 + n * 2.1) * 20;
-      const ny = VH * (0.3 + n * 0.18) + Math.cos(G.time * 0.06 + n * 1.3) * 15;
-      const nr = 150 + n * 60 + Math.sin(G.time * 0.1 + n) * 20;
+      const nx = VW * (0.25 + n * 0.25) + Math.sin(G.time * 0.08 + n * 2.1) * 20;
+      const ny = VH * (0.35 + n * 0.15) + Math.cos(G.time * 0.06 + n * 1.3) * 15;
+      const nr = 160 + n * 50;
       const ng = g.createRadialGradient(nx, ny, 5, nx, ny, nr);
-      const colors = ['rgba(104,239,255,0.05)', 'rgba(180,140,255,0.04)', 'rgba(255,180,80,0.03)'];
-      ng.addColorStop(0, colors[n]); ng.addColorStop(0.5, colors[n]); ng.addColorStop(1, 'rgba(0,0,0,0)');
+      ng.addColorStop(0, 'rgba(60,140,255,0.04)');
+      ng.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = ng;
       g.beginPath(); g.arc(nx, ny, nr, 0, Math.PI * 2); g.fill();
     }
@@ -1300,137 +1283,200 @@
     // Twinkling stars
     for (const s of charSelStars) {
       const driftX = Math.sin(G.time * s.speed + s.phase) * 6;
-      const alpha = 0.3 + Math.abs(Math.sin(G.time * 1.2 + s.twinkle)) * 0.7;
-      g.globalAlpha = alpha * 0.6;
+      const alpha = 0.2 + Math.abs(Math.sin(G.time * 1.2 + s.twinkle)) * 0.6;
+      g.globalAlpha = alpha * 0.5;
       g.fillStyle = s.color;
       g.fillRect(Math.round(s.x + driftX), Math.round(s.y), s.size, s.size);
     }
     g.restore();
 
-    // ---- Retro panel layout inspired by concept ----
-    const selChar = G.characterSel;
-    const chars = Characters.roster;
+    // Semi-transparent dark overlay (~70%)
+    g.fillStyle = 'rgba(2,5,14,0.65)';
+    g.fillRect(0, 0, VW, VH);
 
-    // Top-left: game logo/title panel
-    retroBox(14, 10, 280, 40, '#000020', '#E0E000', true);
-    g.font = 'bold 20px "Courier New", monospace';
-    g.textAlign = 'center';
-    g.fillStyle = '#E0E000';
-    g.fillText("SELECT OPERATIVE", 154, 35);
+    // ---- Navigation HUD (Layer 3) ----
+    // Bottom-left: back instruction
+    g.font = 'bold 10px "Courier New", monospace';
+    g.textAlign = 'left';
+    g.fillStyle = '#00E0E0';
+    g.fillText('ESC: RETURN', 14, VH - 10);
 
-    // Top-right: mode indicator
-    retroBox(VW - 150, 10, 136, 40, '#200020', '#E000E0', true);
+    // Bottom-right: confirm instruction
+    g.textAlign = 'right';
+    g.fillStyle = '#39FF14';
+    g.fillText('ENTER: DEPLOY', VW - 14, VH - 10);
+
+    // ---- Character Card (Layer 2) ----
+    const cardW = 880, cardH = 470;
+    const cx = (VW - cardW) / 2, cy = (VH - cardH) / 2;
+    const sel = G.characterSel;
+    const ch = Characters.roster[sel];
+
+    // Determine accent color based on character
+    const accentColors = {
+      'juan_p': { border: '#D4AF37', name: '#FFFFFF', badge: '#D4AF37' },
+      'elena_k': { border: '#00E5FF', name: '#FFFFFF', badge: '#00E5FF' },
+      'sergio_h': { border: '#FF3333', name: '#FFFFFF', badge: '#FFAA00' },
+    };
+    const accent = accentColors[ch.id] || accentColors['juan_p'];
+
+    // Card shadow
+    g.fillStyle = 'rgba(0,0,0,0.6)';
+    g.fillRect(cx + 4, cy + 4, cardW, cardH);
+
+    // Glass-morphism background (semi-transparent dark slate)
+    const cardBg = g.createLinearGradient(cx, cy, cx, cy + cardH);
+    cardBg.addColorStop(0, 'rgba(15,22,38,0.88)');
+    cardBg.addColorStop(0.5, 'rgba(10,16,30,0.92)');
+    cardBg.addColorStop(1, 'rgba(6,10,20,0.95)');
+    g.fillStyle = cardBg;
+    g.fillRect(cx, cy, cardW, cardH);
+
+    // Subtle 2px border (golden/cyan)
+    g.strokeStyle = accent.border;
+    g.lineWidth = 2;
+    g.strokeRect(cx + 0.5, cy + 0.5, cardW - 1, cardH - 1);
+
+    // Inner subtle highlight at top
+    g.fillStyle = 'rgba(255,255,255,0.04)';
+    g.fillRect(cx + 2, cy + 2, cardW - 4, 1);
+
+    // ---- A. Identity Section (Left 55%) ----
+    const leftRegion = { x: cx + 28, y: cy + 22, w: Math.round(cardW * 0.55) };
+
+    // Name - Bold, Uppercase, ~28pt, White, with dark drop-shadow
+    const nameStr = tr(ch.nameKey).toUpperCase();
+    g.font = 'bold 28px "Courier New", monospace';
+    g.textAlign = 'left';
+    g.fillStyle = 'rgba(0,0,0,0.7)';
+    g.fillText(nameStr, leftRegion.x + 2, leftRegion.y + 32);
+    g.fillStyle = ch.id === 'juan_p' ? '#FFFFFF' : ch.id === 'elena_k' ? '#E0F8FF' : '#FFFFFF';
+    g.fillText(nameStr, leftRegion.x, leftRegion.y + 30);
+
+    // Class Badge - ~14pt, Golden/Sand, with diamond bullet
+    const roleStr = tr(ch.roleKey).toUpperCase();
     g.font = 'bold 14px "Courier New", monospace';
-    g.textAlign = 'center';
-    g.fillStyle = '#E000E0';
-    g.fillText(tr(G.pendingMode === 'survival' ? 'menu.survival' : 'ARCADE MODE'), VW - 82, 36);
+    // Diamond bullet
+    g.fillStyle = accent.badge;
+    g.fillText('\u25C6', leftRegion.x, leftRegion.y + 58);
+    g.fillText(roleStr, leftRegion.x + 22, leftRegion.y + 58);
 
-    // ---- Character cards ----
-    const cardW = 290, cardH = 410, gap = 15, startX = 15, cardY = 64;
-
-    for (let i = 0; i < chars.length; i++) {
-      const ch = chars[i];
-      const x = startX + i * (cardW + gap);
-      const sel = i === selChar;
-
-      // Card border colors from concept palette
-      const cardColors = [
-        { fill: '#0a0010', border: '#E00000', accent: '#E00000', text: '#E0E0E0' },  // red for Juan
-        { fill: '#001020', border: '#0000E0', accent: '#00E0E0', text: '#E0E0E0' },  // blue/cyan for Elena
-        { fill: '#100800', border: '#E0E000', accent: '#E0E000', text: '#E0E0E0' },  // yellow for Sergio
-      ];
-      const palette = cardColors[i] || cardColors[0];
-      const borderColor = sel ? palette.border : '#202030';
-      const fillColor = sel ? '#101828' : '#080c14';
-
-      // Panel with shadow
-      retroBox(x, cardY, cardW, cardH, fillColor, borderColor, true);
-
-      // If selected, extra glow border
-      if (sel) {
-        g.save();
-        g.globalCompositeOperation = 'lighter';
-        g.globalAlpha = 0.3 + Math.sin(G.time * 5) * 0.15;
-        g.strokeStyle = palette.border;
-        g.lineWidth = 3;
-        g.strokeRect(x + 5, cardY + 5, cardW - 10, cardH - 10);
-        g.restore();
-      }
-
-      // Portrait block
-      const pW = 220, pH = 200, pX = x + (cardW - pW) / 2, pY = cardY + 12;
-      retroBox(pX, pY, pW, pH, '#000510', sel ? palette.border : '#101520', false);
-
-      const portrait = Sprites.getCharacterPortrait(ch.id);
-      if (portrait) {
-        g.save();
-        if (sel) { g.shadowColor = palette.accent; g.shadowBlur = 10; }
-        g.drawImage(portrait, pX + 20, pY + 10, 180, 180);
-        g.restore();
+    // Flavor Description - 12pt, Light Grey, Italic
+    const bioStr = tr(ch.bioKey);
+    g.font = 'italic 12px "Courier New", monospace';
+    g.fillStyle = '#B0B0B0';
+    // Word wrap bio
+    const bioWords = bioStr.split(/\s+/);
+    let bioLine = '';
+    let bioY = leftRegion.y + 84;
+    for (const word of bioWords) {
+      const test = bioLine ? bioLine + ' ' + word : word;
+      if (g.measureText(test).width > leftRegion.w - 10) {
+        g.fillText(bioLine, leftRegion.x, bioY);
+        bioLine = word;
+        bioY += 18;
       } else {
-        const preview = Sprites.getCharacterFrame(ch.id, 'idle', G.time, 0);
-        Sprites.draw(g, preview, x + cardW / 2, pY + pH - 20, 1, 1);
-      }
-
-      // Name & role panel
-      retroBox(x + 10, cardY + 220, cardW - 20, 50, '#000510', sel ? palette.border : '#101520', false);
-      g.font = 'bold 18px "Courier New", monospace';
-      g.textAlign = 'center';
-      g.fillStyle = sel ? '#FFFFFF' : '#C0C0C0';
-      g.fillText(tr(ch.nameKey), x + cardW / 2, cardY + 245);
-      g.font = 'bold 10px "Courier New", monospace';
-      g.fillStyle = sel ? palette.accent : '#606880';
-      g.fillText(tr(ch.roleKey), x + cardW / 2, cardY + 262);
-
-      // Bio text
-      drawWrapped(tr(ch.bioKey), x + cardW / 2, cardY + 280, cardW - 36, 12, 9,
-        sel ? '#D0D8E0' : '#607080');
-
-      // Stats panels (4 stat bars)
-      const statY = cardY + 330;
-      const statW = (cardW - 30) / 2;
-      const stats = [
-        { label: tr('characterSelect.speed'), val: ch.speed, max: 310 },
-        { label: tr('characterSelect.jump'), val: Math.abs(ch.jumpVelocity), max: 840 },
-        { label: tr('characterSelect.armor'), val: ch.maxArmor, max: 2 },
-        { label: tr('characterSelect.ammo'), val: ch.ammoMultiplier * 100, max: 100 },
-      ];
-      for (let s = 0; s < stats.length; s++) {
-        const sx = x + 10 + (s % 2) * (statW + 10);
-        const sy = statY + Math.floor(s / 2) * 32;
-        const ratio = Math.min(1, stats[s].val / stats[s].max);
-
-        // Stat label
-        g.font = 'bold 8px "Courier New", monospace';
-        g.textAlign = 'left';
-        g.fillStyle = '#8090A0';
-        g.fillText(stats[s].label, sx, sy + 9);
-
-        // Stat bar background
-        g.fillStyle = '#000510';
-        g.fillRect(sx + 52, sy, 75, 10);
-        // Stat bar fill
-        g.fillStyle = sel ? palette.accent : '#304050';
-        g.fillRect(sx + 52, sy, Math.round(75 * ratio), 10);
-        g.fillStyle = '#202838';
-        g.fillRect(sx + 52, sy, 75, 1);
-        // Numeric value
-        g.fillStyle = sel ? '#FFFFFF' : '#8090A0';
-        g.font = 'bold 8px "Courier New", monospace';
-        g.textAlign = 'right';
-        g.fillText(String(stats[s].val), sx + 130, sy + 9);
+        bioLine = test;
       }
     }
+    if (bioLine) g.fillText(bioLine, leftRegion.x, bioY);
 
-    // Bottom control panel
-    retroBox(14, VH - 44, VW - 28, 34, '#000818', '#00E0E0', true);
-    g.font = 'bold 12px "Courier New", monospace';
+    // Portrait - fill available space in left region
+    const portX = leftRegion.x;
+    const portY = bioY + 16;
+    const portW = leftRegion.w;
+    const portH = cy + cardH - 16 - portY;
+
+    // Portrait frame background
+    g.fillStyle = 'rgba(0,2,10,0.5)';
+    g.strokeStyle = 'rgba(255,255,255,0.08)';
+    g.lineWidth = 1;
+    g.fillRect(portX, portY, portW, portH);
+    g.strokeRect(portX + 0.5, portY + 0.5, portW - 1, portH - 1);
+
+    const portrait = Sprites.getCharacterPortrait(ch.id);
+    if (portrait) {
+      g.save();
+      const pScale = Math.min((portW - 20) / portrait.naturalWidth, (portH - 20) / portrait.naturalHeight);
+      const pDrawW = portrait.naturalWidth * pScale;
+      const pDrawH = portrait.naturalHeight * pScale;
+      const pDrawX = portX + (portW - pDrawW) / 2;
+      const pDrawY = portY + (portH - pDrawH) / 2;
+      g.drawImage(portrait, pDrawX, pDrawY, pDrawW, pDrawH);
+      g.restore();
+    } else {
+      const preview = Sprites.getCharacterFrame(ch.id, 'idle', G.time, 0);
+      Sprites.draw(g, preview, portX + portW / 2, portY + portH - 30, 1, 1);
+    }
+
+    // ---- B. Stats Section (Right 40%) ----
+    const rightX = cx + cardW - Math.round(cardW * 0.40) - 28;
+    const statYstart = cy + 30;
+    const statLabelW = 60;
+    const statBarW = Math.round(cardW * 0.38) - statLabelW - 60;
+    const statRowH = 48;
+    const maxStat = 50; // All stats scaled to max 50
+
+    // Map actual character stats to 0-50 scale for display
+    const statScale = {
+      speed: 50,       // max 310
+      jump: 50,        // max 840
+      armor: 50,       // max 2
+      ammo: 50,        // max 1 (multiplier)
+    };
+    const rawStats = [
+      { label: 'SPEED', val: ch.speed / 310 * 50, max: 50, color: '#00E5FF' },
+      { label: 'JUMP', val: Math.abs(ch.jumpVelocity) / 840 * 50, max: 50, color: '#39FF14' },
+      { label: 'ARMOR', val: ch.maxArmor / 2 * 50, max: 50, color: '#FFAA00' },
+      { label: 'AMMO', val: ch.ammoMultiplier * 50, max: 50, color: '#FF3333' },
+    ];
+
+    // Stats title
+    g.font = 'bold 11px "Courier New", monospace';
+    g.textAlign = 'left';
+    g.fillStyle = '#8899AA';
+    g.fillText('COMBAT PROFILE', rightX, statYstart);
+
+    for (let i = 0; i < rawStats.length; i++) {
+      const s = rawStats[i];
+      const rowY = statYstart + 14 + i * statRowH;
+
+      // Label
+      g.font = 'bold 10px "Courier New", monospace';
+      g.textAlign = 'left';
+      g.fillStyle = '#FFFFFF';
+      g.fillText(s.label, rightX, rowY + 14);
+
+      // Numerical value
+      g.font = 'bold 12px "Courier New", monospace';
+      g.textAlign = 'right';
+      g.fillStyle = '#FFFFFF';
+      g.fillText(String(Math.round(s.val)), rightX + statLabelW + statBarW + 20, rowY + 14);
+
+      // Progress bar
+      drawStatBar(rightX + statLabelW + 8, rowY, statBarW, 10, s.val, s.max, s.color);
+    }
+
+    // ---- Character navigation arrows ----
+    if (Characters.roster.length > 1) {
+      const pulse = 0.45 + Math.sin(G.time * 5) * 0.25;
+      g.save();
+      g.globalAlpha = pulse;
+      g.font = 'bold 32px "Courier New", monospace';
+      g.textAlign = 'center';
+      g.fillStyle = accent.border;
+      // Left arrow
+      g.fillText('\u25C0', cx - 24, cy + cardH / 2 + 10);
+      // Right arrow
+      g.fillText('\u25B6', cx + cardW + 24, cy + cardH / 2 + 10);
+      g.restore();
+    }
+
+    // ---- Character name on top of card for context ----
+    g.font = 'bold 10px "Courier New", monospace';
     g.textAlign = 'center';
-    const hintPulse = 0.4 + Math.sin(G.time * 4) * 0.25;
-    g.globalAlpha = hintPulse;
-    g.fillStyle = '#00E0E0';
-    g.fillText(tr('characterSelect.hint'), VW / 2, VH - 22);
-    g.globalAlpha = 1;
+    g.fillStyle = 'rgba(255,255,255,0.25)';
+    g.fillText(tr(ch.nameKey).toUpperCase(), cx + cardW / 2, cy - 8);
   }
 
   // ---------- schermate ----------
