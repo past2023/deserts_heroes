@@ -358,7 +358,7 @@
     if (effectiveMode === 'tutorial') {
       // tutorial entrance slightly shorter, less invuln
       if (G.intro) G.intro.t = 0.6;
-      MusicTracks.play('level1');
+      MusicTracks.play('reverie');
     } else {
       MusicTracks.play('level1');
     }
