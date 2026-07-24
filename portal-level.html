@@ -1,2 +1,9 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Desert's Heroes — Time Rift</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#01030b}body{display:flex;align-items:center;justify-content:center}canvas{image-rendering:pixelated;image-rendering:crisp-edges}</style></head><body><canvas id="rift" width="960" height="540"></canvas><script src="js/music-tracks.js"></script>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Desert's Heroes — Time Rift</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#01030b}body{display:flex;align-items:center;justify-content:center}canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+#loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#c26cff;font:bold 14px 'Courier New',monospace;background:#01030b;z-index:5}
+#loading-bar-wrap{width:200px;height:12px;margin-top:14px;border:2px solid #c26cff;background:#0a0820;border-radius:2px;overflow:hidden}
+#loading-bar{width:0%;height:100%;background:linear-gradient(90deg,#c26cff,#a06cff);transition:width 0.3s}
+</style></head><body>
+<div id="loading"><div>OPENING RIFT</div><div id="loading-bar-wrap"><div id="loading-bar"></div></div></div>
+<script>(function(){var b=document.getElementById('loading-bar'),p=0,i=setInterval(function(){p+=.06+Math.random()*.08;if(p>1)p=1;b.style.width=Math.round(p*100)+'%';if(p>=1){setTimeout(function(){var e=document.getElementById('loading');if(e)e.style.display='none'},300);clearInterval(i)}},130)})();</script>
+<canvas id="rift" width="960" height="540"></canvas><script src="js/music-tracks.js"></script>
 <script src="js/portal-level.js"></script></body></html>

@@ -286,12 +286,10 @@
     G.spawnIdx = 0;
     G.bannerT = 0;
     G.tutorial = effectiveMode === 'tutorial' ? {
-      phase: 'intro',
       hintT: 0,
       completed: {},
       surfboard: null,
       outroT: 0,
-      exitTriggered: false,
     } : null;
 
     if (effectiveMode === 'survival') {
@@ -358,7 +356,7 @@
     if (effectiveMode === 'tutorial') {
       // tutorial entrance slightly shorter, less invuln
       if (G.intro) G.intro.t = 0.6;
-      MusicTracks.play('level1');
+      MusicTracks.play('reverie');
     } else {
       MusicTracks.play('level1');
     }
@@ -417,102 +415,70 @@
       }
     }
 
-    const LIGHT = Level.END_LIGHT || { x: Level.W - 260, y: 200, r: 28 };
+    // Spawn surfboard early (visible waiting at exit from module 5 onwards)
     const SURF_X = (Level.SURFBOARD_X !== undefined ? Level.SURFBOARD_X : Level.W - 180);
-
-    // Trigger when near end light OR near surfboard X
-    const dxLight = p.x - LIGHT.x, dyLight = (p.y - 36) - LIGHT.y;
-    const distLight = Math.hypot(dxLight, dyLight);
-    const nearLight = distLight < 110;
-    const nearSurfX = p.x > SURF_X - 60;
-
-    if (!t.exitTriggered && (nearLight || nearSurfX)) {
-      t.exitTriggered = true;
-      t.outroT = 0;
-      t.boardMounted = false;
-      t.approachT = 0;
-      const boardY = nearLight ? LIGHT.y + 55 : Level.GROUND - 180;
-      const boardX = nearLight ? LIGHT.x : SURF_X;
-      t.surfboard = {
-        x: boardX,
-        y: boardY,
-        vx: 40,
-        vy: -5,
-        active: true,
-        boardT: 0,
-        exhaustT: 0,
-      };
-      // small jump cue
-      if (p.onGround) { p.vy = -320; p.onGround = false; }
-      SFX.introFly();
-      Dialogue.say('player', 'tutorial.hint.board', 3.5);
-      G.camLockL = 0; G.camLockR = Level.W + 2000;
+    if (!t.surfboard && p.x > 4 * 1376) { // visible from ~module 5
+      const boardY = Level.GROUND - 180;
+      t.surfboard = { x: SURF_X, y: boardY, vx: 0, vy: 0, active: true, boardT: 0, exhaustT: 0, mounted: false };
     }
 
-    if (t.exitTriggered) {
+    // Auto-mount when player approaches the waiting surfboard
+    if (t.surfboard && !t.surfboard.mounted) {
+      const board = t.surfboard;
+      board.boardT += dt;
+      // Gentle hover
+      board.vy = Math.sin(board.boardT * 3) * 6;
+      board.y += board.vy * dt;
+
+      const dx = Math.abs(p.x - board.x);
+      const dy = Math.abs(p.y - board.y);
+      const near = dx < 85 && dy < 55 && !p.dead;
+
+      if (near) {
+        // Auto-mount: lock player to board
+        t.surfboard.mounted = true;
+        t.exitTriggered = true;
+        t.outroT = 0;
+        p.inv = 999;
+        p.vx = 0; p.vy = 0;
+        p.onGround = true;
+        SFX.introJump();
+        for(let i=0;i<12;i++) G.particles.push({kind:'spark', x:p.x, y:p.y-10, vx:(Math.random()-0.5)*120, vy:-20-Math.random()*80, t:0, life:0.25+Math.random()*0.25, color:'#ffe28a', size:2+Math.random()*2.5, grav:120});
+        G.camLockR = Level.W + 2000;
+      }
+
+      // Draw "BOARD" hint near exit
+      if (!t.exitTriggered && p.x > 7 * 1376) {
+        Dialogue.say('player', 'tutorial.hint.board', 5.0);
+      }
+    }
+
+    if (t.exitTriggered && t.surfboard && t.surfboard.mounted) {
       t.outroT += dt;
       const board = t.surfboard;
-      if (!board) return;
       board.boardT += dt;
       board.exhaustT -= dt;
+
+      // Exhaust particles
       if (board.exhaustT <= 0) {
         const bx = board.x - 48;
         for (const oy of [-8, 5]) {
-          G.particles.push({ kind: 'smoke', x: bx - Math.random() * 8, y: board.y + oy,
-            vx: -80 - Math.random() * 100, vy: (Math.random() - 0.5) * 45,
-            t: 0, life: 0.42 + Math.random() * 0.25,
-            color: Math.random() < 0.35 ? '#68717a' : '#3f464d',
-            size: 5 + Math.random() * 6, grav: -24, drag: 0.7 });
-          G.particles.push({ kind: 'spark', x: bx, y: board.y + oy,
-            vx: -180 - Math.random() * 170, vy: (Math.random() - 0.5) * 70,
-            t: 0, life: 0.09 + Math.random() * 0.08,
-            color: Math.random() < 0.4 ? '#ffffff' : '#ffb347',
-            size: 2 + Math.random() * 2, grav: 0 });
+          G.particles.push({ kind: 'smoke', x: bx - Math.random() * 8, y: board.y + oy, vx: -80 - Math.random() * 100, vy: (Math.random() - 0.5) * 45, t: 0, life: 0.42 + Math.random() * 0.25, color: Math.random() < 0.35 ? '#68717a' : '#3f464d', size: 5 + Math.random() * 6, grav: -24, drag: 0.7 });
+          G.particles.push({ kind: 'spark', x: bx, y: board.y + oy, vx: -180 - Math.random() * 170, vy: (Math.random() - 0.5) * 70, t: 0, life: 0.09 + Math.random() * 0.08, color: Math.random() < 0.4 ? '#ffffff' : '#ffb347', size: 2 + Math.random() * 2, grav: 0 });
         }
         board.exhaustT = 0.032;
       }
 
-      // Mounting logic: player jumps to board
-      if (!t.boardMounted) {
-        t.approachT += dt;
-        const targetX = board.x;
-        const targetY = board.y - 12;
-        const dx = targetX - p.x, dy = targetY - p.y;
-        // gentle homing to board before mount
-        if (Math.abs(dx) < 70 && Math.abs(dy) < 40) {
-          t.boardMounted = true;
-          p.inv = 999;
-          p.vx = 0; p.vy = 0;
-          SFX.introJump();
-          // burst effect on mount
-          for(let i=0;i<12;i++) G.particles.push({kind:'spark', x:p.x, y:p.y-10, vx:(Math.random()-0.5)*120, vy:-20-Math.random()*80, t:0, life:0.25+Math.random()*0.25, color:'#ffe28a', size:2+Math.random()*2.5, grav:120});
-        } else {
-          // nudge player toward board if close
-          if (t.approachT > 0.15) {
-            p.vx += Math.sign(dx) * 420 * dt;
-            if (Math.abs(dx) < 120 && p.onGround) p.vy = -380;
-          }
-        }
-      }
+      // Player locked to board
+      p.x = board.x;
+      p.y = board.y - 6 + Math.sin(board.boardT*8)*1.2;
+      p.vx = board.vx; p.vy = board.vy;
+      p.onGround = true;
+      p.inv = 999;
 
-      if (t.boardMounted) {
-        // player locked to board
-        p.x = board.x;
-        p.y = board.y - 6 + Math.sin(board.boardT*8)*1.2;
-        p.vx = board.vx; p.vy = board.vy;
-        p.onGround = true;
-        p.inv = 999;
-      }
-
-      // board accelerates off screen
-      if (t.boardMounted) {
-        board.vx += 560 * dt;
-        board.vy -= 42 * dt;
-      } else {
-        // idle hover before mount
-        board.vx = 18 + Math.sin(board.boardT*2)*4;
-        board.vy = Math.sin(board.boardT*3)*6;
-      }
+      // Accelerate off screen
+      board.vx += 560 * dt;
+      board.vy -= 42 * dt;
       board.x += board.vx * dt;
       board.y += board.vy * dt;
 
@@ -522,16 +488,7 @@
       if (t.outroT > 2.8) {
         try {
           localStorage.setItem('dh_tutorial_done', '1');
-          const reward = {
-            score: G.score + 1000,
-            lives: G.lives,
-            characterId: G.player.characterId,
-            weapon: 'mg',
-            ammo: 80,
-            grenades: 6,
-            homingMissiles: 5,
-            armor: G.player.maxArmor
-          };
+          const reward = { score: G.score + 1000, lives: G.lives, characterId: G.player.characterId, weapon: 'mg', ammo: 80, grenades: 6, homingMissiles: 5, armor: G.player.maxArmor };
           sessionStorage.setItem('dh_tutorial_reward', JSON.stringify(reward));
         } catch (e) {}
         SFX.stopMusic();
@@ -542,16 +499,14 @@
   }
 
   function drawTutorialBoard(g, camX) {
-    if (!G.tutorial || !G.tutorial.surfboard || !G.tutorial.surfboard.active) return;
+    if (!G.tutorial || !G.tutorial.surfboard) return;
     const b = G.tutorial.surfboard;
     const sx = b.x - camX;
     if (sx < -320 || sx > VW + 320) return;
-    const t = G.tutorial;
-    const playerOnBoard = t.exitTriggered && t.boardMounted;
+    const mounted = !!b.mounted;
     // draw board
-    Sprites.drawRocketBoard(g, sx, b.y, 1, b.boardT, playerOnBoard ? 1.0 : 0.65);
-    if (playerOnBoard) {
-      // draw player riding board (slightly above)
+    Sprites.drawRocketBoard(g, sx, b.y, 1, b.boardT, mounted ? 1.0 : 0.65);
+    if (mounted) {
       const p = G.player;
       if (p) {
         const rider = Sprites.getPlayerFrame('idle', G.time, 0);
@@ -559,7 +514,7 @@
         Sprites.draw(g, rider, sx, b.y - 6 + bob, 1);
       }
     } else {
-      // prompt BOARD before mount
+      // hint text
       const pulse = 0.6 + Math.sin((G.time||0)*5)*0.35;
       if (pulse>0.4) {
         g.fillStyle = '#000'; g.font = 'bold 11px "Courier New", monospace'; g.textAlign='center';
@@ -828,11 +783,9 @@
     else if (G.mode === 'tutorial') {
       handleSpawns();
       updateTutorial(dt);
-      if (G.tutorial && G.tutorial.exitTriggered) {
-        // During outro, we already returned from updateTutorial after handling particles and camera via early return? Ensure we still update systems lightly then exit
-        // If exitTriggered active, tutorial update handled camera and particles and will redirect soon; skip rest for first frame after attach
-        if (G.tutorial.outroT > 0 && G.tutorial.outroT < 1.8) {
-          // still allow some updates for visual continuity but not game logic
+      if (G.tutorial && G.tutorial.surfboard && G.tutorial.surfboard.mounted) {
+        // During board ride: skip game logic, only update particles and camera
+        if (G.tutorial.outroT > 0 && G.tutorial.outroT < 2.2) {
           Level.updatePlatforms(dt, G.player);
           Entities.updateSlugs(dt);
           Entities.updateParticles(dt);
@@ -1247,86 +1200,283 @@
     }
   }
 
-  function drawSelectStat(label, value, max, x, y, width, color) {
-    text(label, x, y + 8, 9, '#d5dbe3');
-    const bx = x + 66;
-    const bw = width - 66;
-    g.fillStyle = 'rgba(3,7,13,0.65)';
-    g.fillRect(bx, y, bw, 9);
-    const segments = 8;
-    for (let i = 0; i < segments; i++) {
-      const sw = bw / segments - 2;
-      g.fillStyle = (i + 0.5) / segments <= value / max ? color : 'rgba(100,115,130,0.22)';
-      g.fillRect(bx + i * bw / segments + 1, y + 1, sw, 7);
+
+  // Deterministic star data for the character select background
+  let charSelStars = null;
+  function initCharSelStars() {
+    charSelStars = [];
+    let seed = 7331;
+    function rng() { seed = (seed * 1664525 + 1013904223) | 0; return (seed >>> 0) / 4294967296; }
+    for (let i = 0; i < 280; i++) {
+      charSelStars.push({
+        x: rng() * VW, y: rng() * VH,
+        size: rng() < 0.82 ? 1 : 2,
+        speed: 0.08 + rng() * 0.35,
+        phase: rng() * 100,
+        twinkle: rng() * 6.28,
+        color: rng() < 0.2 ? '#68efff' : rng() < 0.4 ? '#b58cff' : '#ffffff',
+      });
+    }
+  }
+
+  // Draw a progress bar for the character select stats
+  function drawStatBar(x, y, w, h, value, max, fillColor) {
+    const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
+    // Background track
+    g.fillStyle = '#333333';
+    g.beginPath();
+    g.moveTo(x + h / 2, y);
+    g.lineTo(x + w - h / 2, y);
+    g.quadraticCurveTo(x + w, y, x + w, y + h / 2);
+    g.quadraticCurveTo(x + w, y + h, x + w - h / 2, y + h);
+    g.lineTo(x + h / 2, y + h);
+    g.quadraticCurveTo(x, y + h, x, y + h / 2);
+    g.quadraticCurveTo(x, y, x + h / 2, y);
+    g.fill();
+    // Fill foreground
+    if (ratio > 0) {
+      const fillW = (w - 4) * ratio;
+      g.fillStyle = fillColor;
+      g.beginPath();
+      g.moveTo(x + 2 + h / 2, y + 2);
+      g.lineTo(x + 2 + fillW - h / 2, y + 2);
+      g.quadraticCurveTo(x + 2 + fillW, y + 2, x + 2 + fillW, y + h / 2);
+      g.quadraticCurveTo(x + 2 + fillW, y + h - 2, x + 2 + fillW - h / 2, y + h - 2);
+      g.lineTo(x + 2 + h / 2, y + h - 2);
+      g.quadraticCurveTo(x + 2, y + h - 2, x + 2, y + h / 2);
+      g.quadraticCurveTo(x + 2, y + 2, x + 2 + h / 2, y + 2);
+      g.fill();
+      // Highlight line on top
+      g.globalAlpha = 0.35;
+      g.fillStyle = '#ffffff';
+      g.fillRect(x + 4, y + 2, fillW - 4, 2);
+      g.globalAlpha = 1;
     }
   }
 
   function drawCharacterSelect() {
-    const menuCam = (G.time * 18) % (Level.W - VW);
-    Level.drawBackground(g, menuCam, G.time, VW, VH);
-    Level.drawGround(g, menuCam, VW, VH);
-    g.fillStyle = 'rgba(5,9,18,0.58)';
+    if (!charSelStars) initCharSelStars();
+
+    // ---- Layer 0: Deep space background ----
+    const grad = g.createRadialGradient(VW / 2, VH / 2, 30, VW / 2, VH / 2, 520);
+    grad.addColorStop(0, '#0a1628');
+    grad.addColorStop(0.35, '#060e1c');
+    grad.addColorStop(0.7, '#030712');
+    grad.addColorStop(1, '#010408');
+    g.fillStyle = grad;
     g.fillRect(0, 0, VW, VH);
 
-    text(tr('characterSelect.title'), VW / 2, 43, 30, '#ffe28a', 'center');
-    text(tr('characterSelect.storyPremise'), VW / 2, 68, 11, '#b9dff0', 'center');
-    text(tr(G.pendingMode === 'survival' ? 'menu.survival' : 'menu.arcade'),
-      VW - 18, 35, 11, '#ffb347', 'right');
-
-    const cardW = 286, cardH = 392, gap = 16, startX = 35, cardY = 83;
-    for (let i = 0; i < Characters.roster.length; i++) {
-      const character = Characters.roster[i];
-      const x = startX + i * (cardW + gap);
-      const selected = i === G.characterSel;
-      g.save();
-      g.fillStyle = selected ? 'rgba(24,39,55,0.78)' : 'rgba(8,13,22,0.62)';
-      g.fillRect(x, cardY, cardW, cardH);
-      g.strokeStyle = selected ? character.accent : 'rgba(165,180,195,0.32)';
-      g.lineWidth = selected ? 3 : 1;
-      g.strokeRect(x + 1, cardY + 1, cardW - 2, cardH - 2);
-      if (selected) {
-        g.globalCompositeOperation = 'lighter';
-        g.globalAlpha = 0.32 + Math.sin(G.time * 6) * 0.1;
-        g.strokeStyle = character.accent;
-        g.lineWidth = 7;
-        g.strokeRect(x + 5, cardY + 5, cardW - 10, cardH - 10);
-      }
-      g.restore();
-
-      const portrait = Sprites.getCharacterPortrait(character.id);
-      if (portrait) {
-        g.save();
-        g.globalAlpha = selected ? 1 : 0.68;
-        g.drawImage(portrait, x + 53, cardY + 10, 180, 180);
-        g.restore();
-      } else {
-        const preview = Sprites.getCharacterFrame(character.id, 'idle', G.time, 0);
-        Sprites.draw(g, preview, x + cardW / 2, cardY + 188, 1, selected ? 1 : 0.68);
-      }
-
-      text(tr(character.nameKey), x + cardW / 2, cardY + 215, 20,
-        selected ? '#ffffff' : '#c3c9ce', 'center');
-      text(tr(character.roleKey), x + cardW / 2, cardY + 235, 10,
-        selected ? character.accent : '#89939d', 'center');
-      drawWrapped(tr(character.bioKey), x + cardW / 2, cardY + 254,
-        cardW - 28, 13, 9, selected ? '#dce8ee' : '#929ba4');
-
-      const statX = x + 14, statW = cardW - 28;
-      drawSelectStat(tr('characterSelect.speed'), character.speed, 310,
-        statX, cardY + 304, statW, character.accent);
-      drawSelectStat(tr('characterSelect.jump'), Math.abs(character.jumpVelocity), 840,
-        statX, cardY + 326, statW, character.accent);
-      drawSelectStat(tr('characterSelect.armor'), character.maxArmor, 2,
-        statX, cardY + 348, statW, character.accent);
-      drawSelectStat(tr('characterSelect.ammo'), character.ammoMultiplier, 1,
-        statX, cardY + 370, statW, character.accent);
-
-      const hi = characterHi(G.pendingMode, character.id);
-      text(tr('hud.high') + ' ' + String(hi).padStart(7, '0'),
-        x + cardW - 12, cardY + 387, 9, selected ? '#ffe28a' : '#757d84', 'right');
+    // Nebula glow
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    for (let n = 0; n < 3; n++) {
+      const nx = VW * (0.25 + n * 0.25) + Math.sin(G.time * 0.08 + n * 2.1) * 20;
+      const ny = VH * (0.35 + n * 0.15) + Math.cos(G.time * 0.06 + n * 1.3) * 15;
+      const nr = 160 + n * 50;
+      const ng = g.createRadialGradient(nx, ny, 5, nx, ny, nr);
+      ng.addColorStop(0, 'rgba(60,140,255,0.04)');
+      ng.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = ng;
+      g.beginPath(); g.arc(nx, ny, nr, 0, Math.PI * 2); g.fill();
     }
 
-    text(tr('characterSelect.hint'), VW / 2, 515, 12, '#ffffff', 'center');
+    // Twinkling stars
+    for (const s of charSelStars) {
+      const driftX = Math.sin(G.time * s.speed + s.phase) * 6;
+      const alpha = 0.2 + Math.abs(Math.sin(G.time * 1.2 + s.twinkle)) * 0.6;
+      g.globalAlpha = alpha * 0.5;
+      g.fillStyle = s.color;
+      g.fillRect(Math.round(s.x + driftX), Math.round(s.y), s.size, s.size);
+    }
+    g.restore();
+
+    // Semi-transparent dark overlay (~70%)
+    g.fillStyle = 'rgba(2,5,14,0.65)';
+    g.fillRect(0, 0, VW, VH);
+
+    // ---- Navigation HUD (Layer 3) ----
+    // Bottom-left: back instruction
+    g.font = 'bold 10px "Courier New", monospace';
+    g.textAlign = 'left';
+    g.fillStyle = '#00E0E0';
+    g.fillText('ESC: RETURN', 14, VH - 10);
+
+    // Bottom-right: confirm instruction
+    g.textAlign = 'right';
+    g.fillStyle = '#39FF14';
+    g.fillText('ENTER: DEPLOY', VW - 14, VH - 10);
+
+    // ---- Character Card (Layer 2) ----
+    const cardW = 880, cardH = 470;
+    const cx = (VW - cardW) / 2, cy = (VH - cardH) / 2;
+    const sel = G.characterSel;
+    const ch = Characters.roster[sel];
+
+    // Determine accent color based on character
+    const accentColors = {
+      'juan_p': { border: '#D4AF37', name: '#FFFFFF', badge: '#D4AF37' },
+      'elena_k': { border: '#00E5FF', name: '#FFFFFF', badge: '#00E5FF' },
+      'sergio_h': { border: '#FF3333', name: '#FFFFFF', badge: '#FFAA00' },
+    };
+    const accent = accentColors[ch.id] || accentColors['juan_p'];
+
+    // Card shadow
+    g.fillStyle = 'rgba(0,0,0,0.6)';
+    g.fillRect(cx + 4, cy + 4, cardW, cardH);
+
+    // Glass-morphism background (semi-transparent dark slate)
+    const cardBg = g.createLinearGradient(cx, cy, cx, cy + cardH);
+    cardBg.addColorStop(0, 'rgba(15,22,38,0.88)');
+    cardBg.addColorStop(0.5, 'rgba(10,16,30,0.92)');
+    cardBg.addColorStop(1, 'rgba(6,10,20,0.95)');
+    g.fillStyle = cardBg;
+    g.fillRect(cx, cy, cardW, cardH);
+
+    // Subtle 2px border (golden/cyan)
+    g.strokeStyle = accent.border;
+    g.lineWidth = 2;
+    g.strokeRect(cx + 0.5, cy + 0.5, cardW - 1, cardH - 1);
+
+    // Inner subtle highlight at top
+    g.fillStyle = 'rgba(255,255,255,0.04)';
+    g.fillRect(cx + 2, cy + 2, cardW - 4, 1);
+
+    // ---- A. Identity Section (Left 55%) ----
+    const leftRegion = { x: cx + 28, y: cy + 22, w: Math.round(cardW * 0.55) };
+
+    // Name - Bold, Uppercase, ~28pt, White, with dark drop-shadow
+    const nameStr = tr(ch.nameKey).toUpperCase();
+    g.font = 'bold 28px "Courier New", monospace';
+    g.textAlign = 'left';
+    g.fillStyle = 'rgba(0,0,0,0.7)';
+    g.fillText(nameStr, leftRegion.x + 2, leftRegion.y + 32);
+    g.fillStyle = ch.id === 'juan_p' ? '#FFFFFF' : ch.id === 'elena_k' ? '#E0F8FF' : '#FFFFFF';
+    g.fillText(nameStr, leftRegion.x, leftRegion.y + 30);
+
+    // Class Badge - ~14pt, Golden/Sand, with diamond bullet
+    const roleStr = tr(ch.roleKey).toUpperCase();
+    g.font = 'bold 14px "Courier New", monospace';
+    // Diamond bullet
+    g.fillStyle = accent.badge;
+    g.fillText('\u25C6', leftRegion.x, leftRegion.y + 58);
+    g.fillText(roleStr, leftRegion.x + 22, leftRegion.y + 58);
+
+    // Flavor Description - 12pt, Light Grey, Italic
+    const bioStr = tr(ch.bioKey);
+    g.font = 'italic 12px "Courier New", monospace';
+    g.fillStyle = '#B0B0B0';
+    // Word wrap bio
+    const bioWords = bioStr.split(/\s+/);
+    let bioLine = '';
+    let bioY = leftRegion.y + 84;
+    for (const word of bioWords) {
+      const test = bioLine ? bioLine + ' ' + word : word;
+      if (g.measureText(test).width > leftRegion.w - 10) {
+        g.fillText(bioLine, leftRegion.x, bioY);
+        bioLine = word;
+        bioY += 18;
+      } else {
+        bioLine = test;
+      }
+    }
+    if (bioLine) g.fillText(bioLine, leftRegion.x, bioY);
+
+    // Portrait - fill available space in left region
+    const portX = leftRegion.x;
+    const portY = bioY + 16;
+    const portW = leftRegion.w;
+    const portH = cy + cardH - 16 - portY;
+
+    // Portrait frame background
+    g.fillStyle = 'rgba(0,2,10,0.5)';
+    g.strokeStyle = 'rgba(255,255,255,0.08)';
+    g.lineWidth = 1;
+    g.fillRect(portX, portY, portW, portH);
+    g.strokeRect(portX + 0.5, portY + 0.5, portW - 1, portH - 1);
+
+    const portrait = Sprites.getCharacterPortrait(ch.id);
+    if (portrait) {
+      g.save();
+      const pScale = Math.min((portW - 20) / portrait.naturalWidth, (portH - 20) / portrait.naturalHeight);
+      const pDrawW = portrait.naturalWidth * pScale;
+      const pDrawH = portrait.naturalHeight * pScale;
+      const pDrawX = portX + (portW - pDrawW) / 2;
+      const pDrawY = portY + (portH - pDrawH) / 2;
+      g.drawImage(portrait, pDrawX, pDrawY, pDrawW, pDrawH);
+      g.restore();
+    } else {
+      const preview = Sprites.getCharacterFrame(ch.id, 'idle', G.time, 0);
+      Sprites.draw(g, preview, portX + portW / 2, portY + portH - 30, 1, 1);
+    }
+
+    // ---- B. Stats Section (Right 40%) ----
+    const rightX = cx + cardW - Math.round(cardW * 0.40) - 28;
+    const statYstart = cy + 30;
+    const statLabelW = 60;
+    const statBarW = Math.round(cardW * 0.38) - statLabelW - 60;
+    const statRowH = 48;
+    const maxStat = 50; // All stats scaled to max 50
+
+    // Map actual character stats to 0-50 scale for display
+    const statScale = {
+      speed: 50,       // max 310
+      jump: 50,        // max 840
+      armor: 50,       // max 2
+      ammo: 50,        // max 1 (multiplier)
+    };
+    const rawStats = [
+      { label: 'SPEED', val: ch.speed / 310 * 50, max: 50, color: '#00E5FF' },
+      { label: 'JUMP', val: Math.abs(ch.jumpVelocity) / 840 * 50, max: 50, color: '#39FF14' },
+      { label: 'ARMOR', val: ch.maxArmor / 2 * 50, max: 50, color: '#FFAA00' },
+      { label: 'AMMO', val: ch.ammoMultiplier * 50, max: 50, color: '#FF3333' },
+    ];
+
+    // Stats title
+    g.font = 'bold 11px "Courier New", monospace';
+    g.textAlign = 'left';
+    g.fillStyle = '#8899AA';
+    g.fillText('COMBAT PROFILE', rightX, statYstart);
+
+    for (let i = 0; i < rawStats.length; i++) {
+      const s = rawStats[i];
+      const rowY = statYstart + 14 + i * statRowH;
+
+      // Label
+      g.font = 'bold 10px "Courier New", monospace';
+      g.textAlign = 'left';
+      g.fillStyle = '#FFFFFF';
+      g.fillText(s.label, rightX, rowY + 14);
+
+      // Numerical value
+      g.font = 'bold 12px "Courier New", monospace';
+      g.textAlign = 'right';
+      g.fillStyle = '#FFFFFF';
+      g.fillText(String(Math.round(s.val)), rightX + statLabelW + statBarW + 20, rowY + 14);
+
+      // Progress bar
+      drawStatBar(rightX + statLabelW + 8, rowY, statBarW, 10, s.val, s.max, s.color);
+    }
+
+    // ---- Character navigation arrows ----
+    if (Characters.roster.length > 1) {
+      const pulse = 0.45 + Math.sin(G.time * 5) * 0.25;
+      g.save();
+      g.globalAlpha = pulse;
+      g.font = 'bold 32px "Courier New", monospace';
+      g.textAlign = 'center';
+      g.fillStyle = accent.border;
+      // Left arrow
+      g.fillText('\u25C0', cx - 24, cy + cardH / 2 + 10);
+      // Right arrow
+      g.fillText('\u25B6', cx + cardW + 24, cy + cardH / 2 + 10);
+      g.restore();
+    }
+
+    // ---- Character name on top of card for context ----
+    g.font = 'bold 10px "Courier New", monospace';
+    g.textAlign = 'center';
+    g.fillStyle = 'rgba(255,255,255,0.25)';
+    g.fillText(tr(ch.nameKey).toUpperCase(), cx + cardW / 2, cy - 8);
   }
 
   // ---------- schermate ----------
@@ -1507,7 +1657,7 @@
     if (G.mode === 'tutorial') drawTutorialBoard(g, cam);
     const introDrewPlayer = drawIntroActors(cam);
     // During tutorial outro, player is drawn as rider inside drawTutorialBoard, so skip normal draw when mounted
-    const skipNormalPlayer = G.mode === 'tutorial' && G.tutorial && G.tutorial.exitTriggered && G.tutorial.boardMounted;
+    const skipNormalPlayer = G.mode === 'tutorial' && G.tutorial && G.tutorial.surfboard && G.tutorial.surfboard.mounted;
     if (G.player && !introDrewPlayer && !skipNormalPlayer) Entities.drawPlayer(g, cam);
     Entities.drawGrenades(g, cam);
     Entities.drawBullets(g, cam);
