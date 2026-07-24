@@ -33,11 +33,17 @@
     const phase=pow.t*(pow.state==='free'?9:2.5);
     g.save();g.translate(Math.round(sx),Math.round(pow.y-bounce));if(pow.facing<0)g.scale(-1,1);
     const layer=function(img,px,py,angle,ox,oy){if(!img||!img.naturalWidth)return;g.save();g.translate((px-sourceW/2)*scale+(ox||0),(py-sourceH)*scale+(oy||0));if(angle)g.rotate(angle);g.drawImage(img,-px*scale,-py*scale,sourceW*scale,sourceH*scale);g.restore()};
-    // Use full.png as base (includes 2 hands in natural down position).
-    layer(parts.full,sourceW*.5,sourceH*.5,0,0,0);
-    // When waiting (tied): full.png shows 2 hands down. No extra hand sprites.
-    // When liberated (free): overlay hand_up at raised position = 1 hand up, other stays down from full.
-    if(pow.state==='free'){
+    if(pow.state==='tied'){
+      // Tied: full.png shows complete body with both hands naturally down = 2 hands down.
+      layer(parts.full,sourceW*.5,sourceH*.5,0,0,0);
+    } else {
+      // Free: draw torso+legs+head+hand_up only (no hand_down, no full).
+      // hand_up provides 1 raised hand; the other arm is omitted giving clean 1-hand-up pose.
+      const stride=Math.sin(phase)*.08;
+      layer(parts.leg02,sourceW*.34,sourceH*.62,-stride,0,0);
+      layer(parts.leg01,sourceW*.61,sourceH*.62,stride,0,0);
+      layer(parts.torso,sourceW*.5,sourceH*.38,Math.sin(phase*.45)*.015,0,0);
+      if(parts.head)layer(parts.head,sourceW*.42,sourceH*.2,Math.sin(phase*.35)*.04,0,-1);
       layer(parts.hand_up,sourceW*.68,sourceH*.29,-0.25+Math.sin(phase)*.28,0,-3);
     }
     g.restore();return true;

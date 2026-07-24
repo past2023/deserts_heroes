@@ -8,10 +8,23 @@
   html,body { margin:0; width:100%; height:100%; overflow:hidden; background:#02040c; }
   body { display:flex; align-items:center; justify-content:center; }
   canvas { display:block; image-rendering:pixelated; image-rendering:crisp-edges; box-shadow:0 0 50px #07152b; }
+  #loading { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#68efff; font:bold 14px 'Courier New',monospace; background:#02040c; z-index:5; }
+  #loading-bar-wrap { width:240px; height:14px; margin-top:16px; border:2px solid #68efff; background:#05142a; border-radius:2px; overflow:hidden; }
+  #loading-bar { width:0%; height:100%; background:linear-gradient(90deg,#68efff,#a0f0ff); transition:width 0.3s; }
 </style>
 </head>
 <body>
+<div id="loading">
+  <div>LOADING MAP</div>
+  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+</div>
 <canvas id="galactic-map" width="960" height="540"></canvas>
+<script>
+(function(){
+  var bar=document.getElementById('loading-bar'),p=0;
+  var iv=setInterval(function(){p+=0.05+Math.random()*0.06;if(p>1)p=1;bar.style.width=Math.round(p*100)+'%';if(p>=1){setTimeout(function(){var el=document.getElementById('loading');if(el)el.style.display='none'},300);clearInterval(iv)}},150);
+})();
+</script>
 <script src="js/music-tracks.js"></script>
 <script src="js/galactic-map.js"></script>
 </body>

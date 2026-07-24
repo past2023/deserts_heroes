@@ -219,7 +219,7 @@
   // Auto-detect green platforms from _refe images (if present)
   // This will append/replace manual ones after load
   function isBrightGreen(r,g,b,a){
-    return a>30 && g>180 && r<100 && b<100;
+    return a>30 && g>120 && r<100 && b<80;
   }
   function extractFromRef(img, modIdx){
     if(!imageReady(img)) return;
@@ -231,9 +231,9 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img,0,0);
       const data = ctx.getImageData(0,0,w,h).data;
-      // scan for green runs
+      // scan for green runs (use short len to catch thin ref lines)
       const found = [];
-      const minLen = 20;
+      const minLen = 5;
       for(let y=0;y<h;y++){
         let x=0;
         while(x<w){
@@ -247,11 +247,10 @@
             }
             const len = x2-x;
             if(len>=minLen){
-              // merge vertically close lines (within 4px)
+              // merge vertically close lines (within 6px)
               let merged=false;
               for(let f of found){
-                if(Math.abs(f.y - y)<=4 && Math.abs(f.x - x)<30 && Math.abs((f.x+f.w)-(x+len))<60){
-                  // extend
+                if(Math.abs(f.y - y)<=6 && Math.abs(f.x - x)<40 && Math.abs((f.x+f.w)-(x+len))<80){
                   f.x = Math.min(f.x,x);
                   f.w = Math.max(f.x+f.w, x+len) - f.x;
                   f.y = Math.min(f.y,y);
@@ -268,19 +267,20 @@
       }
       // convert to platforms (filter small noise and very low near ground?)
       for(let seg of found){
-        if(seg.y > h*0.78) continue; // ignore near ground clutter below 78%
-        // approximate localY ratio -> game
-        const localY = seg.y * (620 / h) ; // scale 768 -> 620? Actually our mid base logic uses 768 tall, but we scale to 620? Keep simple
-        const worldY = MID_BASE_Y + localY + 100; // offset tuning
+        if(seg.y > h*0.75) continue; // ignore near ground clutter below 75%
+        // Map image Y to game world Y (image 768 tall, MID_BASE_Y=-150, GROUND=470)
+        // The top of image (y=0) maps to ~y=40, bottom of image maps to ~y=620
+        const localY = (seg.y / h) * 580 + 40;
+        const worldY = localY;
         // scale X from image width to MODULE_W
         const scaleX = MODULE_W / w;
         const wx = modIdx*MODULE_W + seg.x*scaleX;
         const ww = seg.w*scaleX;
-        if(ww<15) continue;
+        if(ww<20) continue;
         // avoid duplicates: if near existing platform, skip
         let near=false;
         for(let p of platforms){
-          if(Math.abs(p.x - wx)<30 && Math.abs(p.baseY - worldY)<18 && Math.abs(p.w - ww)<40){ near=true; break; }
+          if(Math.abs(p.x - wx)<30 && Math.abs(p.baseY - worldY)<20 && Math.abs(p.w - ww)<40){ near=true; break; }
         }
         if(!near){
           platforms.push({ x: wx, baseY: worldY, y: worldY, w: ww, amp:0, speed:0, phase:0, fragile:false, invisible:true });
@@ -290,13 +290,24 @@
     }catch(e){ console.warn('[Tutorial] green extraction failed module '+modIdx, e); }
   }
 
-  // Try extraction after images load
+  // Try extraction after images load + also try _reference.png files
   setTimeout(function(){
     for(let i=0;i<MODULE_COUNT;i++){
       if(imageReady(refImages[i])) extractFromRef(refImages[i], i);
     }
-    // For old reference images without green (midXX_reference.png) try also
-    // (they won't have green, so no effect)
+    // Also try older _reference.png naming (half resolution)
+    const oldRefs = [
+      'assets/tutorial/tutorial_mid01_reference.png',
+      'assets/tutorial/tutorial_mid02_reference.png',
+      'assets/tutorial/tutorial_mid03_reference.png',
+      'assets/tutorial/tutorial_mid04_reference.png',
+      'assets/tutorial/tutorial_mid05_reference.png',
+    ];
+    for(let i=0;i<oldRefs.length;i++){
+      const im = new Image();
+      im.onload = function(){ extractFromRef(im, i); };
+      im.src = oldRefs[i];
+    }
   }, 1200);
 
   const spawns=[
@@ -368,11 +379,16 @@
     { module:2, x:659, y:458, type:'screen', color:'#4af1ff', r:28, pulse:2.2, intensity:0.6 },
     { module:2, x:922, y:531, type:'fire', color:'#ff6a18', r:50, pulse:10, intensity:1.0 },
 
-    // Module 3 — desert view upper (mid04b)
+    // Module 3 — desert view upper (mid04b) — big robot eyes + electric FX live here
     { module:3, x:182, y:257, type:'lamp', color:'#ff9a2a', r:34, pulse:1.5, intensity:0.9 },
     { module:3, x:75, y:387, type:'lamp', color:'#ffaa3a', r:20, pulse:1.8, intensity:0.6 },
     { module:3, x:68, y:418, type:'screen', color:'#5affa0', r:30, pulse:2.6, intensity:0.55 },
     { module:3, x:682, y:527, type:'fire', color:'#ff8a22', r:28, pulse:12, intensity:0.8 },
+    // Big robots in mid04b
+    { module:3, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
+    { module:3, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
+    { module:3, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
+    { module:3, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
 
     // Module 4 — elevator lab (mid06b) — corrected positions from green-ref elevator image
     { module:4, x:98, y:86, type:'lamp', color:'#ffb44a', r:26, pulse:1.3, intensity:0.82 },
@@ -382,11 +398,7 @@
     { module:4, x:72, y:418, type:'screen', color:'#4aff88', r:26, pulse:2.8, intensity:0.52 },
     { module:4, x:558, y:498, type:'fire', color:'#ff6a18', r:36, pulse:9.5, intensity:0.92 },
 
-    // Module 5 — sand hangar robots (mid07b) — robot eyes + electric
-    { module:5, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
-    { module:5, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
-    { module:5, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
-    { module:5, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
+    // Module 5 — sand hangar robots (mid07b)
     { module:5, x:108, y:172, type:'lamp', color:'#ffaa3a', r:22, pulse:1.8, intensity:0.6 },
     { module:5, x:1018, y:174, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.55 },
     { module:5, x:72, y:418, type:'screen', color:'#5afcff', r:26, pulse:2.5, intensity:0.5 },
@@ -403,12 +415,7 @@
     { module:7, x:1248, y:530, type:'fire', color:'#ff8a22', r:24, pulse:8, intensity:0.7 },
   ];
 
-  const robotFX=[
-    { module:5, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
-    { module:5, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
-    { module:5, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
-    { module:5, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
-  ];
+  const robotFX=[];
 
   function resetPlatforms(){ for(const p of platforms){ p.dead=false; p.triggered=false; p.breakT=0; p.y=p.baseY; } }
   function updatePlatforms(dt,player){
