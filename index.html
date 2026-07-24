@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Desert's Heroes</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#000; }
+  #game-shell { width:100%; height:100%; border:0; display:block; background:#000; }
+  #audio-start {
+    position:fixed; inset:0; z-index:10; display:none; align-items:flex-end;
+    justify-content:center; padding-bottom:max(28px,env(safe-area-inset-bottom));
+    color:#d9f8ff; font:bold 12px "Courier New",monospace;
+    text-shadow:2px 2px #000; pointer-events:none;
+  }
+</style>
+</head>
+<body>
+<iframe id="game-shell" src="intro.html" allow="autoplay; fullscreen" title="Desert's Heroes"></iframe>
+<div id="audio-start">PRESS ANY KEY OR CLICK TO ENABLE AUDIO</div>
+<script src="js/music-tracks.js"></script>
+<script src="js/audio.js"></script>
+<script>
+(function () {
+  const frame = document.getElementById('game-shell');
+  const hint = document.getElementById('audio-start');
+  MusicTracks.play('overture');
+  let hintTimeout = 0;
+  window.setTimeout(function () {
+    if (!MusicTracks.isPlaying()) {
+      hint.style.display = 'flex';
+      // Never leave the audio hint over Level 1 indefinitely.
+      hintTimeout = window.setTimeout(function () { hint.style.display = 'none'; }, 10000);
+    }
+  }, 700);
+  function hideAudioHint() {
+    hint.style.display = 'none';
+    if (hintTimeout) { clearTimeout(hintTimeout); hintTimeout = 0; }
+  }
+  function unlock() {
+    MusicTracks.resume();
+    hideAudioHint();
+    try { frame.contentWindow.focus(); } catch (e) {}
+  }
+  window.addEventListener('dh-audio-resumed', hideAudioHint);
+  window.addEventListener('keydown', unlock);
+  window.addEventListener('pointerdown', unlock);
+  window.addEventListener('message', function (event) {
+    if (!event.data || event.data.type !== 'dh-music') return;
+    if (event.data.action === 'play') MusicTracks.play(event.data.track);
+    else if (event.data.action === 'stop') MusicTracks.stop();
+    else if (event.data.action === 'resume') unlock();
+    else if (event.data.action === 'volume') MusicTracks.setVolume(event.data.value);
+    else if (event.data.action === 'mute') MusicTracks.setMuted(event.data.value);
+  });
+  frame.addEventListener('load', function () { try { frame.contentWindow.focus(); } catch (e) {} });
+})();
+</script>
+</body>
+</html>
