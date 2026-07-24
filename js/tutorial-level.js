@@ -61,12 +61,9 @@
     pilarImage.onerror = function(){ this.src = 'upload/pilar01.png'; };
   }
 
-  // Platforms extracted from tutorial_midXX_refe.png reference lines.
-  // The top of each green/black reference line = walkable surface.
-  // Module-to-refe mapping: 0=mid01, 1=mid02, 2=mid03, 3=mid04,
-  // 4=mid06, 5=mid07, 6=mid08, 7=mid05 (desert exit).
-  // Coords: local x in image (0-1376), image row (0-768), width.
-  // Game coords: worldX = modIdx*MODULE_W + lx, gameY = MID_BASE_Y + ly = -150 + ly.
+  // Platforms extracted from tutorial_midXX_refe.png (black background + green lines).
+  // Module-to-refe mapping: 0=mid01_refe, 1=mid02_refe, 2=mid03_refe, 3=mid04_refe,
+  // 4=mid06_refe, 5=mid07_refe, 6=mid08_refe, 7=mid05_refe (desert exit).
   const platforms = [];
   function addP(modIdx, lx, ly, lw){
     const wx = modIdx*MODULE_W + lx;
@@ -75,82 +72,95 @@
   }
 
   // Module 0 — mid01b (satellite dish lab)
-  addP(0, 327, 213, 144);  // merged upper-left platforms
-  addP(0, 113, 259, 502);  // merged left middle platform
-  addP(0, 760, 259, 445);  // merged right middle platforms
-  addP(0, 78, 266, 137);   // merged lower-left platforms
-  addP(0, 654, 498, 12);   // small platform bottom
+  addP(0, 327, 215, 29);
+  addP(0, 454, 213, 17);
+  addP(0, 594, 259, 21);
+  addP(0, 1122, 259, 16);
+  addP(0, 1234, 259, 16);
+  addP(0, 231, 260, 20);
+  addP(0, 545, 260, 32);
+  addP(0, 939, 260, 19);
+  addP(0, 502, 263, 21);
+  addP(0, 113, 264, 45);
+  addP(0, 190, 267, 18);
 
   // Module 1 — mid02b (broken circular)
-  addP(1, 934, 257, 379);  // top bridge
-  addP(1, 73, 306, 473);   // left rock lower
-  addP(1, 547, 322, 379);  // right structure
+  addP(1, 934, 257, 183);
+  addP(1, 1118, 262, 177);
+  addP(1, 1296, 266, 17);
+  addP(1, 73, 306, 473);
+  addP(1, 547, 322, 379);
 
   // Module 2 — mid03b (suspended ship)
-  addP(2, 278, 212, 71);   // left upper
-  addP(2, 385, 212, 95);   // center upper
-  addP(2, 209, 259, 414);  // left middle
-  addP(2, 726, 261, 46);   // right middle 1
-  addP(2, 812, 261, 51);   // right middle 2
-  addP(2, 908, 261, 91);   // right middle 3
-  addP(2, 1041, 261, 87);  // right middle 4
-  addP(2, 1164, 261, 62);  // right middle 5
-  addP(2, 1275, 262, 17);  // right edge
+  addP(2, 305, 212, 44);
+  addP(2, 440, 212, 40);
+  addP(2, 385, 213, 37);
+  addP(2, 726, 261, 46);
+  addP(2, 831, 261, 32);
+  addP(2, 921, 261, 24);
+  addP(2, 973, 261, 22);
+  addP(2, 1041, 261, 18);
+  addP(2, 1088, 261, 40);
+  addP(2, 1211, 261, 81);
+  addP(2, 209, 263, 42);
 
   // Module 3 — mid04b (desert view upper)
-  addP(3, 111, 259, 504);  // left long platform
-  addP(3, 215, 261, 539);  // center+right long platform
-  addP(3, 810, 261, 40);   // small center-right
-  addP(3, 1231, 265, 95);  // right edge
-  addP(3, 1212, 271, 19);  // right edge lower
-  addP(3, 1113, 445, 83);  // bottom right
-  addP(3, 630, 497, 22);   // small bottom
+  addP(3, 130, 261, 28);
+  addP(3, 697, 261, 22);
+  addP(3, 810, 261, 40);
+  addP(3, 111, 262, 18);
+  addP(3, 166, 262, 45);
+  addP(3, 1297, 265, 29);
+  addP(3, 215, 266, 74);
+  addP(3, 1251, 266, 44);
+  addP(3, 1212, 271, 19);
+  addP(3, 1113, 449, 18);
+  addP(3, 630, 497, 22);
 
   // Module 4 — mid06b (elevator lab)
-  addP(4, 299, 209, 26);   // high small
-  addP(4, 89, 263, 148);   // left middle
-  addP(4, 1148, 271, 165); // right middle
-  addP(4, 942, 289, 134);  // upper right
-  addP(4, 487, 422, 119);  // wide central
-  addP(4, 904, 452, 14);   // small right
+  addP(4, 299, 209, 26);
+  addP(4, 89, 263, 15);
+  addP(4, 124, 265, 113);
+  addP(4, 1225, 271, 56);
+  addP(4, 1297, 273, 16);
+  addP(4, 985, 289, 44);
+  addP(4, 942, 290, 16);
+  addP(4, 1033, 292, 43);
+  addP(4, 487, 422, 119);
 
   // Module 5 — mid07b (sand hangar robots)
-  addP(5, 128, 259, 225);  // wide left
-  addP(5, 1265, 271, 51);  // far right
-  addP(5, 371, 282, 22);   // small center
-  addP(5, 929, 289, 21);   // right mid
-  addP(5, 985, 289, 13);   // right mid small
-  addP(5, 771, 466, 35);   // bottom shelf
+  addP(5, 160, 259, 193);
+  addP(5, 1280, 271, 36);
+  addP(5, 371, 282, 22);
+  addP(5, 929, 289, 21);
+  addP(5, 785, 469, 21);
 
   // Module 6 — mid08b (second elevator/satellite)
-  addP(6, 289, 208, 47);   // upper small
-  addP(6, 89, 255, 96);    // left
-  addP(6, 188, 266, 22);   // left-low
-  addP(6, 1108, 270, 188); // wide right
-  addP(6, 1299, 276, 12);  // far right
-  addP(6, 949, 287, 39);   // upper
-  addP(6, 1005, 288, 70);  // upper-mid
-  addP(6, 478, 420, 126);  // wide center
+  addP(6, 289, 208, 47);
+  addP(6, 92, 255, 93);
+  addP(6, 188, 266, 22);
+  addP(6, 1154, 270, 98);
+  addP(6, 1108, 271, 18);
+  addP(6, 1258, 273, 38);
+  addP(6, 949, 287, 19);
+  addP(6, 1005, 288, 70);
+  addP(6, 969, 289, 19);
+  addP(6, 478, 420, 126);
 
   // Module 7 — mid05b (desert exit final)
-  addP(7, 888, 417, 14);   // right
-  addP(7, 258, 451, 36);   // center
-  addP(7, 31, 469, 58);    // left
+  addP(7, 258, 451, 36);
+  addP(7, 31, 469, 58);
 
-  // Bridging platforms between modules
+  // Bridging platforms
   addP(0, 1250, 500, 180);
   addP(1, 1300, 400, 150);
   addP(2, 1280, 500, 150);
   addP(3, 1300, 450, 150);
+  addP(4, 1300, 450, 150);
   addP(5, 1300, 450, 150);
   addP(6, 1300, 450, 150);
 
-  // Ground-level nudge platforms for player to reach structures
-  addP(0, 100, 450, 60);
-  addP(0, 200, 450, 60);
-  addP(1, 0, 450, 60);
-  addP(2, 0, 450, 60);
-
+  
   const spawns=[
     { x:700, type:'soldier' },
     { x:1150, type:'pow' },
@@ -236,17 +246,16 @@
     { module:4, x:1245, y:398, type:'fire', color:'#ff6a18', r:36, pulse:9.5, intensity:0.9 },
     { module:4, x:828, y:528, type:'fire', color:'#ff8a22', r:40, pulse:10, intensity:1.0 },
 
-    // Module 5 — mid07b (sand hangar robots)
+    // Module 5 — mid07b (sand hangar - no fire in art)
     { module:5, x:160, y:260, type:'lamp', color:'#ffaa3a', r:20, pulse:1.6, intensity:0.6 },
     { module:5, x:1000, y:280, type:'lamp', color:'#ffaa3a', r:18, pulse:1.5, intensity:0.55 },
     { module:5, x:70, y:420, type:'screen', color:'#5afcff', r:22, pulse:2.5, intensity:0.5 },
-    { module:5, x:620, y:516, type:'fire', color:'#ff8a22', r:24, pulse:10, intensity:0.7 },
 
     // Module 6 — mid08b (second elevator/satellite) - from mid08b art scan
     { module:6, x:825, y:468, type:'lamp', color:'#ffb44a', r:22, pulse:1.3, intensity:0.6 },
     { module:6, x:975, y:498, type:'lamp', color:'#ff9a2a', r:22, pulse:1.4, intensity:0.65 },
     { module:6, x:70, y:420, type:'screen', color:'#4af1ff', r:20, pulse:2.6, intensity:0.45 },
-    { module:6, x:620, y:520, type:'fire', color:'#ff7a22', r:20, pulse:11, intensity:0.6 },
+    { module:6, x:1160, y:510, type:'fire', color:'#ff7a22', r:24, pulse:11, intensity:0.6 },
 
     // Module 7 — mid05b (desert exit final)
     { module:7, x:350, y:390, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.6 },
