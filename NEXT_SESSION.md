@@ -84,4 +84,8 @@ Register new tracks in `js/music-tracks.js` `files` object, then call `MusicTrac
 
 ## Current implementation sync — 2026-07-25
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, enhanced oily black critical smog for Ally Tank 01 matching Tank 02's style but scaled up and heavier, right-side BigShip03 engine bank reactors/flames and oily black crash-smoke, portal level normal level item assets and moving enemies, and the big boss tank chat portrait (`assets/vehicles/boss_tank01/boss_tank01_portrait.png`).
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
+- Ally Tank 01 critical smoke scaled down 3x to a compact, realistic size.
+- BigShip03 ship-platform right-end engine bank reactors, flame animation, and dense oily black crash-smoke placed correctly.
+- Portal level enemies scaled up 2x for easier hits, and weapon pool normalized to standard level1 weapons (`mg`, `spread`, `rocket`, `flame`, `grenades`, `homing`).
+- Big boss tank chat portrait (`assets/vehicles/boss_tank01/boss_tank01_portrait.png`).

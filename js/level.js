@@ -788,10 +788,10 @@
     g.fillRect(Math.round(screenX - 468), 348, 854, 2);
     const t = (window.G&&G.time)||0;
 
-    // Reactors and flame/smog on the right end (engine bank side of BigShip03).
+    // Correct engine/reactor outlets on the right end of bigship03.png (extracted from image structure: large right engine bank at x ~ 0.88 to 0.98, y ~ 0.58 to 0.78).
     const rightReactors = [
-      { x:0.86, y:0.68, s:1.15, phase:0.0 },
-      { x:0.94, y:0.72, s:1.0, phase:1.7 },
+      { x:0.91, y:0.62, s:1.2, phase:0.0 },
+      { x:0.93, y:0.75, s:1.1, phase:1.5 },
     ];
     g.globalCompositeOperation = 'lighter';
     for (let i = 0; i < rightReactors.length; i++) {
@@ -799,14 +799,14 @@
       const rx = sx + dw * r.x;
       const ry = sy + dh * r.y;
       const flick = 0.72 + Math.sin(t * 9.0 + r.phase) * 0.18 + Math.sin(t * 31.0 + i) * 0.08;
-      const flameLen = (62 + Math.sin(t * 5.5 + i) * 12) * r.s * flick;
-      const flameW = 15 * r.s * (0.85 + flick * 0.35);
+      const flameLen = (68 + Math.sin(t * 5.5 + i) * 14) * r.s * flick;
+      const flameW = 18 * r.s * (0.85 + flick * 0.35);
       const flame = g.createLinearGradient(rx - 4, ry, rx + flameLen, ry);
       flame.addColorStop(0, 'rgba(255,255,220,0.92)');
       flame.addColorStop(0.22, 'rgba(255,210,72,0.80)');
       flame.addColorStop(0.55, 'rgba(255,96,28,0.58)');
       flame.addColorStop(1, 'rgba(120,16,8,0)');
-      g.globalAlpha = 0.78;
+      g.globalAlpha = 0.82;
       g.fillStyle = flame;
       g.beginPath();
       g.moveTo(rx - 2, ry - flameW * 0.45);
@@ -819,40 +819,41 @@
       g.fillRect(Math.round(rx - 2), Math.round(ry - 2), Math.round(flameLen * 0.32), 4);
     }
 
-    // Realistic oily black smog code (like ally tanks critical smoke) on the right side and crash vents across BigShip03.
+    // Dense oily black crash smoke on the right side and across the ship body.
     g.globalCompositeOperation = 'source-over';
     const smokeSources = [
-      { x:0.86, y:0.68, strength:1.45, drift:1.25 },
-      { x:0.94, y:0.72, strength:1.30, drift:1.15 },
-      { x:0.72, y:0.42, strength:0.95, drift:0.75 },
-      { x:0.55, y:0.68, strength:0.85, drift:0.60 },
-      { x:0.40, y:0.45, strength:0.90, drift:0.65 },
+      { x:0.91, y:0.62, strength:1.9, drift:1.4 },
+      { x:0.93, y:0.75, strength:1.7, drift:1.3 },
+      { x:0.82, y:0.48, strength:1.4, drift:1.1 },
+      { x:0.68, y:0.35, strength:1.2, drift:0.95 },
+      { x:0.52, y:0.62, strength:1.3, drift:1.0 },
+      { x:0.35, y:0.40, strength:1.25, drift:0.95 },
     ];
     for (let sIdx = 0; sIdx < smokeSources.length; sIdx++) {
       const src = smokeSources[sIdx];
-      const count = sIdx < 2 ? 10 : 6;
+      const count = sIdx < 2 ? 14 : 9;
       const baseX = sx + dw * src.x;
       const baseY = sy + dh * src.y;
       for (let i = 0; i < count; i++) {
-        const drift = (t * (12 + sIdx * 0.9) + i * 19 + sIdx * 29) % 160;
-        const puff = 1 - drift / 160;
-        const wobble = Math.sin(t * 0.85 + i * 1.6 + sIdx) * (4 + i % 3);
-        g.globalAlpha = (0.12 + src.strength * 0.065) * puff;
-        g.fillStyle = i % 3 === 0 ? '#040405' : i % 2 ? '#111115' : '#1c1210';
+        const drift = (t * (10 + sIdx * 0.7) + i * 13 + sIdx * 19) % 180;
+        const puff = 1 - drift / 180;
+        const wobble = Math.sin(t * 0.9 + i * 1.5 + sIdx) * (6 + i % 4);
+        g.globalAlpha = (0.18 + src.strength * 0.08) * puff;
+        g.fillStyle = i % 3 === 0 ? '#030304' : i % 2 ? '#0d0d12' : '#17100e';
         g.beginPath();
         g.arc(
-          baseX + drift * (0.35 + src.drift * 0.25) + wobble,
-          baseY - drift * (0.25 + src.drift * 0.18),
-          (9 + (1 - puff) * 26 + (i % 4) * 2) * src.strength,
+          baseX + drift * (0.4 + src.drift * 0.3) + wobble,
+          baseY - drift * (0.2 + src.drift * 0.15),
+          (12 + (1 - puff) * 32 + (i % 4) * 3) * src.strength,
           0, Math.PI * 2
         );
         g.fill();
-        if (i % 3 === 1) {
-          g.globalAlpha *= 0.5;
-          g.fillStyle = '#050506';
+        if (i % 2 === 0) {
+          g.globalAlpha *= 0.6;
+          g.fillStyle = '#050507';
           g.beginPath();
-          g.arc(baseX + drift * 0.45 + wobble - 6, baseY - drift * 0.32 - 4,
-            (7 + (1 - puff) * 14) * src.strength, 0, Math.PI * 2);
+          g.arc(baseX + drift * 0.5 + wobble - 8, baseY - drift * 0.28 - 5,
+            (9 + (1 - puff) * 18) * src.strength, 0, Math.PI * 2);
           g.fill();
         }
       }

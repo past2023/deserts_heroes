@@ -745,42 +745,41 @@
     if (s.criticalSmokeT > 0) return;
     const facing = s.facing || 1;
     const isDrill = s.type === 'ally_tank02';
-    // Tank 02 decoration/exhaust code adapted for critical mode on both tanks,
-    // with ally tank 01 emitting much bigger, richer oily black smoke.
+    // Ally tank 01 critical smoke made 3x smaller (scaled down power and particle size).
     const sources = isDrill ? [
       { ox:-58, oy:-132, power:1.24 }, { ox:-46, oy:-122, power:1.08 },
       { ox:-68, oy:-60, power:0.86 }, { ox:34, oy:-92, power:0.74 }
     ] : [
-      { ox:-65, oy:-105, power:1.8 }, { ox:-35, oy:-92, power:1.55 },
-      { ox:-78, oy:-64, power:1.3 }, { ox:52, oy:-78, power:1.2 }
+      { ox:-65, oy:-105, power:0.6 }, { ox:-35, oy:-92, power:0.5 },
+      { ox:-78, oy:-64, power:0.42 }, { ox:52, oy:-78, power:0.4 }
     ];
-    const bursts = isDrill ? 3 : 4;
+    const bursts = isDrill ? 3 : 2;
     for (let b = 0; b < bursts; b++) {
       const src = sources[(Math.random() * sources.length) | 0];
-      const baseX = s.x + facing * src.ox + rnd(-9, 9);
-      const baseY = s.y + src.oy + rnd(-7, 8);
-      const count = isDrill ? (Math.random() < 0.35 ? 2 : 1) : (Math.random() < 0.5 ? 3 : 2);
+      const baseX = s.x + facing * src.ox + rnd(-5, 5);
+      const baseY = s.y + src.oy + rnd(-4, 5);
+      const count = isDrill ? (Math.random() < 0.35 ? 2 : 1) : 1;
       for (let i = 0; i < count; i++) {
         const hot = Math.random() < 0.18;
         G.particles.push({
           kind: 'smoke', dark: true,
-          x: baseX + rnd(-12, 12), y: baseY + rnd(-10, 10),
-          vx: -facing * rnd(22, 64) + rnd(-28, 28), vy: rnd(-120, -42),
-          t: 0, life: rnd(1.3, 2.8) * src.power,
+          x: baseX + rnd(-6, 6), y: baseY + rnd(-5, 5),
+          vx: -facing * rnd(14, 45) + rnd(-18, 18), vy: rnd(-75, -28),
+          t: 0, life: rnd(0.8, 1.8) * src.power,
           color: hot ? '#1c1210' : Math.random() < 0.45 ? '#040405' : '#0f0f14',
-          size: rnd(18, 38) * src.power, grav: rnd(-90, -38), drag: 0.54,
+          size: rnd(6, 12) * src.power, grav: rnd(-60, -25), drag: 0.58,
         });
       }
-      if (Math.random() < (isDrill ? 0.26 : 0.48)) {
+      if (Math.random() < (isDrill ? 0.26 : 0.35)) {
         G.particles.push({
-          kind: 'ember', x: baseX + rnd(-8, 8), y: baseY + rnd(-2, 12),
-          vx: -facing * rnd(10, 40) + rnd(-35, 35), vy: rnd(-110, -38), t: 0,
-          life: rnd(0.22, 0.55), color: Math.random() < 0.5 ? '#ff7a24' : '#ffd34a',
-          size: rnd(3, 6), grav: 180,
+          kind: 'ember', x: baseX + rnd(-5, 5), y: baseY + rnd(-2, 8),
+          vx: -facing * rnd(8, 30) + rnd(-25, 25), vy: rnd(-80, -28), t: 0,
+          life: rnd(0.18, 0.42), color: Math.random() < 0.5 ? '#ff7a24' : '#ffd34a',
+          size: rnd(2, 4), grav: 180,
         });
       }
     }
-    s.criticalSmokeT = isDrill ? rnd(0.075, 0.15) : rnd(0.045, 0.09);
+    s.criticalSmokeT = rnd(0.08, 0.16);
   }
 
   function destroySlug(s) {
