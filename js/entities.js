@@ -868,9 +868,18 @@
           muzzleStyle = 'mg';
           SFX.mg();
         } else {
-          const socket = Sprites.getVehicleSocket('allyTank', 'mgFire', 'mainCannon', s.facing);
-          mx = s.x + (socket ? socket.x : s.facing * 88);
-          my = s.y + (socket ? socket.y : -68);
+          if (s.type === 'ally_tank02') {
+            // Drill tank laser starts at the actual drill point, not the higher turret socket.
+            // Tuned to the visible center of the drill's extreme front point in drawAllyTank02().
+            // Reference image green point: source image (391,211) in 400x274 art.
+            // Runtime scale 0.62 with bottom anchor => x +118.5, y -39.1.
+            mx = s.x + s.facing * 119;
+            my = s.y - 39;
+          } else {
+            const socket = Sprites.getVehicleSocket('allyTank', 'mgFire', 'mainCannon', s.facing);
+            mx = s.x + (socket ? socket.x : s.facing * 88);
+            my = s.y + (socket ? socket.y : -68);
+          }
           const aim = allyTankGroundAim(s, mx, my);
           dirX = aim.x;
           dirY = aim.y;
@@ -1006,14 +1015,11 @@
       // Draw drill at same size, no rotation
       g.drawImage(allyTank02Art.drill, left, top, width, height);
       g.restore();
-      if (s.occupied) {
-        g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.48 + Math.sin(time * 13) * 0.18;
-        g.fillStyle = '#ff8a24'; g.beginPath(); g.arc(left+width*0.86+pistonX, top+height*0.58+vibY, 8, 0, Math.PI * 2); g.fill();
-        g.fillStyle = '#ffe8a0'; g.beginPath(); g.arc(left+width*0.86+pistonX, top+height*0.58+vibY, 3.2, 0, Math.PI * 2); g.fill();
-        // impact spark at drill tip when hammering
-        if (drillActive && Math.random()<0.28) {
-          g.globalAlpha=0.7; g.fillStyle='#ffb347'; g.beginPath(); g.arc(left+width*0.92+pistonX, top+height*0.58+vibY + (Math.random()-0.5)*4, 1.8,0,Math.PI*2); g.fill();
-        }
+      if (s.occupied && drillActive && Math.random()<0.18) {
+        // Subtle metal impact spark only; no yellow/orange persistent glow on the drill.
+        g.save(); g.globalCompositeOperation = 'lighter';
+        g.globalAlpha=0.55; g.fillStyle='#d9f8ff';
+        g.beginPath(); g.arc(left+width*0.92+pistonX, top+height*0.58+vibY + (Math.random()-0.5)*4, 1.4,0,Math.PI*2); g.fill();
         g.restore();
       }
     }
@@ -1039,26 +1045,51 @@
         });
       }
     }
-    // Two exhaust pipes at turret top-left - continuous light smoke, heavier when moving/occupied
-    if (Math.random() < (exhaustActive?0.52:0.14)) {
-      for(let k=0;k<2;k++){
-        const offsetX = -18 + k*7; // top-left relative to turret
-        const offsetY = -68 + k*9;
+    // Top-left exhaust tubes: continuous old-engine smoke from the high pipes.
+    if (Math.random() < (exhaustActive?0.72:0.26)) {
+      for(let k=0;k<3;k++){
+        const offsetX = -56 + k*11; // top-left exhaust stack relative to tank center
+        const offsetY = -126 + k*7;
         G.particles.push({
           kind: 'smoke', x: s.x + facing*offsetX, y: s.y + offsetY + Math.sin(time*8+k)*0.8,
-          vx: -facing*rnd(6,18)+rnd(-8,8) + (moveSpeed>2? -facing*4:0), vy: rnd(-52,-18),
-          t: 0, life: 0.62+Math.random()*0.58,
-          color: k===0 ? '#2a2522' : '#302c28', size: 3.0+Math.random()*4.2, grav:-14, drag:0.86
+          vx: -facing*rnd(10,30)+rnd(-10,10) + (moveSpeed>2? -facing*6:0), vy: rnd(-72,-24),
+          t: 0, life: 0.76+Math.random()*0.70,
+          color: k===0 ? '#24211f' : '#34302b', size: 4.0+Math.random()*5.6, grav:-18, drag:0.84
         });
         // occasional darker puff
-        if (Math.random()<0.18) {
+        if (Math.random()<0.28) {
           G.particles.push({
             kind: 'smoke', x: s.x + facing*offsetX, y: s.y + offsetY,
-            vx: -facing*rnd(10,24), vy: rnd(-38,-16),
-            t:0, life:0.48+Math.random()*0.42, color:'#1e1a18', size:2.2+Math.random()*3.0, grav:-10, drag:0.88
+            vx: -facing*rnd(14,34), vy: rnd(-54,-20),
+            t:0, life:0.58+Math.random()*0.52, color:'#1e1a18', size:3.0+Math.random()*4.0, grav:-12, drag:0.86
           });
         }
       }
+    }
+  }
+
+  function spawnSlugGroundDust(s) {
+    if (!window.G || !G.particles || s.destroying || s.dead) return;
+    const moveSpeed = Math.abs(s.vx || 0);
+    const active = s.occupied || moveSpeed > 3 || s.onGround;
+    if (!active) return;
+    const rate = moveSpeed > 8 ? 0.55 : 0.24;
+    if (Math.random() > rate) return;
+    const facing = s.facing || 1;
+    const count = moveSpeed > 35 ? 4 : (moveSpeed > 8 ? 2 : 1);
+    for (let i = 0; i < count; i++) {
+      const side = i % 2 ? 1 : -1;
+      G.particles.push({
+        kind: 'smoke',
+        x: s.x + side * rnd(24, 66),
+        y: s.y - rnd(2, 10),
+        vx: -facing * rnd(8, 28) + rnd(-18, 18) - side * rnd(4, 14),
+        vy: rnd(-34, -8),
+        t: 0, life: rnd(0.30, 0.62),
+        color: moveSpeed > 20 ? '#b88a57' : '#8c7358',
+        size: rnd(2.2, moveSpeed > 20 ? 6.2 : 4.4),
+        grav: -8, drag: 0.82
+      });
     }
   }
 
@@ -1080,6 +1111,8 @@
             s.occupied, Math.max(0, s.recoil));
         }
       }
+
+      spawnSlugGroundDust(s);
 
       if (s.hp > 0 && s.hp <= 1 && !s.destroying) {
         drawCriticalText(g, sx, s.y - 142, G.time);
@@ -1308,9 +1341,19 @@
       const ady = Math.abs((p.y - P_H / 2) - (e.y - P_H / 2));
 
       if (isInfantry(e.type)) {
-        // gravità per la fanteria
+        // Gravity for infantry, with one-way platform support so enemies can
+        // populate authored ship/high-platform encounters instead of falling to ground.
+        const prevY = e.y;
         e.vy += GRAV * dt;
         e.y += e.vy * dt;
+        if (Level.platforms && e.vy >= 0) {
+          for (const pl of Level.platforms) {
+            if (pl.dead) continue;
+            if (prevY <= pl.y + 4 && e.y >= pl.y && e.x > pl.x - 12 && e.x < pl.x + pl.w + 12) {
+              e.y = pl.y; e.vy = 0; break;
+            }
+          }
+        }
         if (e.y >= Level.GROUND) { e.y = Level.GROUND; e.vy = 0; }
       }
 

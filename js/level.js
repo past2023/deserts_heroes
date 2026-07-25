@@ -56,6 +56,12 @@
   const portalDoorImage = new Image();
   portalDoorImage.decoding = 'async';
   portalDoorImage.src = 'assets/props/deco_portal02.png';
+  const enemyShip01Image = new Image();
+  enemyShip01Image.decoding = 'async';
+  enemyShip01Image.src = 'assets/vehicles/enemy_ship01/enemy_ship01.png';
+  const bigShip03Image = new Image();
+  bigShip03Image.decoding = 'async';
+  bigShip03Image.src = 'assets/vehicles/ships/bigship03.png';
   const PORTAL_X = 20750;
 
   const GROUND_MODULE_W = 512;
@@ -76,6 +82,14 @@
     { x: 4140, baseY: 320, y: 320, w: 175, amp: 26, speed: 0.58, phase: 4.2 },
     { x: 5640, baseY: 382, y: 382, w: 145, amp: 20, speed: 0.7, phase: 5.4, fragile: true },
     { x: 6080, baseY: 305, y: 305, w: 160, amp: 22, speed: 0.66, phase: 2.5 },
+
+    // Invisible playable surfaces extracted from assets/vehicles/ships/bigship03_refe.png
+    // after drawing BigShip03 later in the level at scale 0.96 with its bottom on Level.GROUND.
+    { x: 3589, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
+    { x: 3369, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
+    { x: 3802, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
+    { x: 3624, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
+    { x: 3332, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
     // Extended exploration route: alternating low, medium and high paths.
     { x: 7180, baseY: 390, y: 390, w: 170, amp: 14, speed: 0.55, phase: 0.8 },
     { x: 7520, baseY: 300, y: 300, w: 140, amp: 20, speed: 0.72, phase: 2.2, fragile: true },
@@ -157,15 +171,10 @@
     { x: 3150, type: 'grenadier' },
     // Guaranteed shoulder-launcher upgrade: 10 guided missiles.
     { x: 3230, type: 'pickup', pickup: 'homing' },
-    { x: 3380, type: 'tank' },
-    { x: 3520, type: 'turret' },
-    { x: 3650, type: 'pow' },
-    { x: 3780, type: 'bazooka' },
-    { x: 3850, type: 'soldier' },
-    { x: 3930, type: 'soldier' },
-    { x: 4150, type: 'gunship' }, // miniboss di metà missione
-    { x: 4260, type: 'grenadier' },
-    { x: 4340, type: 'soldier' },
+    // BigShip03 ship-platform encounter: normal enemies only on the first three upper decks.
+    { x: 3405, y: 166, type: 'soldier' },
+    { x: 3645, y: 26, type: 'bazooka' },
+    { x: 3865, y: 167, type: 'grenadier' },
     { x: 4480, type: 'pickup', pickup: 'jetpack' },
     { x: 4550, type: 'knife' },
     { x: 4610, type: 'knife' },
@@ -175,6 +184,7 @@
     { x: 5180, type: 'turret' },
     { x: 5250, type: 'soldier' },
     { x: 5330, type: 'soldier' },
+    { x: 5350, type: 'gunship' }, // miniboss, delayed until after BigShip03 section
     { x: 5410, type: 'soldier' },
     { x: 5560, type: 'heli' },
     { x: 5650, type: 'grenadier' },
@@ -189,11 +199,6 @@
     { x: 6720, type: 'grenadier' },
     { x: 6800, type: 'grenadier' },
     { x: 6860, type: 'bazooka' },
-    // Calm archaeological stretch: props, platforms and POWs before combat resumes.
-    { x: 7350, type: 'pow' },
-    { x: 7720, type: 'soldier' }, { x: 7800, type: 'soldier' },
-    { x: 7950, type: 'grenadier' }, { x: 8120, type: 'heli' },
-    { x: 8280, type: 'bazooka' },
     // Second quiet traversal pocket around 8500-8900.
     { x: 8920, type: 'pow' },
     { x: 9100, type: 'knife' }, { x: 9170, type: 'knife' },
@@ -349,6 +354,9 @@
 
   // Persistent life rewards on optional high-platform routes.
   const highPickups = [
+    { x:3440, y:140, type:'mg' },
+    { x:3680, y:2, type:'homing' },
+    { x:4000, y:142, type:'grenades' },
     { x:8368, y:250, type:'heart' },
     { x:12652, y:198, type:'heart' },
     { x:15732, y:193, type:'heart' },
@@ -614,6 +622,7 @@
     // Native sand platforms occupy a dedicated depth plane immediately before
     // the dune layer, so dunes can naturally occlude their lower edges.
     if (window.ForegroundDecor) ForegroundDecor.drawBehindDunes(g);
+    drawIntroEnemyShip(g, camX, time, VW);
     drawDuneLayer(g, camX, VW);
 
     // A single atmospheric grade unifies transparent cloud, mountain, and dune
@@ -625,6 +634,78 @@
       g.fillRect(0, 0, VW, GROUND + 6);
       g.restore();
     }
+  }
+
+  function drawIntroEnemyShip(g, camX, time, VW) {
+    // Opening vista: the enemy ship starts mostly hidden by the nearest dunes,
+    // then rises slowly until it exits above the screen. Drawn before dunes so
+    // the sand layer naturally occludes the lower hull.
+    if (!imageReady(enemyShip01Image) || !window.G || G.state !== 'play' || G.mode !== 'arcade') return;
+    const life = G.bannerT || 0;
+    const duration = 42;
+    if (life > duration) return;
+    const t = Math.max(0, Math.min(1, life / duration));
+    const rise = t * t * (3 - 2 * t); // slow reveal, steady climb, gentle exit
+    const scale = 0.72;
+    const sw = enemyShip01Image.naturalWidth || enemyShip01Image.width;
+    const sh = enemyShip01Image.naturalHeight || enemyShip01Image.height;
+    const dw = Math.round(sw * scale), dh = Math.round(sh * scale);
+    const vibX = Math.sin(time * 66.0) * 0.14 + Math.sin(time * 113.0) * 0.07;
+    const vibY = Math.cos(time * 47.0) * 1.15 + Math.sin(time * 83.0) * 0.55;
+    const sx = Math.round(520 - dw / 2 + vibX);
+    const startY = 386;
+    const endY = -dh - 90;
+    const sy = Math.round(startY + (endY - startY) * rise + Math.sin(time * 0.35) * 3 + vibY);
+    if (sx + dw < -80 || sx > VW + 80) return;
+    g.save();
+    g.imageSmoothingEnabled = false;
+    g.globalAlpha = 0.92 * (life > duration - 5 ? Math.max(0, (duration - life) / 5) : 1);
+    g.drawImage(enemyShip01Image, sx, sy, dw, dh);
+    // Three failing reactor glows under the ship, still behind the dune layer.
+    g.globalCompositeOperation = 'lighter';
+    const reactorXs = [0.30, 0.47, 0.64];
+    for (let r = 0; r < reactorXs.length; r++) {
+      const rx = sx + dw * (reactorXs[r] + (r > 0 ? 0.045 : 0.0)) + Math.sin(time * 13 + r) * 1.4;
+      const ry = sy + dh * (0.98 + (r === 0 ? 0.035 : 0.075));
+      const flick = 0.78 + Math.sin(time * (9 + r * 2.7)) * 0.16 + Math.sin(time * 31 + r) * 0.06;
+      const glow = g.createRadialGradient(rx, ry, 7, rx, ry, 106 * flick);
+      glow.addColorStop(0, 'rgba(255,245,190,0.70)');
+      glow.addColorStop(0.20, 'rgba(255,146,48,0.42)');
+      glow.addColorStop(0.58, 'rgba(255,78,24,0.16)');
+      glow.addColorStop(1, 'rgba(255,78,24,0)');
+      g.globalAlpha = 0.75 * flick;
+      g.fillStyle = glow;
+      g.beginPath(); g.arc(rx, ry, 106 * flick, 0, Math.PI * 2); g.fill();
+      g.globalAlpha = 0.92 * flick;
+      g.fillStyle = '#fff0a8';
+      g.fillRect(Math.round(rx - 14), Math.round(ry - 4), 28, 8);
+    }
+    // Old-ship smoke puffs venting from damaged hull seams.
+    g.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 12; i++) {
+      const baseX = sx + dw * (i % 2 ? 0.28 : 0.72);
+      const baseY = sy + dh * (i % 3 ? 0.34 : 0.48);
+      const drift = (time * (12 + i) + i * 23) % 120;
+      const puff = 1 - drift / 120;
+      g.globalAlpha = 0.10 * puff;
+      g.fillStyle = i % 2 ? '#2f2d2a' : '#4a453d';
+      g.beginPath();
+      g.arc(baseX + Math.sin(time + i) * 10 - drift * 0.18, baseY - drift * 0.28, 10 + (1 - puff) * 18, 0, Math.PI * 2);
+      g.fill();
+    }
+    // Heavy falling sand sheets from the lower hull, deterministic and allocation-free.
+    for (let i = 0; i < 150; i++) {
+      const seed = (i * 73) % 101;
+      const px = sx + dw * (0.10 + ((seed % 89) / 89) * 0.80) + Math.sin(time * 2.0 + i) * (4 + (i % 5));
+      const fall = ((time * (52 + (i % 7) * 9) + i * 19) % 300);
+      const py = sy + dh * (0.50 + (i % 6) * 0.045) + fall;
+      if (py > sy + dh * 0.60 && py < GROUND + 20) {
+        g.globalAlpha = 0.16 + (i % 6) * 0.035;
+        g.fillStyle = i % 4 ? '#d39a5a' : '#ffd18a';
+        g.fillRect(Math.round(px), Math.round(py), 1 + (i % 3 === 0 ? 2 : 0), 4 + (i % 8));
+      }
+    }
+    g.restore();
   }
 
   function drawDuneLayer(g, camX, VW) {
@@ -645,6 +726,57 @@
     const tileH = Math.round(sourceH * DUNE_SCALE);
     drawTiledLayer(g, img, camX, DUNE_PARALLAX, DUNE_SCALE,
       GROUND - tileH + 6, VW);
+  }
+
+  function drawBigShip03Decor(g, camX, VW) {
+    if (!imageReady(bigShip03Image)) return;
+    if(window.G && G.state !== 'play') return;
+    const worldX = 3800;
+    const screenX = Math.round(worldX - camX);
+    const scale = 0.96;
+    const iw = bigShip03Image.naturalWidth || bigShip03Image.width;
+    const ih = bigShip03Image.naturalHeight || bigShip03Image.height;
+    const dw = Math.round(iw * scale), dh = Math.round(ih * scale);
+    const sx = screenX - Math.round(dw / 2);
+    const sy = GROUND - dh;
+    if (sx + dw < -120 || sx > VW + 120) return;
+    g.save();
+    g.imageSmoothingEnabled = false;
+    g.globalAlpha = 0.94;
+    g.drawImage(bigShip03Image, sx, sy, dw, dh);
+    // Subtle platform readability: glint along the main lower ship deck.
+    g.globalCompositeOperation = 'lighter';
+    g.globalAlpha = 0.08 + Math.sin(((window.G&&G.time)||0) * 2.4) * 0.025;
+    g.fillStyle = '#68efff';
+    g.fillRect(Math.round(screenX - 468), 348, 854, 2);
+    const t = (window.G&&G.time)||0;
+    // Decorative reactor lamps and failing vents on the ship hull.
+    const reactors = [
+      { x:0.76, y:0.66, r:48 }, { x:0.86, y:0.70, r:60 }, { x:0.95, y:0.67, r:54 }
+    ];
+    for(const r of reactors){
+      const rx=sx+dw*r.x, ry=sy+dh*r.y;
+      const flick=0.75+Math.sin(t*8+r.x*10)*0.18+Math.sin(t*29+r.y*6)*0.07;
+      const grad=g.createRadialGradient(rx,ry,3,rx,ry,r.r*flick);
+      grad.addColorStop(0,'rgba(255,245,190,0.55)');
+      grad.addColorStop(0.28,'rgba(255,138,50,0.32)');
+      grad.addColorStop(1,'rgba(255,80,20,0)');
+      g.globalAlpha=0.65*flick; g.fillStyle=grad; g.beginPath(); g.arc(rx,ry,r.r*flick,0,Math.PI*2); g.fill();
+    }
+    g.globalCompositeOperation='source-over';
+    for(let i=0;i<22;i++){
+      const drift=(t*(12+i*0.9)+i*21)%150;
+      const puff=1-drift/150;
+      g.globalAlpha=0.16*puff;
+      g.fillStyle=i%2?'#171719':'#2a2725';
+      g.beginPath();
+      const baseX = i<14 ? (0.74+(i%4)*0.065) : (0.18+(i%5)*0.12);
+      const baseY = i<14 ? (0.60+(i%3)*0.055) : (0.36+(i%4)*0.11);
+      g.arc(sx+dw*baseX-drift*0.18, sy+dh*baseY-drift*0.24, 10+(1-puff)*24, 0, Math.PI*2);
+      g.fill();
+    }
+    g.globalAlpha=1;
+    g.restore();
   }
 
   function drawDesertPlant(g, plant, camX) {
@@ -763,8 +895,9 @@
   }
 
   function drawGround(g, camX, VW, VH) {
-    // Supplied palm and cactus PNGs occupy the original palm layer, behind
+    // Supplied palm/cactus PNGs and large ship decor occupy this layer, behind
     // gameplay entities but in front of the dune panorama.
+    drawBigShip03Decor(g, camX, VW);
     for (const plant of desertPlants) drawDesertPlant(g, plant, camX);
 
     const externalGround = drawGroundModules(g, camX, VW);
@@ -815,62 +948,110 @@
       g.fillStyle = lava; g.fillRect(0, GROUND + 18, VW, VH - GROUND - 18); g.restore();
     }
 
-    // Open lava cuts use a bright animated surface—never a flat black strip.
+    // Open lava cuts: vertical flame-lava columns inspired by the flame launcher,
+    // layered with molten surface sheets, heat haze, bubbles and ember sparks.
     for (const gap of lavaGaps) {
       const gx = gap.x - camX;
       if (gx + gap.w < 0 || gx > VW) continue;
       const visibleX = Math.max(0, gx), visibleRight = Math.min(VW, gx + gap.w);
-      const magma = g.createLinearGradient(0, GROUND - 3, 0, VH);
-      magma.addColorStop(0, '#fff29a');
-      magma.addColorStop(0.08, '#ffc52f');
-      magma.addColorStop(0.32, '#ff641c');
-      magma.addColorStop(0.7, '#b92318');
-      magma.addColorStop(1, '#4b1017');
-      g.fillStyle = magma;
-      g.fillRect(gx, GROUND - 3, gap.w, VH - GROUND + 3);
+      const gapW = Math.max(1, gap.w);
 
-      // Two irregular molten currents travel at different speeds.
+      // Deep magma body with hot core and darker bottom.
+      const magma = g.createLinearGradient(0, GROUND - 8, 0, VH);
+      magma.addColorStop(0, '#fff6b0');
+      magma.addColorStop(0.07, '#ffcf3f');
+      magma.addColorStop(0.26, '#ff5e1e');
+      magma.addColorStop(0.62, '#b91d17');
+      magma.addColorStop(1, '#26070d');
+      g.fillStyle = magma;
+      g.fillRect(gx, GROUND - 6, gap.w, VH - GROUND + 8);
+
       g.save();
       g.beginPath();
-      g.moveTo(gx, GROUND + 8);
-      for (let x = gx; x <= gx + gap.w; x += 8) {
-        const wave = Math.sin(x * 0.055 + hazardTime * 3.4) * 4 +
-          Math.sin(x * 0.12 - hazardTime * 2.1) * 2;
+      g.rect(visibleX, GROUND - 26, Math.max(0, visibleRight - visibleX), VH - GROUND + 30);
+      g.clip();
+      g.globalCompositeOperation = 'lighter';
+
+      // Flame-launcher style vertical tongues climbing from inside the pit.
+      const columns = Math.max(5, Math.floor(gap.w / 38));
+      for (let i = 0; i < columns; i++) {
+        const lane = (i + 0.5) / columns;
+        const baseX = gx + lane * gapW + Math.sin(hazardTime * 1.7 + i * 2.1) * 8;
+        const phase = (hazardTime * (0.55 + (i % 5) * 0.08) + i * 0.137) % 1;
+        const flameH = 38 + (1 - phase) * 92 + Math.sin(hazardTime * 5.5 + i) * 10;
+        const flameW = 10 + (i % 4) * 5 + Math.sin(hazardTime * 4 + i) * 3;
+        const topY = GROUND + 38 - flameH;
+        const grad = g.createLinearGradient(baseX, GROUND + 54, baseX, topY);
+        grad.addColorStop(0, 'rgba(155,18,12,0)');
+        grad.addColorStop(0.18, 'rgba(255,76,20,0.34)');
+        grad.addColorStop(0.58, 'rgba(255,160,34,0.64)');
+        grad.addColorStop(0.86, 'rgba(255,244,165,0.72)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        g.globalAlpha = 0.55 + (1 - phase) * 0.35;
+        g.fillStyle = grad;
+        g.beginPath();
+        g.moveTo(baseX - flameW, GROUND + 58);
+        for (let k = 0; k < 5; k++) {
+          const yy = GROUND + 48 - k * flameH / 5;
+          const xx = baseX + Math.sin(hazardTime * 6 + i * 1.7 + k) * (5 + k * 2);
+          g.lineTo(xx - flameW * (1 - k / 7), yy);
+        }
+        g.lineTo(baseX + Math.sin(hazardTime * 9 + i) * 5, topY);
+        for (let k = 4; k >= 0; k--) {
+          const yy = GROUND + 48 - k * flameH / 5;
+          const xx = baseX + Math.sin(hazardTime * 6 + i * 1.7 + k) * (5 + k * 2);
+          g.lineTo(xx + flameW * (1 - k / 7), yy);
+        }
+        g.closePath();
+        g.fill();
+      }
+
+      // Animated molten surface: broken bright wave with hot white islands.
+      g.globalAlpha = 0.95;
+      g.fillStyle = '#ff8b1f';
+      g.beginPath();
+      g.moveTo(gx, GROUND + 5);
+      for (let x = gx; x <= gx + gap.w; x += 7) {
+        const wave = Math.sin(x * 0.055 + hazardTime * 5.2) * 4 +
+          Math.sin(x * 0.14 - hazardTime * 3.1) * 2;
         g.lineTo(x, GROUND + 7 + wave);
       }
-      g.lineTo(gx + gap.w, GROUND + 24);
-      g.lineTo(gx, GROUND + 24);
+      g.lineTo(gx + gap.w, GROUND + 28);
+      g.lineTo(gx, GROUND + 28);
       g.closePath();
-      g.fillStyle = '#ff8b1f';
       g.fill();
-      g.restore();
-
-      // White-yellow surface ribbons are broken into pixel-art segments.
-      for (let x = gx + 8; x < gx + gap.w - 6; x += 27) {
-        const y = GROUND + 2 + Math.sin(x * 0.08 + hazardTime * 4.6) * 3;
-        const length = 9 + ((Math.abs(Math.sin(x + hazardTime)) * 13) | 0);
-        g.fillStyle = '#fff3a0'; g.fillRect(Math.round(x), Math.round(y), length, 3);
-        g.fillStyle = '#ffc62e'; g.fillRect(Math.round(x + 3), Math.round(y + 3), Math.max(4, length - 6), 2);
+      for (let x = gx + 8; x < gx + gap.w - 6; x += 21) {
+        const y = GROUND + 1 + Math.sin(x * 0.09 + hazardTime * 6.5) * 4;
+        const length = 8 + ((Math.abs(Math.sin(x * 0.23 + hazardTime * 2.7)) * 20) | 0);
+        g.globalAlpha = 0.55 + Math.sin(hazardTime * 8 + x) * 0.2;
+        g.fillStyle = '#fff7b8'; g.fillRect(Math.round(x), Math.round(y), length, 2);
+        g.fillStyle = '#ffd248'; g.fillRect(Math.round(x + 2), Math.round(y + 3), Math.max(4, length - 5), 2);
       }
 
-      // Rising bubbles, popping sparks and heat glow make each gap feel alive.
-      g.save();
-      g.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < Math.max(3, Math.floor(gap.w / 70)); i++) {
-        const phase = (hazardTime * (0.28 + i * 0.035) + i * 0.37) % 1;
-        const bx = gx + 18 + ((i * 83 + gap.x * 0.13) % Math.max(25, gap.w - 36));
-        const by = GROUND + 38 - phase * 44;
-        const radius = 2 + (i % 3);
+      // Bubbles, embers and hot gas.
+      const bubbleCount = Math.max(7, Math.floor(gap.w / 38));
+      for (let i = 0; i < bubbleCount; i++) {
+        const phase = (hazardTime * (0.38 + i * 0.027) + i * 0.31) % 1;
+        const bx = gx + 16 + ((i * 73 + gap.x * 0.17) % Math.max(25, gap.w - 32));
+        const by = GROUND + 66 - phase * 78;
+        const radius = 2 + (i % 4);
         g.globalAlpha = (1 - phase) * 0.75;
-        g.fillStyle = i % 2 ? '#fff070' : '#ff7a20';
+        g.fillStyle = i % 3 ? '#ffef70' : '#ffffff';
         g.fillRect(Math.round(bx - radius), Math.round(by - radius), radius * 2, radius * 2);
+        if (i % 3 === 0) {
+          g.globalAlpha = (1 - phase) * 0.35;
+          g.fillStyle = '#ff4d24';
+          g.fillRect(Math.round(bx + 6), Math.round(by + 2), 8, 2);
+        }
       }
-      const surfaceGlow = g.createLinearGradient(0, GROUND - 22, 0, GROUND + 34);
+
+      // Heat glow/haze rising above the surface.
+      const surfaceGlow = g.createLinearGradient(0, GROUND - 50, 0, GROUND + 42);
       surfaceGlow.addColorStop(0, 'rgba(255,120,25,0)');
-      surfaceGlow.addColorStop(0.55, 'rgba(255,110,20,0.18)');
+      surfaceGlow.addColorStop(0.45, 'rgba(255,140,32,0.28)');
       surfaceGlow.addColorStop(1, 'rgba(255,45,15,0)');
       g.globalAlpha = 1; g.fillStyle = surfaceGlow;
-      g.fillRect(visibleX, GROUND - 22, Math.max(0, visibleRight - visibleX), 56);
+      g.fillRect(visibleX, GROUND - 50, Math.max(0, visibleRight - visibleX), 92);
       g.restore();
 
       // Small rock lips connect terrain edges without drawing across the lava.

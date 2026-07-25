@@ -3,6 +3,10 @@
 // ============================================================
 (function () {
   const SCALE = 3;
+  const surfboardImage = new Image();
+  surfboardImage.decoding = 'async';
+  surfboardImage.src = 'assets/vehicles/surfboard/surfboard1.png';
+  surfboardImage.onerror = function(){ if(!this._fallbackTried){ this._fallbackTried=true; this.src='assets/vehicles/surfboard/surfboard01.png'; } };
 
   function makeCanvas(rows, palette, scale) {
     scale = scale || SCALE;
@@ -646,6 +650,36 @@
     if (facing < 0) g.scale(-1, 1);
     const bob = Math.sin((phase || 0) * 8) * 2;
     g.translate(0, bob);
+
+    if (surfboardImage.naturalWidth > 0) {
+      const thrustPower = thrust || 0;
+      const flame = 20 + thrustPower * 34 + Math.sin((phase || 0) * 42) * 5;
+      const drawW = 164, drawH = Math.round(drawW * (surfboardImage.naturalHeight / surfboardImage.naturalWidth));
+      g.save();
+      g.globalCompositeOperation = 'lighter';
+      for (const ey of [-12, 10]) {
+        const grad = g.createLinearGradient(-drawW/2 - flame, ey, -drawW/2 + 8, ey);
+        grad.addColorStop(0, 'rgba(0,255,255,0)');
+        grad.addColorStop(0.35, 'rgba(28,236,255,0.55)');
+        grad.addColorStop(0.72, '#7dfff6');
+        grad.addColorStop(1, '#ffffff');
+        g.fillStyle = grad;
+        g.beginPath();
+        g.moveTo(-drawW/2 + 8, ey - 5);
+        g.lineTo(-drawW/2 - flame, ey + Math.sin((phase || 0) * 30 + ey) * 2);
+        g.lineTo(-drawW/2 + 8, ey + 5);
+        g.closePath();
+        g.fill();
+        g.globalAlpha = 0.35 + thrustPower * 0.25;
+        g.fillStyle = '#58f0ff';
+        g.beginPath(); g.arc(-drawW/2 + 10, ey, 8 + thrustPower * 4, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = 1;
+      }
+      g.restore();
+      g.drawImage(surfboardImage, -drawW/2, -drawH + 12, drawW, drawH);
+      g.restore();
+      return;
+    }
 
     // Twin animated exhaust plumes behind the board.
     const flame = 22 + (thrust || 0) * 20 + Math.sin((phase || 0) * 35) * 5;

@@ -9,17 +9,19 @@
   html, body { width: 100%; height: 100%; background: #080e1e; overflow: hidden; font-family: "Courier New", monospace; }
   #wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
   canvas { image-rendering: pixelated; image-rendering: crisp-edges; background: #000; box-shadow: 0 0 80px rgba(80,200,255,0.18); }
-  #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #7ad0ff; font: bold 14px 'Courier New', monospace; background: #070f1e; z-index: 5; }
-  #loading-bar-wrap { width: 280px; height: 18px; margin-top: 18px; border: 2px solid #7ad0ff; background: #0a1a30; border-radius: 2px; overflow: hidden; }
-  #loading-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #7ad0ff, #68efff); transition: width 0.3s; }
+  #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #7ad0ff; background: #05070d; z-index: 5; }
+  #loading-bar-wrap { width: 320px; height: 24px; margin-top: 0; border: 4px solid #7ad0ff; background: #020306; border-radius: 0; overflow: hidden; box-shadow: 4px 4px 0 #000, 0 0 0 3px rgba(0,0,0,.7) inset; image-rendering: pixelated; }
+  #loading-bar { width: 0%; height: 100%; background: #68efff; transition: width 0.22s steps(16,end); box-shadow: inset 0 0 0 3px rgba(0,0,0,.38); }
   #loading-label { margin-top: 10px; font-size: 11px; color: #5aa0c0; }
+
+  #loading-title, #loading-label { display:none; }
 </style>
 </head>
 <body>
 <div id="loading">
-  <div>LOADING TRAINING ANNEX</div>
+  <div id="loading-title">⌬⟁⟊ ◬⋔⍜ ⟐⌁</div>
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
-  <div id="loading-label">INITIALIZING</div>
+  <div id="loading-label">⟟◈⌁⌯⟁⋔</div>
 </div>
 <div id="wrap"><canvas id="game" width="960" height="540"></canvas></div>
 <script src="js/content.js"></script>
@@ -49,27 +51,27 @@
 <script src="js/settings.js"></script>
 <script src="js/game.js"></script>
 <script>
-// Loading bar progress
+// Alien glyph bar progress
 (function(){
   var bar = document.getElementById('loading-bar');
   var label = document.getElementById('loading-label');
-  var steps = [
-    { at: 0.10, text: 'LOADING SCRIPTS' },
-    { at: 0.30, text: 'LOADING ART ASSETS' },
-    { at: 0.55, text: 'BUILDING WORLD' },
-    { at: 0.78, text: 'PREPARING COMBAT SYSTEMS' },
-    { at: 0.95, text: 'COMPLETE' },
-  ];
+  var title = document.getElementById('loading-title');
+  var glyphs = '⟟⟁⌁⌬⍜⟊◬◈▰▱⋔⋇⟐⌯⌑◌';
+  var steps = [0.10, 0.30, 0.55, 0.78, 0.95];
   var stepIdx = 0;
   var progress = 0;
+  function alienLine(len){
+    var out = '';
+    for (var i = 0; i < len; i++) out += glyphs[(Math.random() * glyphs.length) | 0];
+    return out;
+  }
   var interval = setInterval(function(){
     progress += 0.02 + Math.random() * 0.03;
     if (progress > 1) progress = 1;
     bar.style.width = Math.round(progress * 100) + '%';
-    while (stepIdx < steps.length && progress >= steps[stepIdx].at) {
-      label.textContent = steps[stepIdx].text;
-      stepIdx++;
-    }
+    title.textContent = alienLine(4) + ' ▰ ' + alienLine(6);
+    label.textContent = alienLine(10 + ((progress * 8) | 0));
+    while (stepIdx < steps.length && progress >= steps[stepIdx]) stepIdx++;
     if (progress >= 1) {
       // let the last assets settle then hide
       setTimeout(function(){

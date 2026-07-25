@@ -913,82 +913,72 @@
 
   function drawSlideFour(local, now) {
     const p = smooth(local / SLIDE_TIME);
-    const zoom = 1 + p*0.05 + Math.sin(now*0.00035)*0.015;
-    g.save(); g.translate(W/2, H/2); g.scale(zoom, zoom); g.translate(-W/2, -H/2);
+    const zoom = 1 + p*0.035 + Math.sin(now*0.00035)*0.01;
+
+    // Clean battlefield base layers. No inherited overlay FX: the delivered PNG
+    // alpha is drawn directly at full opacity so only the file alpha controls transparency.
+    g.save();
+    g.translate(W/2, H/2); g.scale(zoom, zoom); g.translate(-W/2, -H/2);
     g.globalAlpha=1; g.globalCompositeOperation='source-over';
     drawLayer('slide4Sky', 65, p, fallbackDesertSky);
     drawLayer('slide4Tank', 135, p, fallbackDesertMountains);
     g.restore();
 
-    // Enhanced smoke columns + fire + embers - more cinematic
     const tankScroll = 120 * p;
-    const smokeSources = [275 - tankScroll, 390 - tankScroll, 540 - tankScroll, 680 - tankScroll, 805 - tankScroll];
+    const fireSources = [
+      [278-tankScroll,354,1.0], [392-tankScroll,342,0.82],
+      [544-tankScroll,350,0.92], [682-tankScroll,338,0.76], [808-tankScroll,360,0.86]
+    ];
+
+    // New fire pass from zero: compact pixel flame cores + soft additive glow.
     g.save();
-    for (let source = 0; source < smokeSources.length; source++) {
-      for (let i = 0; i < 28; i++) {
-        const age = ((local * 0.32 + i * 0.091 + source * 0.23) % 1);
-        const x = smokeSources[source] + Math.sin(i * 3.7 + now * 0.0011) * (10 + age * 30) + Math.sin(now*0.0006+source)*6;
-        const y = 360 - age * 250 - source * 10;
-        const size = Math.round((8 + age * 28) / 3) * 3;
-        g.globalAlpha = (1 - age) * 0.42;
-        g.fillStyle = i % 3 ? '#2b2d32' : '#4a4440';
-        g.fillRect(Math.round(x / 3) * 3, Math.round(y / 3) * 3, size, size);
-        g.fillStyle = 'rgba(180,155,125,0.18)';
-        g.fillRect(Math.round(x / 3) * 3 + 3, Math.round(y / 3) * 3 + 3, Math.max(3, size - 7), Math.max(3, size - 7));
-        // ember rising inside smoke
-        if(i%5===0 && age>0.3){
-          g.globalCompositeOperation='lighter'; g.globalAlpha=(1-age)*0.55; g.fillStyle='#ff9a42';
-          g.fillRect(x+Math.random()*6, y, 2, 2);
-          g.globalCompositeOperation='source-over';
-        }
+    g.globalCompositeOperation='lighter';
+    for(const f of fireSources){
+      const pulse=(0.78+Math.sin(now*0.018+f[0]*0.03)*0.22)*f[2];
+      const x=f[0], y=f[1];
+      const glow=g.createRadialGradient(x,y-10,2,x,y-10,46*pulse);
+      glow.addColorStop(0,'rgba(255,238,160,0.55)');
+      glow.addColorStop(0.24,'rgba(255,112,28,0.38)');
+      glow.addColorStop(1,'rgba(255,60,20,0)');
+      g.globalAlpha=0.85; g.fillStyle=glow; g.beginPath(); g.arc(x,y-10,46*pulse,0,Math.PI*2); g.fill();
+      g.globalAlpha=0.92; g.fillStyle='#ff6a18';
+      g.fillRect(Math.round(x-8*pulse), Math.round(y-22*pulse), Math.round(16*pulse), Math.round(22*pulse));
+      g.fillStyle='#ffe28a';
+      g.fillRect(Math.round(x-3*pulse), Math.round(y-28*pulse), Math.max(2,Math.round(6*pulse)), Math.round(16*pulse));
+      g.fillStyle='#ffffff';
+      g.fillRect(Math.round(x), Math.round(y-20*pulse), 2, Math.round(5*pulse));
+    }
+    g.restore();
+
+    // New smoke pass: slow black smog columns and low sand haze.
+    g.save();
+    for (let source=0; source<fireSources.length; source++) {
+      const base=fireSources[source];
+      for(let i=0;i<18;i++){
+        const age=(local*0.18+i*0.073+source*0.19)%1;
+        const x=base[0]+Math.sin(i*2.4+now*0.0007)*(8+age*24)-age*18;
+        const y=base[1]-age*210-source*6;
+        const radius=10+age*34;
+        const smog=g.createRadialGradient(x,y,3,x,y,radius);
+        smog.addColorStop(0,'rgba(18,18,20,'+(0.24*(1-age)).toFixed(3)+')');
+        smog.addColorStop(0.55,'rgba(48,45,42,'+(0.15*(1-age)).toFixed(3)+')');
+        smog.addColorStop(1,'rgba(30,28,28,0)');
+        g.fillStyle=smog; g.beginPath(); g.arc(x,y,radius,0,Math.PI*2); g.fill();
       }
     }
-    // Fire pockets enhanced with inner white core and flicker
-    g.globalCompositeOperation = 'lighter';
-    for (const fire of [[275-tankScroll,354],[390-tankScroll,342],[540-tankScroll,350],[680-tankScroll,338],[805-tankScroll,360]]) {
-      const pulse = 0.85 + Math.sin(now * 0.022 + fire[0]*0.02) * 0.32;
-      g.globalAlpha = 0.58; g.fillStyle = '#e93424';
-      g.fillRect(fire[0]-14*pulse, fire[1]-24*pulse, 28*pulse, 32*pulse);
-      g.globalAlpha = 0.82; g.fillStyle = '#ff8a24';
-      g.fillRect(fire[0]-9*pulse, fire[1]-21*pulse, 18*pulse, 24*pulse);
-      g.globalAlpha = 0.95; g.fillStyle = '#ffe28a';
-      g.fillRect(fire[0]-4, fire[1]-18*pulse, 8, 14*pulse);
-      g.globalAlpha = 1; g.fillStyle='#ffffff';
-      g.fillRect(fire[0]-1, fire[1]-12*pulse, 2, 5*pulse);
-    }
-    // Sparks + hot debris + sand - more density
-    for (let i = 0; i < 95; i++) {
-      const x = ((now * (0.08 + i % 5 * 0.018) + i * 113) % (W + 200)) - 100;
-      const y = 235 + (i * 37 % 280) + Math.sin(now*0.001+i)*6;
-      g.globalAlpha = 0.16 + (i % 5) * 0.06;
-      g.fillStyle = i % 7 === 0 ? '#ffb347' : i%3===0?'#fff2a0':'#d6a15f';
-      g.fillRect(x, y, i % 9 === 0 ? 4 : 8 + i % 10, i % 9 === 0 ? 3 : 1);
+    g.globalAlpha=0.13; g.fillStyle='#d7a262';
+    for(let i=0;i<24;i++){
+      const x=((now*0.028+i*73)%(W+180))-90;
+      const y=395+(i%5)*18+Math.sin(now*0.001+i)*5;
+      g.fillRect(Math.round(x),Math.round(y),18+(i%4)*8,1);
     }
     g.restore();
 
-    // Smog banks with more volume and parallax
+    // Foreground alpha comes only from slide4_foreground.png.
     g.save();
-    for (let bank = 0; bank < 12; bank++) {
-      const x = ((bank * 133 + now * (0.012 + bank * 0.0009)) % (W + 300)) - 150;
-      const y = 320 + (bank % 4) * 32 + Math.sin(now * 0.0011 + bank)*18;
-      const radius = 62 + (bank % 4) * 28 + Math.sin(now*0.0007+bank)*8;
-      const smog = g.createRadialGradient(x, y, 6, x, y, radius);
-      smog.addColorStop(0, 'rgba(85,78,70,0.32)'); smog.addColorStop(0.5, 'rgba(60,58,55,0.18)'); smog.addColorStop(1, 'rgba(40,38,40,0)');
-      g.fillStyle = smog; g.beginPath(); g.arc(x, y, radius, 0, Math.PI * 2); g.fill();
-    }
-    g.restore();
-
-    // Foreground with slight shake
-    g.save();
-    g.translate(Math.sin(now*0.002)*1.5, 0);
+    g.globalAlpha=1; g.globalCompositeOperation='source-over';
     drawLayer('slide4Foreground', 260, p, fallbackDesertDunes);
     g.restore();
-
-    // Battlefield distant explosions flash
-    if(local>1.2 && local<6.5 && Math.sin(now*0.008 + local*1.2)>0.88){
-      g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=0.18;
-      g.fillStyle='#ff9a42'; g.fillRect(0, H*0.45, W, H*0.18); g.restore();
-    }
 
     const fade = slideFade(local);
     g.fillStyle = 'rgba(0,0,0,' + (1 - fade) + ')'; g.fillRect(0, 0, W, H);

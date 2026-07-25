@@ -5,24 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Desert's Heroes — Galactic Mission Map</title>
 <style>
-  html,body { margin:0; width:100%; height:100%; overflow:hidden; background:#02040c; }
+  html,body { margin:0; width:100%; height:100%; overflow:hidden;box-shadow:0 0 0 2px rgba(0,0,0,.65) inset; background:#02040c; }
   body { display:flex; align-items:center; justify-content:center; }
   canvas { display:block; image-rendering:pixelated; image-rendering:crisp-edges; box-shadow:0 0 50px #07152b; }
-  #loading { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#68efff; font:bold 14px 'Courier New',monospace; background:#02040c; z-index:5; }
-  #loading-bar-wrap { width:240px; height:14px; margin-top:16px; border:2px solid #68efff; background:#05142a; border-radius:2px; overflow:hidden; }
-  #loading-bar { width:0%; height:100%; background:linear-gradient(90deg,#68efff,#a0f0ff); transition:width 0.3s; }
+  #loading { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#68efff; background:#02040c; z-index:5; }
+  #loading-bar-wrap { width:320px; height:24px; margin-top:0; border:4px solid #68efff; background:#020306; border-radius:0; overflow:hidden; box-shadow:4px 4px 0 #000,0 0 0 3px rgba(0,0,0,.7) inset; image-rendering:pixelated; }
+  #loading-bar { width:0%; height:100%; background:#68efff; transition:width 0.22s steps(16,end); box-shadow:inset 0 0 0 3px rgba(0,0,0,.38); }
+
+  #loading-title, #loading-label { display:none; }
 </style>
 </head>
 <body>
 <div id="loading">
-  <div>LOADING MAP</div>
+  <div id="loading-title">⍜⟁⌬ ▰⋔⟐</div>
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 <canvas id="galactic-map" width="960" height="540"></canvas>
 <script>
 (function(){
-  var bar=document.getElementById('loading-bar'),p=0;
-  var iv=setInterval(function(){p+=0.05+Math.random()*0.06;if(p>1)p=1;bar.style.width=Math.round(p*100)+'%';if(p>=1){setTimeout(function(){var el=document.getElementById('loading');if(el)el.style.display='none'},300);clearInterval(iv)}},150);
+  var bar=document.getElementById('loading-bar'),title=document.getElementById('loading-title'),p=0,glyphs='⟟⟁⌁⌬⍜⟊◬◈▰▱⋔⋇⟐⌯⌑◌';
+  function alienLine(len){var out='';for(var i=0;i<len;i++)out+=glyphs[(Math.random()*glyphs.length)|0];return out}
+  var iv=setInterval(function(){p+=0.05+Math.random()*0.06;if(p>1)p=1;bar.style.width=Math.round(p*100)+'%';title.textContent=alienLine(5)+' ▱ '+alienLine(4);if(p>=1){setTimeout(function(){var el=document.getElementById('loading');if(el)el.style.display='none'},300);clearInterval(iv)}},150);
 })();
 </script>
 <script src="js/music-tracks.js"></script>

@@ -36,8 +36,9 @@ Standard Gamepad API controllers are detected automatically in gameplay, menus, 
 
 ## Gameplay
 
-* **Three playable explorers**: after choosing Arcade or Survival, select from a redesigned character-select screen with a glass-morphism card (centered 880×470), identity section (name, class badge with diamond bullet, bio), portrait frame, and 4 color-coded stat bars (Speed=cyan, Jump=neon-green, Armor=orange, Ammo=red) on a deep-space nebula animated background.
-* **Mission entrance**: the selected explorer arrives in a short in-engine cinematic on a twin-rocket flying surfboard, jumps to the ground, and starts the mission while the board accelerates away.
+* **Three playable explorers**: after choosing Arcade or Survival, select from an animated carousel character-select screen inspired by the supplied concept art: compact center pilot panel, previous/next side panels, raised bottom dossier with wrapped name/class/description, pulsing pixel stat bars, and a layered star/meteor background.
+* **Mission entrance**: the selected explorer arrives in a short in-engine cinematic on the supplied PNG rocket surfboard with animated twin reactors while a huge enemy ship rises vertically from the dunes with motor vibration, reactor glow, smoke and falling sand; the rider jumps to the ground as the board accelerates away.
+* **Language-neutral loading screens**: mission, tutorial, map, and rift loading overlays use a simple retro pixel loading bar without visible glyph text instead of English status text.
 * **Two modes**: *Arcade Mission* (single extended mission ~26,000px with final boss) and *Survival* (endless waves in an arena, separate high score). Mode selected from menu with Up/Down.
 * **Enemies**: rifle soldiers, grenadiers, melee attackers, elite bazooka troops, sandbag turrets, helicopters, and tanks.
 * **Mini-boss**: Gunship helicopter with HP bar, bullet spreads, and bombing runs.
@@ -45,13 +46,13 @@ Standard Gamepad API controllers are detected automatically in gameplay, menus, 
 * **Chain combo**: close-range kills increase score multiplier (up to x3). Chain breaks if hit.
 * **POWs**: rescue bound prisoners for points and weapon crates. Prisoners show 2 hands down while tied, 1 hand raised when liberated (fixed 3-arm bug).
 * **Weapons**: Pistol (infinite), Heavy Machine Gun (H), Spread (S), Rocket (R), Flame Shot (F), plus a shoulder-mounted secondary launcher. The launcher fires grenades from the weapon beside the player's head. A cyan **T** upgrade loads 10 target-seeking guided missiles; after the tenth missile it automatically returns to the normal grenade stock.
-* **Rideable allied assault tank**: the complete supplied 180×120 PNG animation set is active for idle, movement, firing, cannon recoil, jump suspension, hit, critical damage, and staged destruction. Normal Fire uses a lower cyan coaxial laser with limited ground-target angle correction; Up+Fire remains anti-air and Secondary fires the explosive shell. It has 3 armor points, crushes infantry, blocks light bullets, and ejects the pilot at zero armor.
+* **Rideable allied assault tank**: the supplied PNG tank set is active for idle, movement, firing, cannon recoil, jump suspension, hit, critical damage and destruction. Normal Fire uses a lower cyan laser with limited ground-target angle correction; Up+Fire remains anti-air and Secondary fires the shell. Ally tanks now emit wheel/chain dust to feel grounded; Ally Tank 02 also smokes from top-left exhaust pipes and fires from the drill-tip reference point.
 * **Destructibles**: wooden crates (loot: weapons, grenades, points) and red explosive barrels that chain-react and damage everyone — bait enemies near them.
 * **Boss phase 2**: below 60% HP the fortress loses its armor plating and starts telegraphed mortar rains (watch the blinking ground markers).
 * **Lives**: 3 lives with respawn and temporary invincibility. On a fatal hit, the supplied eight-frame death sequence plays with a compact suit explosion; the collapsed body remains while the spirit rises into a procedural light beam before respawn. Bonus score for remaining lives at the end of the mission. High scores are saved in `localStorage`.
-* **Desert scenery**: the corrected palm/cactus set and all three exact no-repeat panoramas are active: `sky01.png` (1160×540 at 3%), `mountain01.png` (2156×540 at 18%), and `dune02.png` (6807×576 at 45%/58% render scale).
+* **Desert scenery**: the corrected palm/cactus set, `bigship03.png` 2x ship-platform section soon after the UFO intro, with reference-extracted invisible platforms, enemies, pickups, reactor lights and smoke, and all three exact no-repeat panoramas are active: `sky01.png` (1160×540 at 3%), `mountain01.png` (2156×540 at 18%), and `dune02.png` (6807×576 at 45%/58% render scale).
 * **Modular terrain**: three supplied 512×128 desert ground modules are arranged in a deterministic seeded sequence across the 26,000 px mission. Immediate repeats are avoided and the lava cutaway is intentionally rarer.
-* **Game feel**: hit-stop, recoil, animated brass casings, multi-lobed procedural muzzle cones, per-weapon gradient tracers, distinct enemy fire families, hard white impact cores, concentric hit rings, long arcade impact rays, restrained explosion screen flashes, layered smoke/fire, guided-missile exhaust and lock indicators, screen shake, jump buffering + coyote time, and two full procedural music identities. All combat FX are generated internally with Canvas and WebAudio.
+* **Game feel**: hit-stop, recoil, animated brass casings, multi-lobed procedural muzzle cones, per-weapon gradient tracers, distinct enemy fire families, hard white impact cores, concentric hit rings, long arcade impact rays, restrained explosion screen flashes, layered smoke/fire, vertical flame-lava pits, guided-missile exhaust and lock indicators, screen shake, jump buffering + coyote time, and two full procedural music identities. All combat FX are generated internally with Canvas and WebAudio.
 * **Discrete HUD**: compact portrait, weapon, and secondary chips occupy only the top corners; score is a tiny lower-left strip and boss health appears only during the fight. Low-opacity fills, thin weapon-colored edges, small corner marks, and segmented bars preserve the desert view.
 
 ## Settings panel
@@ -104,4 +105,4 @@ docs/external-assets-fx-projectiles-ui-and-intro.md — surfboard, projectiles, 
 
 ## Documentation synchronization
 
-Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-23).
+Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-25).

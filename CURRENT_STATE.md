@@ -1,7 +1,7 @@
 # Desert's Heroes — Current Game State
 **Date:** 2026-07-25  
-**Branch:** `arena/019f957c-deserts-heroes` (merged to `main`)  
-**PR:** #7
+**Branch:** `arena/019f97f2-deserts-heroes`  
+**PR:** #8
 
 ---
 
@@ -100,12 +100,11 @@ Animated data-driven campaign map with:
 | `help` | Controls help screen |
 
 ### Character Select Screen
-- Single centered 880×470 card with glass-morphism background
-- Identity section (left 55%): Name (28pt white), Class badge (14pt, diamond bullet), Bio (12pt italic grey)
-- Portrait frame below bio
-- Stats section (right 40%): 4 color-coded progress bars (SPEED=cyan, JUMP=green, ARMOR=orange, AMMO=red)
-- Navigation arrows with pulsing accent glow
-- Deep space nebula + twinkling stars background
+- Carousel layout based on `upload/player_select_screen_design_ideas01.png`
+- Large selected pilot panel centered, previous/next pilots in smaller side panels
+- Bottom dossier panel contains Name, Class, Description and two-column stats
+- Animated layered star/meteor background with subtle scanlines
+- Animated stat bars pulse/fill without the old moving white scanner block
 - Controls: ← → to switch, Enter to confirm, Esc to return
 
 ### Characters (`js/characters.js`)
@@ -133,30 +132,32 @@ Animated data-driven campaign map with:
 
 | Mod | Mid Art | Reference File | Platforms |
 |-----|---------|----------------|-----------|
-| 0 | `mid01b.png` | `mid01_refe.png` | 11 |
+| 0 | `mid01b.png` | `mid01_refe.png` | 10 |
 | 1 | `mid02b.png` | `mid02_refe.png` | 5 |
 | 2 | `mid03b.png` | `mid03_refe.png` | 11 |
-| 3 | `mid04b.png` | `mid04_refe.png` | 11 |
-| 4 | `mid06b.png` | `mid06_refe.png` | 9 |
-| 5 | `mid07b.png` | `mid07_refe.png` | 5 |
-| 6 | `mid08b.png` | `mid08_refe.png` | 10 |
-| 7 | `mid05b.png` | `mid05_refe.png` | 2 |
+| 3 | `mid04b.png` | `mid04_refe.png` | 10 |
+| 4 | `mid06b.png` | `mid06_refe.png` | 8 |
+| 5 | `mid07b.png` | `mid07_refe.png` | 7 |
+| 6 | `mid08b.png` | `mid08_refe.png` | 8 |
+| 7 | `mid05b.png` | `mid05_refe.png` | 3 |
 
-**Platforms:** Invisible platforms defined via `addP(modIdx, lx, ly, lw)` — extracted from refe PNGs with green lines on black.
+**Platforms:** Invisible platforms defined via `addP(modIdx, lx, ly, lw)` — extracted from white-on-black reference rectangles. Each rectangle top edge is walkable Y.
 
-**Light FX:** Lamps, screens, fires, robot eyes, electric sparks positioned per module.
+**Extreme foreground:** `pilar01.png` hides module seams. `tutorial_foreground01.png` is no longer drawn. Optional/generated `pilar02.png` appears as a center-level foreground accent if present.
 
-**Falling particles:** Ambient cyan/blue data-sparks drift down.
+**Light FX:** Lamps, fires, robot eyes and electric sparks are positioned per module after checking mid PNG pixel art. Floating fire FX removed; only art-backed flames remain. Computer-screen FX now use fast malfunctioning CRT-style flicker, jitter, scanlines and dropouts.
+
+**Extra tutorial atmosphere:** Two normal Soldier06 observers spawn at different tutorial heights and can be destroyed by the player; `pilar02.png` emits smoke and electric crawls. Small electric sparks can occur throughout the annex, while heavier cyan/blue data-rain stays limited to modules 0, 2, 4, 6.
 
 ---
 
 ## 8. Level 1 (`js/level.js`)
 
 Main arcade level with:
-- Terrain, sky, mountains, dunes parallax layers
+- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship-platform section appears soon after the rising UFO intro during daylight, with `bigship03_refe.png` reference-extracted invisible platforms, enemies/pickups only on ship decks, reactor lights and black smoke
 - 6 enemy types, POW rescues, weapon pickups
 - Portal trigger, boss fight at end
-- Mission intro with rocket-board fly-in
+- Mission intro with supplied PNG rocket-board fly-in and rising enemy ship vista
 
 ---
 
@@ -188,7 +189,7 @@ Main arcade level with:
 - 3-cannon salvos, MG bursts, infantry reinforcement spawn
 
 ### Other Entities
-- Slugs: Ally tanks (drivable), ally_tank02 drill variant
+- Slugs: Ally tanks (drivable), ally_tank02 drill variant, wheel/chain dust, and tank02 top-left exhaust smoke
 - POWs: Tied prisoners (2 hands down) → rescued → 1 hand up → drop weapon
 - Pickups: Weapons, grenades, homing, jetpack, heart
 - Props: Barrels, crates, mines, decor
@@ -213,23 +214,20 @@ Main arcade level with:
 
 ## 11. Known Issues / Next Steps
 
-### 🔲 Platform Detection (HIGH PRIORITY)
-The `_refe.png` files with neon green lines on black were uploaded but the indexed PNG format makes it hard to auto-detect. **Next user should upload simple JPG or PNG with white rectangles on pure black** (1376×768) — one rectangle per platform, positioned at walkable height.
-
-### Lights FX
-- Module 5 (mid07b): Fire was removed (art has no fire) ✅
-- Module 6 (mid08b): Fire moved to x=1160 ✅
-- Other light positions still need verification against actual art
+### Recently Fixed
+- Tutorial platforms now match the white-on-black reference rectangles from `assets/tutorial/*_refe.png`.
+- Tutorial floating fire FX were removed/repositioned to real flame art only.
+- `tutorial_foreground01.png` was removed from runtime drawing; `pilar02.png` is used as optional center-level foreground accent.
+- Ally Tank 02 laser origin was moved to the center of the drill tip.
+- Loading screens use a simple retro pixel loading bar without visible glyph text instead of English-only status labels.
 
 ### Known Bugs
-- Tutorial invisible platforms still not perfectly matching art (manual addP coordinates approximate)
 - No level2-level6 content beyond galactic map nodes
 - Survival mode balanced but untested extensively
 
 ### Planned Features
 - Level 2-6 mission maps
-- More enemy types
-- Boss variants
+- More enemy types and boss variants
 - Additional POW types
 - Full soundtrack integration
 - Leaderboards / achievements
