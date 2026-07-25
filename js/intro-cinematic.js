@@ -978,8 +978,9 @@
     }
     g.restore();
 
-    // Foreground with slight shake
+    // Foreground with slight shake; keep semi-transparent so PNG alpha blends softly.
     g.save();
+    g.globalAlpha = 0.82;
     g.translate(Math.sin(now*0.002)*1.5, 0);
     drawLayer('slide4Foreground', 260, p, fallbackDesertDunes);
     g.restore();

@@ -35,8 +35,8 @@ Start future chats by reading, in order:
 - Tutorial foreground uses `pilar01.png` seams and `pilar02.png` center accents with smoke/electric crawls; `tutorial_foreground01.png` is not drawn.
 - Tutorial screens use fast malfunctioning CRT-style FX and decorative Soldier06 drones drift, malfunction once, explode, and do not reappear.
 - Ally Tank 02 laser origin is tuned in `js/entities.js` to the visible drill tip; both ally tanks use wheel/chain dust and Tank02 has top-left exhaust smoke.
-- Level 1 includes the rising `enemy_ship01` vista and a 2x `bigship03.png` ship/platform decoration in the palm/cactus layer; platforms come from `bigship03_refe.png` and include enemies/pickups.
-- Loading pages use animated alien glyph text instead of English status labels.
+- Level 1 includes the rising `enemy_ship01` vista and a later 2x `bigship03.png` ship/platform section in the palm/cactus layer; platforms come from `bigship03_refe.png` and include enemies/pickups only on ship decks.
+- Loading pages use pixelated animated alien glyph text and chunky stepped bars instead of English status labels.
 
 ## Technical cautions
 

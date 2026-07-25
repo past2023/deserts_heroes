@@ -85,11 +85,11 @@
 
     // Invisible playable surfaces extracted from assets/vehicles/ships/bigship03_refe.png
     // after drawing BigShip03 later in the level at scale 0.96 with its bottom on Level.GROUND.
-    { x: 2389, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
-    { x: 2169, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
-    { x: 2602, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
-    { x: 2424, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
-    { x: 2132, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
+    { x: 7389, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
+    { x: 7169, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
+    { x: 7602, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
+    { x: 7424, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
+    { x: 7132, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
     // Extended exploration route: alternating low, medium and high paths.
     { x: 7180, baseY: 390, y: 390, w: 170, amp: 14, speed: 0.55, phase: 0.8 },
     { x: 7520, baseY: 300, y: 300, w: 140, amp: 20, speed: 0.72, phase: 2.2, fragile: true },
@@ -161,12 +161,7 @@
     { x: 1840, type: 'turret' },
     { x: 1950, type: 'grenadier' },
     { x: 2150, type: 'pow' },
-    // BigShip03 platform encounter: enemies stand on the reference-extracted decks.
-    { x: 2190, y: 166, type: 'soldier' },
-    { x: 2355, y: 348, type: 'grenadier' },
     { x: 2380, type: 'heli' },
-    { x: 2635, y: 257, type: 'bazooka' },
-    { x: 2860, y: 167, type: 'soldier' },
     { x: 2480, type: 'bazooka' },
     { x: 2620, type: 'soldier' },
     { x: 2700, type: 'soldier' },
@@ -208,11 +203,11 @@
     { x: 6720, type: 'grenadier' },
     { x: 6800, type: 'grenadier' },
     { x: 6860, type: 'bazooka' },
-    // Calm archaeological stretch: props, platforms and POWs before combat resumes.
-    { x: 7350, type: 'pow' },
-    { x: 7720, type: 'soldier' }, { x: 7800, type: 'soldier' },
-    { x: 7950, type: 'grenadier' }, { x: 8120, type: 'heli' },
-    { x: 8280, type: 'bazooka' },
+    // BigShip03 ship-platform encounter: normal enemies only, placed on the first three ship decks.
+    { x: 7205, y: 166, type: 'soldier' },
+    { x: 7445, y: 26, type: 'bazooka' },
+    { x: 7665, y: 167, type: 'grenadier' },
+    { x: 7875, y: 167, type: 'soldier' },
     // Second quiet traversal pocket around 8500-8900.
     { x: 8920, type: 'pow' },
     { x: 9100, type: 'knife' }, { x: 9170, type: 'knife' },
@@ -368,9 +363,9 @@
 
   // Persistent life rewards on optional high-platform routes.
   const highPickups = [
-    { x:2320, y:138, type:'mg' },
-    { x:2500, y:232, type:'grenades' },
-    { x:2790, y:140, type:'homing' },
+    { x:7240, y:140, type:'mg' },
+    { x:7480, y:2, type:'homing' },
+    { x:7800, y:142, type:'grenades' },
     { x:8368, y:250, type:'heart' },
     { x:12652, y:198, type:'heart' },
     { x:15732, y:193, type:'heart' },
@@ -744,7 +739,8 @@
 
   function drawBigShip03Decor(g, camX, VW) {
     if (!imageReady(bigShip03Image)) return;
-    const worldX = 2600;
+    if(window.G && G.state !== 'play') return;
+    const worldX = 7600;
     const screenX = Math.round(worldX - camX);
     const scale = 0.96;
     const iw = bigShip03Image.naturalWidth || bigShip03Image.width;
@@ -765,7 +761,7 @@
     const t = (window.G&&G.time)||0;
     // Decorative reactor lamps and failing vents on the ship hull.
     const reactors = [
-      { x:0.22, y:0.74, r:42 }, { x:0.43, y:0.80, r:54 }, { x:0.67, y:0.76, r:46 }
+      { x:0.76, y:0.66, r:48 }, { x:0.86, y:0.70, r:60 }, { x:0.95, y:0.67, r:54 }
     ];
     for(const r of reactors){
       const rx=sx+dw*r.x, ry=sy+dh*r.y;
@@ -777,13 +773,15 @@
       g.globalAlpha=0.65*flick; g.fillStyle=grad; g.beginPath(); g.arc(rx,ry,r.r*flick,0,Math.PI*2); g.fill();
     }
     g.globalCompositeOperation='source-over';
-    for(let i=0;i<12;i++){
-      const drift=(t*(10+i*0.8)+i*21)%120;
-      const puff=1-drift/120;
-      g.globalAlpha=0.11*puff;
-      g.fillStyle=i%2?'#2c2c2f':'#48433a';
+    for(let i=0;i<22;i++){
+      const drift=(t*(12+i*0.9)+i*21)%150;
+      const puff=1-drift/150;
+      g.globalAlpha=0.16*puff;
+      g.fillStyle=i%2?'#171719':'#2a2725';
       g.beginPath();
-      g.arc(sx+dw*(0.18+(i%5)*0.16)-drift*0.10, sy+dh*(0.38+(i%4)*0.11)-drift*0.22, 8+(1-puff)*17, 0, Math.PI*2);
+      const baseX = i<14 ? (0.74+(i%4)*0.065) : (0.18+(i%5)*0.12);
+      const baseY = i<14 ? (0.60+(i%3)*0.055) : (0.36+(i%4)*0.11);
+      g.arc(sx+dw*baseX-drift*0.18, sy+dh*baseY-drift*0.24, 10+(1-puff)*24, 0, Math.PI*2);
       g.fill();
     }
     g.globalAlpha=1;

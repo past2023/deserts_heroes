@@ -40,6 +40,7 @@
   const stars=[];let seed=9917;function rnd(){seed=(seed*1664525+1013904223)|0;return(seed>>>0)/4294967296}
   for(let i=0;i<310;i++)stars.push({x:rnd()*W,y:rnd()*H,s:rnd()<.88?1:2,d:.1+rnd()*.55,p:rnd()*6.28});
   const asteroids=[{x:180,y:180,img:0,s:.72,p:0},{x:730,y:330,img:1,s:.7,p:2},{x:875,y:175,img:0,s:.48,p:4.1},{x:500,y:110,img:1,s:.35,p:1.2}];
+  const fgAsteroids=[{x:80,y:95,img:0,s:1.55,p:0.4,v:34},{x:880,y:420,img:1,s:1.35,p:2.6,v:-28},{x:520,y:505,img:0,s:1.05,p:4.2,v:22}];
   const satellites=[{x:210,y:125,p:0},{x:760,y:245,p:2.1},{x:875,y:95,p:4.4}];
   const gamepadPrevious={left:false,right:false,confirm:false,back:false};
   const meteors=[],galaxyParticles=[];let meteorTimer=3.5;
@@ -74,6 +75,7 @@
     });
   }
   function drawShip(){const target=nodes[selected];shipX+=(target.x-shipX)*.08;shipY+=(target.y-target.r-24-shipY)*.08;g.save();g.translate(shipX,shipY);g.rotate(Math.sin(time*4)*.04);if(ready(shipImage)){const w=42,h=16;g.shadowColor='#68efff';g.shadowBlur=8;g.drawImage(shipImage,-w/2,-h/2,w,h)}g.globalCompositeOperation='lighter';g.fillStyle='#68efff';g.globalAlpha=.65;g.fillRect(-28,-2,10+Math.sin(time*18)*4,4);g.restore()}
+  function foregroundAsteroids(){for(const a of fgAsteroids){const img=asteroidImages[a.img];const x=(a.x+time*a.v+W+180)%(W+360)-180;const y=a.y+Math.sin(time*.8+a.p)*28;g.save();g.translate(x,y);g.rotate(time*.18+a.p);g.globalAlpha=.92;if(ready(img))g.drawImage(img,-img.naturalWidth*a.s/2,-img.naturalHeight*a.s/2,img.naturalWidth*a.s,img.naturalHeight*a.s);g.restore()}}
   function hud(){panel(18,15,275,46,'#5fc7df');txt("DESERT'S HEROES",35,47,21,'#fff0c8');panel(755,15,187,46,'#5fc7df');txt(tr.sector,849,47,19,'#fff0c8','center');const node=nodes[selected];panel(18,458,265,65,'#55d9ed');txt(tr.current,34,482,13,'#68efff');txt(node.name,34,506,12,'#fff0c8');panel(700,460,242,62,'#ffb347');txt(tr.choose,821,486,15,'#fff0c8','center');txt(available(node)?tr.deploy:tr.locked,821,509,11,available(node)?'#8cff9f':'#ff6870','center');panel(405,490,150,34,'#8297ad');txt(tr.back,480,512,11,'#b5c4d2','center')}
   function updateDecor(dt){
     meteorTimer-=dt;if(meteorTimer<=0){meteors.push({x:-80,y:40+Math.random()*230,vx:620+Math.random()*480,vy:180+Math.random()*180,life:1.7});meteorTimer=4+Math.random()*7}
@@ -81,7 +83,7 @@
     if(Math.random()<dt*15)galaxyParticles.push({x:240+Math.random()*420,y:100+Math.random()*330,vx:-16+Math.random()*32,vy:-22+Math.random()*44,life:.6+Math.random()*.8,size:Math.random()<.8?1:2,color:Math.random()<.3?'#b58cff':'#68efff'});
     for(const p of galaxyParticles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}for(let i=galaxyParticles.length-1;i>=0;i--)if(galaxyParticles[i].life<=0)galaxyParticles.splice(i,1);
   }
-  function draw(){g.clearRect(0,0,W,H);background();route();drawNodes();drawShip();g.strokeStyle='#4bcbe4';g.lineWidth=2;g.strokeRect(8,8,W-16,H-16);g.strokeStyle='rgba(220,190,125,.7)';g.strokeRect(3,3,W-6,H-6);hud()}
+  function draw(){g.clearRect(0,0,W,H);background();const z=1.025+Math.sin(time*.75)*.025;g.save();g.translate(W/2,H/2);g.scale(z,z);g.translate(-W/2,-H/2);route();drawNodes();drawShip();g.restore();foregroundAsteroids();g.strokeStyle='#4bcbe4';g.lineWidth=2;g.strokeRect(8,8,W-16,H-16);g.strokeStyle='rgba(220,190,125,.7)';g.strokeRect(3,3,W-6,H-6);hud()}
   function launch(){const node=nodes[selected];if(!available(node))return;localStorage.setItem('dh_selected_mission',String(node.id));if(node.id==='tutorial')location.href='tutorial.html?mode='+encodeURIComponent(mode)+'&character='+encodeURIComponent(character);else if(node.id===1)location.href='level1.html?autostart=1&mode='+encodeURIComponent(mode)+'&character='+encodeURIComponent(character)}
   function move(dir){selected=(selected+dir+nodes.length)%nodes.length}
   addEventListener('keydown',e=>{if(['ArrowLeft','ArrowUp'].includes(e.code)){move(-1);e.preventDefault()}else if(['ArrowRight','ArrowDown'].includes(e.code)){move(1);e.preventDefault()}else if(e.code==='Enter'||e.code==='Space'){launch();e.preventDefault()}else if(e.code==='Escape')location.href='level1.html'});

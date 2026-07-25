@@ -154,7 +154,7 @@ Animated data-driven campaign map with:
 ## 8. Level 1 (`js/level.js`)
 
 Main arcade level with:
-- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship decoration with `bigship03_refe.png` reference-extracted invisible platforms, enemies, and pickups
+- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship-platform section placed after the rising UFO intro, with `bigship03_refe.png` reference-extracted invisible platforms, enemies/pickups only on ship decks, reactor lights and black smoke
 - 6 enemy types, POW rescues, weapon pickups
 - Portal trigger, boss fight at end
 - Mission intro with supplied PNG rocket-board fly-in and rising enemy ship vista
@@ -219,7 +219,7 @@ Main arcade level with:
 - Tutorial floating fire FX were removed/repositioned to real flame art only.
 - `tutorial_foreground01.png` was removed from runtime drawing; `pilar02.png` is used as optional center-level foreground accent.
 - Ally Tank 02 laser origin was moved to the center of the drill tip.
-- Loading screens use animated alien glyph text instead of English-only status labels.
+- Loading screens use pixelated animated alien glyph text and chunky pixel bars instead of English-only status labels.
 
 ### Known Bugs
 - No level2-level6 content beyond galactic map nodes

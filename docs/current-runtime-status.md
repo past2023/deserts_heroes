@@ -22,11 +22,11 @@ Campaign map choices currently available:
 - Four rapid day/night changes with a detailed nearest-neighbor cratered pixel moon
 - Modular sky, cloud, mountain, dune and terrain rendering
 - Animated lava gaps with molten currents, surface ribbons, bubbles, sparks, heat glow and allied-tank damage
-- Native sand platforms between mountains and dunes, plus a 2x `bigship03.png` decorative ship in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies, and pickups
+- Native sand platforms between mountains and dunes, plus a 2x `bigship03.png` ship-platform section later in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies/pickups on upper decks, reactor glows and black smoke
 - Static nearest-plane antenna bunkers
 - Pixel-quantized iris and portal transitions
-- Loading overlays use animated alien/pixel glyph strings instead of English-only status labels
-- Level 1 opening vista draws `enemy_ship01` rising vertically from the dune layer with tight motor vibration, three lower reactor glows, smoke puffs and heavy falling sand
+- Loading overlays use pixelated animated alien/pixel glyph strings and chunky stepped loading bars instead of English-only status labels
+- Level 1 opening vista draws `enemy_ship01` rising vertically from the dune layer with tight motor vibration, three lower reactor glows, smoke puffs and heavy falling sand; the later BigShip03 platform section is separated from this intro vista
 
 ## Gameplay
 
@@ -54,7 +54,7 @@ Campaign map choices currently available:
 
 ## Galactic map
 
-The map uses supplied tutorial/planet PNGs, asteroid clusters and satellite art. Planet aspect ratios are preserved while they rotate. The starfield moves, galaxy arms use pixel blocks, route dots animate, meteors cross occasionally, energy particles drift, and a small supplied spacecraft follows selection. Tutorial and Mission 01 are selectable.
+The map uses supplied tutorial/planet PNGs, asteroid clusters and satellite art. The route/node constellation gently zooms in/out, foreground asteroids pass at 2x scale, and planet aspect ratios are preserved while they rotate. The starfield moves, galaxy arms use pixel blocks, route dots animate, meteors cross occasionally, energy particles drift, and a small supplied spacecraft follows selection. Tutorial and Mission 01 are selectable.
 
 ## Pickups
 

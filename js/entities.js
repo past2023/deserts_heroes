@@ -1341,9 +1341,19 @@
       const ady = Math.abs((p.y - P_H / 2) - (e.y - P_H / 2));
 
       if (isInfantry(e.type)) {
-        // gravità per la fanteria
+        // Gravity for infantry, with one-way platform support so enemies can
+        // populate authored ship/high-platform encounters instead of falling to ground.
+        const prevY = e.y;
         e.vy += GRAV * dt;
         e.y += e.vy * dt;
+        if (Level.platforms && e.vy >= 0) {
+          for (const pl of Level.platforms) {
+            if (pl.dead) continue;
+            if (prevY <= pl.y + 4 && e.y >= pl.y && e.x > pl.x - 12 && e.x < pl.x + pl.w + 12) {
+              e.y = pl.y; e.vy = 0; break;
+            }
+          }
+        }
         if (e.y >= Level.GROUND) { e.y = Level.GROUND; e.vy = 0; }
       }
 
