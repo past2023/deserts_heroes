@@ -21,12 +21,12 @@ Campaign map choices currently available:
 - Optional 1990s TV filter
 - Four rapid day/night changes with a detailed nearest-neighbor cratered pixel moon
 - Modular sky, cloud, mountain, dune and terrain rendering
-- Animated lava gaps with vertical flame-launcher-style lava tongues, molten currents, surface ribbons, bubbles, sparks, heat glow and allied-tank damage
-- Native sand platforms between mountains and dunes, plus an early-daytime 2x `bigship03.png` ship-platform section in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies/pickups on upper decks, reactor glows and black smoke
+- Animated lava gaps with a non-parallax molten surface, flame plumes, bubbles, embers, smoke, heat glow, clean unboxed cutaway edges and allied-tank damage
+- Native sand platforms between mountains and dunes, plus a delayed daylight 2x `bigship03.png` ship-platform section in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies/pickups on upper decks, reactor glows and black smoke
 - Static nearest-plane antenna bunkers
 - Pixel-quantized iris and portal transitions
 - Loading overlays use a simple retro pixel loading bar without visible glyph text instead of English-only status labels
-- Level 1 opening vista draws `enemy_ship01` rising vertically from the dune layer with no horizontal parallax, tight motor vibration, three lower reactor glows, smoke puffs and heavy falling sand; the BigShip03 platform section appears soon afterward in daylight
+- Level 1 opening vista draws `enemy_ship01` rising vertically from the dune layer on a very distant parallax plane, with tight motor vibration, three lower reactor glows, smoke puffs and heavy falling sand; the BigShip03 platform section appears farther from the opening skirmish in daylight
 
 ## Gameplay
 
@@ -58,13 +58,13 @@ The map uses supplied tutorial/planet PNGs, asteroid clusters and satellite art.
 
 ## Pickups
 
-Authored PNG pickups replace generated crates for heavy machine gun, spread, rocket/missile variants, flame shot, grenades, guided missiles, jet pack and extra life. Icons float and receive alpha-silhouette glow. Four persistent heart pickups are positioned on optional high-platform routes.
+Authored PNG pickups replace generated crates for heavy machine gun, spread, rocket/missile variants, flame shot, grenades, guided missiles, jet pack and extra life. Icons float and receive alpha-silhouette glow. Tutorial and Level 1 rewards are now biased toward upper/platform routes, with reduced ground prop item density.
 
 ## Tutorial runtime
 
-`tutorial.html` contains the 8-module Frontier Training Annex. Invisible platforms are generated from white-on-black reference rectangles, `pilar01.png` hides module seams, and `pilar02.png` is used as a center-level extreme-foreground accent. The old `tutorial_foreground01.png` layer is no longer drawn. Tutorial light FX were rechecked against the mid PNG art: lamps/screens are placed on visible art, fire FX only appear on illustrated flames, all computer screens use fast malfunctioning CRT/TV flicker, pilar02 emits smoke/electric crawls, two normal Soldier06 observers spawn at different heights and can be destroyed by the player, small sparks appear throughout the annex, and heavier data-spark rain is limited to selected modules for pacing.
+`tutorial.html` contains the 8-module Frontier Training Annex. Invisible platforms are generated from white-on-black reference rectangles, `pilar01.png` hides module seams, and `pilar02.png` is used as a center-level extreme-foreground accent. The old `tutorial_foreground01.png` layer is no longer drawn. Tutorial light FX were rechecked against the mid PNG art: lamps/screens are placed on visible art, fire FX only appear on illustrated flames, all computer screens use fast malfunctioning CRT/TV flicker, pilar02 emits smoke/electric crawls, two normal Soldier06 observers spawn at different heights, fire stronger tank-piercing red lasers, taunt on player hits and can be destroyed by the player, small sparks appear throughout the annex, and heavier data-spark rain is limited to selected modules for pacing.
 
-Ally Tank 02 uses the drill variant art, fires its main cyan laser from the visible drill tip, emits top-left exhaust smoke, and uses chain/wheel dust like the main ally tank.
+Ally Tank 02 uses the drill variant art, fires its main cyan laser from the visible drill tip, emits top-left exhaust smoke, and uses chain/wheel dust like the main ally tank. Both ally tank types emit black smog when in critical 1-HP mode.
 
 ## Background depth props
 
@@ -72,7 +72,7 @@ Updated sand platforms render at 50% native size between mountains and dunes. Th
 
 ## Story and dialogue
 
-The current canon is defined in `docs/world-story-bible.md`: Scientific Frontier Corps explorer-soldiers defend the right of isolated planets to choose their own future against the knowledge-destroying Atavist Dominion. An 11.5-second centered procedural story-text slide follows the cinematic credit slide. Level 1 queues localized compact teleprompter transmissions from the selected hero, enemy forces and the fortress boss. Player transmissions use the supplied 12-expression face sheet with aspect-preserved portrait framing, scanlines, chromatic split, jitter, dropout effects, and larger bold white text.
+The current canon is defined in `docs/world-story-bible.md`: Scientific Frontier Corps explorer-soldiers defend the right of isolated planets to choose their own future against the knowledge-destroying Atavist Dominion. An 11.5-second centered procedural story-text slide follows the cinematic credit slide. Level 1 queues localized compact teleprompter transmissions from the selected hero, enemy forces and the fortress boss, including enemy taunts when the player or ally tank is hit. Player transmissions use the supplied 12-expression face sheet with aspect-preserved portrait framing, scanlines, chromatic split, jitter, dropout effects, and larger bold white text.
 
 Two supplied modular prisoner sets now replace generated POW visuals. Their `hand_down` layer renders first, with independent legs, torso, head where supplied, raised hand and escape animation.
 

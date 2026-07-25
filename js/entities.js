@@ -662,7 +662,7 @@
       tread: 0, occupied: false,
       drillSpin: 0,
       fireT: 0, cannonT: 0, recoil: 0, flash: 0, hitCd: 0,
-      lavaCd: 0,
+      lavaCd: 0, criticalSmokeT: rnd(0, 0.18),
       idleAnimT: rnd(0, 1), moveAnimT: 0, mgAnimT: 0, mgAnimLeft: 0,
       cannonAnimT: 0, cannonAnimLeft: 0, hitAnimT: 0, hitAnimLeft: 0,
       jumpAnimT: 0, landAnimLeft: 0, destroying: false, destroyT: 0, destroyBursts: 0,
@@ -739,6 +739,34 @@
     if (s.hp <= 0) destroySlug(s);
   }
 
+  function spawnCriticalSlugSmoke(s, dt) {
+    if (!s || s.destroying || s.dead || s.hp <= 0 || s.hp > 1) return;
+    s.criticalSmokeT = (s.criticalSmokeT || 0) - dt;
+    if (s.criticalSmokeT > 0) return;
+    const facing = s.facing || 1;
+    const isDrill = s.type === 'ally_tank02';
+    const baseX = s.x - facing * (isDrill ? 54 : 42) + rnd(-10, 10);
+    const baseY = s.y - (isDrill ? rnd(120, 150) : rnd(76, 104));
+    const count = isDrill ? 3 : 2;
+    for (let i = 0; i < count; i++) {
+      G.particles.push({
+        kind: 'smoke',
+        x: baseX + rnd(-10, 12), y: baseY + rnd(-8, 8),
+        vx: -facing * rnd(8, 26) + rnd(-20, 18), vy: rnd(-56, -24),
+        t: 0, life: rnd(0.78, 1.38), color: i % 2 ? '#09090b' : '#19171a',
+        size: rnd(8, 16), grav: rnd(-42, -18), drag: 0.72,
+      });
+    }
+    if (Math.random() < 0.34) {
+      G.particles.push({
+        kind: 'ember', x: baseX + rnd(-8, 8), y: baseY + rnd(-4, 8),
+        vx: rnd(-38, 38), vy: rnd(-70, -28), t: 0, life: rnd(0.18, 0.36),
+        color: Math.random() < 0.5 ? '#ff7a24' : '#ffd34a', size: rnd(2, 4), grav: 180,
+      });
+    }
+    s.criticalSmokeT = rnd(0.11, 0.22);
+  }
+
   function destroySlug(s) {
     if (s.destroying) return;
     s.hp = 0;
@@ -799,6 +827,8 @@
         }
         continue;
       }
+
+      spawnCriticalSlugSmoke(s, dt);
 
       if (!s.occupied || p.dead) { s.vx = 0; continue; }
 

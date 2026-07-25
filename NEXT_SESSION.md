@@ -1,7 +1,7 @@
 # Desert's Heroes — Project Handoff for Next Session
 
 ## Session Context
-You are continuing work on `past2023/deserts_heroes`. Current Arena work is on branch `arena/019f97f2-deserts-heroes` with PR #8. Start by reading `CURRENT_STATE.md`, this file, and the open PR context.
+You are continuing work on `past2023/deserts_heroes`. Current Arena work is on branch `arena/019f9a46-deserts-heroes` with PR #9. Start by reading `CURRENT_STATE.md`, this file, and the open PR context.
 
 ## Overview
 Desert's Heroes is a 2D side-scrolling pixel-art run-and-gun game (960×540 canvas, JavaScript, no frameworks). It has: intro cinematic, galactic mission map, tutorial level (8 modules), arcade level1, survival mode, portal level.
@@ -49,7 +49,7 @@ Extreme foreground update:
 - Floating fire FX were removed.
 - Fire FX are only kept where there is a visible flame in the art.
 - Ambient data-spark rain now appears only in selected modules (0, 2, 4, 6), while small malfunction sparks can appear everywhere.
-- Two normal Soldier06 observers spawn at different tutorial heights and can be destroyed by the player.
+- Two normal Soldier06 observers spawn at different tutorial heights, fire tank-piercing red lasers, taunt when they hurt the player, and can be destroyed by the player. Tutorial pickups are concentrated on upper invisible platforms.
 - `pilar02.png` emits foreground smoke/electric crawls.
 
 

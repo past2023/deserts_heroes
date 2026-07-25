@@ -1,7 +1,7 @@
 # Desert's Heroes — Current Game State
 **Date:** 2026-07-25  
-**Branch:** `arena/019f97f2-deserts-heroes`  
-**PR:** #8
+**Branch:** `arena/019f9a46-deserts-heroes`  
+**PR:** #9
 
 ---
 
@@ -147,17 +147,19 @@ Animated data-driven campaign map with:
 
 **Light FX:** Lamps, fires, robot eyes and electric sparks are positioned per module after checking mid PNG pixel art. Floating fire FX removed; only art-backed flames remain. Computer-screen FX now use fast malfunctioning CRT-style flicker, jitter, scanlines and dropouts.
 
-**Extra tutorial atmosphere:** Two normal Soldier06 observers spawn at different tutorial heights and can be destroyed by the player; `pilar02.png` emits smoke and electric crawls. Small electric sparks can occur throughout the annex, while heavier cyan/blue data-rain stays limited to modules 0, 2, 4, 6.
+**Extra tutorial atmosphere:** Tutorial rewards are now concentrated on upper invisible platforms so players are encouraged to climb and search. Two normal Soldier06 observers spawn at different tutorial heights, fire a stronger tank-piercing red laser, and can be destroyed by the player; `pilar02.png` emits smoke and electric crawls. Small electric sparks can occur throughout the annex, while heavier cyan/blue data-rain stays limited to modules 0, 2, 4, 6.
 
 ---
 
 ## 8. Level 1 (`js/level.js`)
 
 Main arcade level with:
-- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship-platform section appears soon after the rising UFO intro during daylight, with `bigship03_refe.png` reference-extracted invisible platforms, enemies/pickups only on ship decks, reactor lights and black smoke
+- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship-platform section moved farther from the opening skirmish, with `bigship03_refe.png` reference-extracted invisible platforms, enemies/pickups only on ship decks, reactor lights and black smoke
+- Level 1 platform routes carry more visible rewards while ground prop loot is reduced
+- Lava gaps use a fresh non-parallax molten animation: slow surface waves, fire plumes, embers, smoke, bubbles and clean unboxed cutaway edges
 - 6 enemy types, POW rescues, weapon pickups
 - Portal trigger, boss fight at end
-- Mission intro with supplied PNG rocket-board fly-in and rising enemy ship vista
+- Mission intro with supplied PNG rocket-board fly-in and a rising enemy UFO ship on a very distant parallax plane
 
 ---
 
@@ -178,7 +180,7 @@ Main arcade level with:
 | knife | 1 | Fast melee charger |
 | bazooka | 2 | Rocket launcher |
 | turret | 4 | Fixed MG bunker |
-| observer | 2 | Hovering drone with laser |
+| observer | 2 | Hovering Soldier06 drone with stronger tank-piercing red laser |
 | heli | 10 | Attack helicopter |
 | gunship | 36 | Miniboss gunship |
 | tank | 14 | Armored vehicle |
@@ -189,7 +191,7 @@ Main arcade level with:
 - 3-cannon salvos, MG bursts, infantry reinforcement spawn
 
 ### Other Entities
-- Slugs: Ally tanks (drivable), ally_tank02 drill variant, wheel/chain dust, and tank02 top-left exhaust smoke
+- Slugs: Ally tanks (drivable), ally_tank02 drill variant, wheel/chain dust, tank02 top-left exhaust smoke, and black critical-smoke plumes on both ally tank types at 1 HP
 - POWs: Tied prisoners (2 hands down) → rescued → 1 hand up → drop weapon
 - Pickups: Weapons, grenades, homing, jetpack, heart
 - Props: Barrels, crates, mines, decor
@@ -220,6 +222,7 @@ Main arcade level with:
 - `tutorial_foreground01.png` was removed from runtime drawing; `pilar02.png` is used as optional center-level foreground accent.
 - Ally Tank 02 laser origin was moved to the center of the drill tip.
 - Loading screens use a simple retro pixel loading bar without visible glyph text instead of English-only status labels.
+- Tutorial/Level 1 pickups were shifted toward upper platform exploration, enemy hit-taunt dialogue was added, Soldier06 laser shots now damage ally tanks, Level 1 lava was rebuilt without parallax drift or black boxed cutaway lines, and the opening UFO no longer stays screen-locked to the player.
 
 ### Known Bugs
 - No level2-level6 content beyond galactic map nodes

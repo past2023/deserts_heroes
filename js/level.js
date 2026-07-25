@@ -686,7 +686,10 @@
     const dw = Math.round(sw * scale), dh = Math.round(sh * scale);
     const vibX = Math.sin(time * 66.0) * 0.14 + Math.sin(time * 113.0) * 0.07;
     const vibY = Math.cos(time * 47.0) * 1.15 + Math.sin(time * 83.0) * 0.55;
-    const sx = Math.round(520 - dw / 2 + vibX);
+    // Decorative UFO sits on a very distant depth plane.  It no longer stays
+    // screen-locked to the player, but its parallax is intentionally tiny.
+    const distantShipParallax = 0.07;
+    const sx = Math.round(520 - camX * distantShipParallax - dw / 2 + vibX);
     const startY = 386;
     const endY = -dh - 90;
     const sy = Math.round(startY + (endY - startY) * rise + Math.sin(time * 0.35) * 3 + vibY);
@@ -975,7 +978,7 @@
     // Low amber light under the cutaway hints at molten heat without washing out
     // the supplied terrain art.  The actual lava below is rebuilt from scratch:
     // slow rolling magma, flame-animation plumes, smoke, bubbles and embers.
-    const lavaGlow = 0.18 + Math.max(0, Math.sin(hazardTime * 0.48 + camX * 0.0017)) * 0.12;
+    const lavaGlow = 0.18 + Math.max(0, Math.sin(hazardTime * 0.48)) * 0.12;
     if (lavaGlow > 0) {
       g.save();
       g.globalCompositeOperation = 'lighter';
@@ -1000,19 +1003,8 @@
       const gapW = Math.max(1, gap.w);
       const lavaTime = hazardTime * 0.54 + gap.x * 0.0011;
 
-      // Dark carved pit walls make the hot liquid read as a dangerous opening.
-      g.save();
-      g.fillStyle = '#120409';
-      g.fillRect(Math.round(gx - 5), GROUND - 10, Math.round(gap.w + 10), VH - GROUND + 14);
-      const wallShade = g.createLinearGradient(gx, 0, gx + gap.w, 0);
-      wallShade.addColorStop(0, 'rgba(0,0,0,0.62)');
-      wallShade.addColorStop(0.16, 'rgba(70,18,13,0.28)');
-      wallShade.addColorStop(0.50, 'rgba(255,74,18,0.08)');
-      wallShade.addColorStop(0.84, 'rgba(70,18,13,0.28)');
-      wallShade.addColorStop(1, 'rgba(0,0,0,0.62)');
-      g.fillStyle = wallShade;
-      g.fillRect(gx, GROUND - 4, gap.w, VH - GROUND + 8);
-      g.restore();
+      // The lava itself fills the cutout; no dark boxed overlay is drawn,
+      // keeping the gap clean and free of black rectangular/parallax artifacts.
 
       g.save();
       g.beginPath();
@@ -1037,10 +1029,12 @@
         g.fillStyle = band % 2 ? '#ff3b18' : '#ff9b24';
         g.beginPath();
         g.moveTo(gx, y0 + 16);
-        for (let x = gx; x <= gx + gap.w + 8; x += 12) {
-          const wave = Math.sin(x * 0.035 + lavaTime * (0.85 - band * 0.09) + band * 1.7) * (5 + band * 1.5) +
-            Math.sin(x * 0.083 - lavaTime * 0.52 + band) * 2;
-          g.lineTo(x, y0 + wave);
+        for (let localX = 0; localX <= gap.w + 8; localX += 12) {
+          const worldX = gap.x + localX;
+          const screenX = gx + localX;
+          const wave = Math.sin(worldX * 0.035 + lavaTime * (0.85 - band * 0.09) + band * 1.7) * (5 + band * 1.5) +
+            Math.sin(worldX * 0.083 - lavaTime * 0.52 + band) * 2;
+          g.lineTo(screenX, y0 + wave);
         }
         g.lineTo(gx + gap.w, y0 + 35);
         g.lineTo(gx, y0 + 35);
@@ -1059,10 +1053,11 @@
       g.fillStyle = surface;
       g.beginPath();
       g.moveTo(gx, surfaceY + 7);
-      for (let x = gx; x <= gx + gap.w + 6; x += 6) {
-        const wave = Math.sin(x * 0.041 + lavaTime * 1.45) * 4.5 +
-          Math.sin(x * 0.119 - lavaTime * 0.72) * 2.4;
-        g.lineTo(x, surfaceY + wave);
+      for (let localX = 0; localX <= gap.w + 6; localX += 6) {
+        const worldX = gap.x + localX;
+        const wave = Math.sin(worldX * 0.041 + lavaTime * 1.45) * 4.5 +
+          Math.sin(worldX * 0.119 - lavaTime * 0.72) * 2.4;
+        g.lineTo(gx + localX, surfaceY + wave);
       }
       g.lineTo(gx + gap.w, GROUND + 42);
       g.lineTo(gx, GROUND + 42);
@@ -1074,11 +1069,12 @@
       const plates = Math.max(5, Math.floor(gap.w / 48));
       for (let i = 0; i < plates; i++) {
         const lane = (i + ((lavaTime * 0.035 + i * 0.23) % 1)) / plates;
-        const px = gx + (lane % 1) * gapW;
+        const worldX = gap.x + (lane % 1) * gapW;
+        const px = worldX - camX;
         const py = surfaceY + Math.sin(lavaTime * 0.8 + i * 1.9) * 3;
         const pw = 18 + (i % 4) * 8;
         g.globalAlpha = 0.30;
-        g.fillStyle = i % 2 ? '#2b0809' : '#4a0d0b';
+        g.fillStyle = i % 2 ? '#6e170d' : '#85240f';
         g.beginPath();
         g.moveTo(px - pw * 0.55, py + 5);
         g.lineTo(px - pw * 0.20, py - 1);
@@ -1094,15 +1090,17 @@
 
       // Bright broken highlights ride on top of the animated surface.
       g.globalCompositeOperation = 'lighter';
-      for (let x = gx + 10; x < gx + gap.w - 8; x += 18) {
-        const shimmer = Math.sin(x * 0.19 + lavaTime * 1.8);
+      for (let localX = 10; localX < gap.w - 8; localX += 18) {
+        const worldX = gap.x + localX;
+        const screenX = gx + localX;
+        const shimmer = Math.sin(worldX * 0.19 + lavaTime * 1.8);
         const length = 6 + Math.abs(shimmer) * 20;
-        const y = surfaceY - 3 + Math.sin(x * 0.052 + lavaTime * 1.3) * 4;
+        const y = surfaceY - 3 + Math.sin(worldX * 0.052 + lavaTime * 1.3) * 4;
         g.globalAlpha = 0.42 + Math.max(0, shimmer) * 0.28;
         g.fillStyle = '#fff4ae';
-        g.fillRect(Math.round(x), Math.round(y), Math.round(length), 2);
+        g.fillRect(Math.round(screenX), Math.round(y), Math.round(length), 2);
         g.fillStyle = '#ffca3d';
-        g.fillRect(Math.round(x + 2), Math.round(y + 3), Math.max(3, Math.round(length - 5)), 2);
+        g.fillRect(Math.round(screenX + 2), Math.round(y + 3), Math.max(3, Math.round(length - 5)), 2);
       }
 
       // Flame animation plumes: nested flame shapes that breathe upward from
@@ -1220,11 +1218,11 @@
       g.fillRect(visibleX, GROUND - 80, visibleW, 114);
       g.restore();
 
-      // Small scorched lips connect terrain edges without covering the lava.
-      g.fillStyle = '#2a130f';
+      // Small warm rock lips connect terrain edges without black boxed outlines.
+      g.fillStyle = '#6b321f';
       g.fillRect(Math.round(gx - 8), GROUND - 5, 13, 10);
       g.fillRect(Math.round(gx + gap.w - 5), GROUND - 5, 13, 10);
-      g.fillStyle = '#7b321f';
+      g.fillStyle = '#a34f2c';
       g.fillRect(Math.round(gx - 5), GROUND - 5, 9, 3);
       g.fillRect(Math.round(gx + gap.w - 4), GROUND - 5, 9, 3);
       g.save();
