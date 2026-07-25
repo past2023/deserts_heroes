@@ -301,14 +301,15 @@
     pickup() { tone(660, 0.08, 'square', 0.15); tone(880, 0.1, 'square', 0.15, null, 0.08); tone(1320, 0.14, 'square', 0.15, null, 0.16); },
     pow() { tone(523, 0.1, 'square', 0.13); tone(659, 0.1, 'square', 0.13, null, 0.1); tone(784, 0.18, 'square', 0.13, null, 0.2); },
     coinAward(tier) {
-      const notes = tier === 'boss' ? [1046, 1318, 1568, 2093, 2637, 3136, 3520, 4186]
-        : tier === 'big' ? [988, 1244, 1568, 1976, 2637, 3136]
-        : [880, 1175, 1568, 2093, 2637];
+      const notes = tier === 'boss' ? [1046, 1318, 1568, 2093, 2637, 3136, 3520, 4186, 4699, 5274]
+        : tier === 'big' ? [988, 1244, 1568, 1976, 2637, 3136, 3951]
+        : [880, 1175, 1568, 2093, 2637, 3136];
       notes.forEach((f, i) => {
-        tone(f, 0.055, i % 2 ? 'triangle' : 'square', tier === 'boss' ? 0.07 : 0.055, f * 1.12, i * 0.045);
-        if (i % 2 === 0) tone(f * 1.5, 0.045, 'sine', 0.035, null, i * 0.045 + 0.018);
+        tone(f, 0.075, i % 2 ? 'triangle' : 'square', tier === 'boss' ? 0.105 : 0.082, f * 1.16, i * 0.048);
+        if (i % 2 === 0) tone(f * 1.5, 0.06, 'sine', tier === 'boss' ? 0.06 : 0.045, null, i * 0.048 + 0.018);
       });
-      noise(tier === 'boss' ? 0.28 : 0.16, tier === 'boss' ? 0.12 : 0.08, 8800, 2400, 0.02);
+      // short bright casino/slot-machine shimmer behind the coin spray
+      noise(tier === 'boss' ? 0.36 : 0.24, tier === 'boss' ? 0.16 : 0.11, 10500, 2700, 0.02);
     },
     bossHit() { tone(150, 0.08, 'square', 0.15, 90); noise(0.06, 0.2, 2500, 600); },
     heliBomb() { tone(900, 0.6, 'sine', 0.1, 250); },
