@@ -206,13 +206,11 @@
     { module:0, x:1200, y:135, type:'lamp', color:'#ff9a2a', r:30, pulse:1.2, intensity:0.85 },
     { module:0, x:70, y:420, type:'screen', color:'#4af1ff', r:26, pulse:3.2, intensity:0.55 },
     { module:0, x:1250, y:420, type:'screen', color:'#58f0ff', r:22, pulse:2.8, intensity:0.5 },
-    { module:0, x:920, y:530, type:'fire', color:'#ff6a18', r:48, pulse:11, intensity:1.0 },
 
     // Module 1 — mid02b (broken circular)
     { module:1, x:1000, y:145, type:'lamp', color:'#ff9a2a', r:28, pulse:1.2, intensity:0.85 },
     { module:1, x:70, y:420, type:'screen', color:'#4aff88', r:32, pulse:2.5, intensity:0.6 },
     { module:1, x:410, y:490, type:'screen', color:'#5afcff', r:44, pulse:1.8, intensity:0.65 },
-    { module:1, x:340, y:300, type:'fire', color:'#ff7a20', r:36, pulse:9, intensity:0.9 },
     { module:1, x:90, y:300, type:'lamp', color:'#ffaa3a', r:24, pulse:1.6, intensity:0.7 },
 
     // Module 2 — mid03b (suspended ship)
@@ -220,40 +218,34 @@
     { module:2, x:1000, y:145, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
     { module:2, x:75, y:390, type:'lamp', color:'#ffaa3a', r:22, pulse:1.7, intensity:0.6 },
     { module:2, x:660, y:460, type:'screen', color:'#4af1ff', r:28, pulse:2.2, intensity:0.6 },
-    { module:2, x:920, y:530, type:'fire', color:'#ff6a18', r:50, pulse:10, intensity:1.0 },
 
     // Module 3 — mid04b (desert view upper + big robots)
     { module:3, x:590, y:380, type:'lamp', color:'#ff9a2a', r:30, pulse:1.5, intensity:0.85 },
     { module:3, x:740, y:410, type:'lamp', color:'#ffaa3a', r:22, pulse:1.8, intensity:0.6 },
-    { module:3, x:680, y:530, type:'fire', color:'#ff8a22', r:28, pulse:12, intensity:0.8 },
     { module:3, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
     { module:3, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
     { module:3, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
     { module:3, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
 
-    // Module 4 — mid06b (elevator lab) - fire/screens from art scan
+    // Module 4 — mid06b (elevator lab) - screens/lamps only; stray fire glows removed
     { module:4, x:700, y:42, type:'lamp', color:'#ffb44a', r:26, pulse:1.3, intensity:0.8 },
     { module:4, x:1070, y:196, type:'screen', color:'#4af1ff', r:24, pulse:2.4, intensity:0.55 },
     { module:4, x:70, y:418, type:'screen', color:'#4aff88', r:26, pulse:2.8, intensity:0.5 },
     { module:4, x:1245, y:418, type:'screen', color:'#5afcff', r:24, pulse:2.5, intensity:0.5 },
-    { module:4, x:75, y:398, type:'fire', color:'#ff6a18', r:36, pulse:9.5, intensity:0.9 },
-    { module:4, x:1245, y:398, type:'fire', color:'#ff6a18', r:36, pulse:9.5, intensity:0.9 },
-    { module:4, x:828, y:528, type:'fire', color:'#ff8a22', r:40, pulse:10, intensity:1.0 },
 
     // Module 5 — mid07b (sand hangar - no fire in art)
     { module:5, x:160, y:260, type:'lamp', color:'#ffaa3a', r:20, pulse:1.6, intensity:0.6 },
     { module:5, x:1000, y:280, type:'lamp', color:'#ffaa3a', r:18, pulse:1.5, intensity:0.55 },
     { module:5, x:70, y:420, type:'screen', color:'#5afcff', r:22, pulse:2.5, intensity:0.5 },
 
-    // Module 6 — mid08b (second elevator/satellite) - from mid08b art scan
+    // Module 6 — mid08b (second elevator/satellite) - single real fire at right side
     { module:6, x:825, y:468, type:'lamp', color:'#ffb44a', r:22, pulse:1.3, intensity:0.6 },
     { module:6, x:975, y:498, type:'lamp', color:'#ff9a2a', r:22, pulse:1.4, intensity:0.65 },
     { module:6, x:70, y:420, type:'screen', color:'#4af1ff', r:20, pulse:2.6, intensity:0.45 },
     { module:6, x:1160, y:510, type:'fire', color:'#ff7a22', r:24, pulse:11, intensity:0.6 },
 
-    // Module 7 — mid05b (desert exit final)
+    // Module 7 — mid05b (desert exit final - no floating fire FX)
     { module:7, x:350, y:390, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.6 },
-    { module:7, x:1248, y:530, type:'fire', color:'#ff8a22', r:24, pulse:8, intensity:0.7 },
   ];
 
   function resetPlatforms(){ for(const p of platforms){ p.dead=false; p.triggered=false; p.breakT=0; p.y=p.baseY; } }

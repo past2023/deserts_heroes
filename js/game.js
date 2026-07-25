@@ -1201,282 +1201,284 @@
   }
 
 
-  // Deterministic star data for the character select background
+  // Deterministic star data for the character select carousel background
   let charSelStars = null;
   function initCharSelStars() {
     charSelStars = [];
     let seed = 7331;
     function rng() { seed = (seed * 1664525 + 1013904223) | 0; return (seed >>> 0) / 4294967296; }
-    for (let i = 0; i < 280; i++) {
+    for (let i = 0; i < 360; i++) {
+      const layer = rng() < 0.58 ? 0 : rng() < 0.82 ? 1 : 2;
       charSelStars.push({
         x: rng() * VW, y: rng() * VH,
-        size: rng() < 0.82 ? 1 : 2,
-        speed: 0.08 + rng() * 0.35,
+        size: layer === 0 ? 1 : layer === 1 ? (rng() < 0.7 ? 1 : 2) : 2,
+        speed: 0.10 + layer * 0.20 + rng() * 0.34,
         phase: rng() * 100,
         twinkle: rng() * 6.28,
-        color: rng() < 0.2 ? '#68efff' : rng() < 0.4 ? '#b58cff' : '#ffffff',
+        layer: layer,
+        color: rng() < 0.18 ? '#68efff' : rng() < 0.34 ? '#ffb347' : rng() < 0.48 ? '#b58cff' : '#ffffff',
       });
     }
   }
 
-  // Draw a progress bar for the character select stats
-  function drawStatBar(x, y, w, h, value, max, fillColor) {
+  function drawPixelPanel(x, y, w, h, accent, alpha) {
+    alpha = alpha === undefined ? 1 : alpha;
+    g.save();
+    g.globalAlpha = alpha;
+    g.fillStyle = 'rgba(3,10,24,0.90)';
+    g.fillRect(x, y, w, h);
+    const bg = g.createLinearGradient(x, y, x, y + h);
+    bg.addColorStop(0, 'rgba(21,54,86,0.72)');
+    bg.addColorStop(0.52, 'rgba(10,25,48,0.84)');
+    bg.addColorStop(1, 'rgba(4,11,28,0.94)');
+    g.fillStyle = bg;
+    g.fillRect(x + 4, y + 4, w - 8, h - 8);
+    g.strokeStyle = 'rgba(104,239,255,0.55)';
+    g.lineWidth = 2;
+    g.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+    g.strokeStyle = accent;
+    g.lineWidth = 2;
+    g.strokeRect(x + 5.5, y + 5.5, w - 11, h - 11);
+    g.fillStyle = accent;
+    const c = 10;
+    g.fillRect(x, y, c, 3); g.fillRect(x, y, 3, c);
+    g.fillRect(x + w - c, y, c, 3); g.fillRect(x + w - 3, y, 3, c);
+    g.fillRect(x, y + h - 3, c, 3); g.fillRect(x, y + h - c, 3, c);
+    g.fillRect(x + w - c, y + h - 3, c, 3); g.fillRect(x + w - 3, y + h - c, 3, c);
+    g.restore();
+  }
+
+  // Draw an animated pixel stat bar for the character select profile.
+  function drawStatBar(x, y, w, h, value, max, fillColor, time, delay) {
     const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
-    // Background track
-    g.fillStyle = '#333333';
-    g.beginPath();
-    g.moveTo(x + h / 2, y);
-    g.lineTo(x + w - h / 2, y);
-    g.quadraticCurveTo(x + w, y, x + w, y + h / 2);
-    g.quadraticCurveTo(x + w, y + h, x + w - h / 2, y + h);
-    g.lineTo(x + h / 2, y + h);
-    g.quadraticCurveTo(x, y + h, x, y + h / 2);
-    g.quadraticCurveTo(x, y, x + h / 2, y);
-    g.fill();
-    // Fill foreground
-    if (ratio > 0) {
-      const fillW = (w - 4) * ratio;
-      g.fillStyle = fillColor;
-      g.beginPath();
-      g.moveTo(x + 2 + h / 2, y + 2);
-      g.lineTo(x + 2 + fillW - h / 2, y + 2);
-      g.quadraticCurveTo(x + 2 + fillW, y + 2, x + 2 + fillW, y + h / 2);
-      g.quadraticCurveTo(x + 2 + fillW, y + h - 2, x + 2 + fillW - h / 2, y + h - 2);
-      g.lineTo(x + 2 + h / 2, y + h - 2);
-      g.quadraticCurveTo(x + 2, y + h - 2, x + 2, y + h / 2);
-      g.quadraticCurveTo(x + 2, y + 2, x + 2 + h / 2, y + 2);
-      g.fill();
-      // Highlight line on top
-      g.globalAlpha = 0.35;
+    const anim = Math.min(1, Math.max(0, (Math.sin(time * 2.8 - delay) + 1) * 0.5 * 0.10 + 0.90));
+    const fillW = Math.max(0, Math.floor((w - 4) * ratio * anim));
+
+    g.save();
+    g.fillStyle = '#050b18';
+    g.fillRect(x, y, w, h);
+    g.strokeStyle = 'rgba(104,239,255,0.40)';
+    g.lineWidth = 2;
+    g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    for (let i = 0; i < 5; i++) {
+      const tx = x + 4 + i * Math.floor((w - 8) / 5);
+      g.fillStyle = 'rgba(255,255,255,0.05)';
+      g.fillRect(tx, y + 3, 2, h - 6);
+    }
+    if (fillW > 0) {
+      const grad = g.createLinearGradient(x, y, x + w, y);
+      grad.addColorStop(0, fillColor);
+      grad.addColorStop(0.55, '#fff0a8');
+      grad.addColorStop(1, fillColor);
+      g.fillStyle = grad;
+      g.fillRect(x + 2, y + 2, fillW, h - 4);
+      const scan = ((time * 90 + delay * 37) % (w + 42)) - 42;
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = 0.55;
       g.fillStyle = '#ffffff';
-      g.fillRect(x + 4, y + 2, fillW - 4, 2);
-      g.globalAlpha = 1;
+      g.fillRect(x + 2 + Math.min(fillW, Math.max(0, scan)), y + 2, Math.min(10, fillW), h - 4);
+      g.globalAlpha = 0.22 + Math.sin(time * 7 + delay) * 0.08;
+      g.fillStyle = fillColor;
+      g.fillRect(x + 2, y - 2, fillW, 2);
+      g.fillRect(x + 2, y + h, fillW, 2);
+    }
+    g.restore();
+  }
+
+  function drawCarouselPortrait(ch, x, y, w, h, accent, selected, side) {
+    const bob = selected ? Math.sin(G.time * 3.1) * 3 : Math.sin(G.time * 2.1 + x * 0.01) * 1.5;
+    drawPixelPanel(x, y + bob, w, h, selected ? accent.border : '#4cecff', selected ? 1 : 0.82);
+    g.save();
+    g.beginPath(); g.rect(x + 9, y + 9 + bob, w - 18, h - 18); g.clip();
+    const scanGrad = g.createLinearGradient(0, y, 0, y + h);
+    scanGrad.addColorStop(0, 'rgba(15,110,135,0.46)');
+    scanGrad.addColorStop(1, 'rgba(2,12,28,0.82)');
+    g.fillStyle = scanGrad;
+    g.fillRect(x + 9, y + 9 + bob, w - 18, h - 18);
+    g.globalAlpha = selected ? 0.18 : 0.24;
+    g.fillStyle = '#68efff';
+    for (let yy = y + 10; yy < y + h - 8; yy += 7) g.fillRect(x + 9, Math.floor(yy + bob), w - 18, 1);
+    g.globalAlpha = 1;
+
+    const portrait = Sprites.getCharacterPortrait(ch.id);
+    if (portrait && portrait.naturalWidth > 0) {
+      const pad = selected ? 12 : 20;
+      const scale = Math.min((w - pad * 2) / portrait.naturalWidth, (h - pad * 2) / portrait.naturalHeight) * (selected ? 1.12 : 1.02);
+      const dw = portrait.naturalWidth * scale, dh = portrait.naturalHeight * scale;
+      const dx = x + (w - dw) / 2;
+      const dy = y + h - pad - dh + bob + (selected ? 4 : 10);
+      g.globalAlpha = selected ? 1 : 0.55;
+      g.drawImage(portrait, dx, dy, dw, dh);
+      if (side) {
+        g.globalCompositeOperation = 'source-atop';
+        g.fillStyle = 'rgba(77,179,230,0.45)';
+        g.fillRect(x + 9, y + 9 + bob, w - 18, h - 18);
+      }
+    } else {
+      const preview = Sprites.getCharacterFrame(ch.id, 'idle', G.time, 0);
+      Sprites.draw(g, preview, x + w / 2, y + h - 32 + bob, 1, selected ? 1.3 : 0.9);
+    }
+    g.restore();
+
+    if (selected) {
+      g.save(); g.globalCompositeOperation = 'lighter';
+      const pulse = 0.45 + Math.sin(G.time * 4.8) * 0.18;
+      g.strokeStyle = accent.border; g.globalAlpha = pulse; g.lineWidth = 4;
+      g.strokeRect(x - 3.5, y - 3.5 + bob, w + 7, h + 7);
+      g.restore();
     }
   }
 
   function drawCharacterSelect() {
     if (!charSelStars) initCharSelStars();
 
-    // ---- Layer 0: Deep space background ----
-    const grad = g.createRadialGradient(VW / 2, VH / 2, 30, VW / 2, VH / 2, 520);
-    grad.addColorStop(0, '#0a1628');
-    grad.addColorStop(0.35, '#060e1c');
-    grad.addColorStop(0.7, '#030712');
-    grad.addColorStop(1, '#010408');
-    g.fillStyle = grad;
+    // Animated galaxy backdrop: drifting star layers, scan lines, and small meteors.
+    const bg = g.createLinearGradient(0, 0, 0, VH);
+    bg.addColorStop(0, '#243a55');
+    bg.addColorStop(0.38, '#06142a');
+    bg.addColorStop(1, '#020617');
+    g.fillStyle = bg;
     g.fillRect(0, 0, VW, VH);
-
-    // Nebula glow
     g.save();
     g.globalCompositeOperation = 'lighter';
-    for (let n = 0; n < 3; n++) {
-      const nx = VW * (0.25 + n * 0.25) + Math.sin(G.time * 0.08 + n * 2.1) * 20;
-      const ny = VH * (0.35 + n * 0.15) + Math.cos(G.time * 0.06 + n * 1.3) * 15;
-      const nr = 160 + n * 50;
-      const ng = g.createRadialGradient(nx, ny, 5, nx, ny, nr);
-      ng.addColorStop(0, 'rgba(60,140,255,0.04)');
+    for (let n = 0; n < 4; n++) {
+      const nx = VW * (0.18 + n * 0.22) + Math.sin(G.time * (0.05 + n * 0.015) + n) * 44;
+      const ny = VH * (0.20 + (n % 2) * 0.28) + Math.cos(G.time * 0.06 + n * 1.7) * 28;
+      const nr = 180 + n * 54;
+      const ng = g.createRadialGradient(nx, ny, 4, nx, ny, nr);
+      ng.addColorStop(0, n % 2 ? 'rgba(255,154,56,0.07)' : 'rgba(104,239,255,0.08)');
+      ng.addColorStop(0.38, 'rgba(80,120,255,0.035)');
       ng.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = ng;
       g.beginPath(); g.arc(nx, ny, nr, 0, Math.PI * 2); g.fill();
     }
-
-    // Twinkling stars
     for (const s of charSelStars) {
-      const driftX = Math.sin(G.time * s.speed + s.phase) * 6;
-      const alpha = 0.2 + Math.abs(Math.sin(G.time * 1.2 + s.twinkle)) * 0.6;
-      g.globalAlpha = alpha * 0.5;
+      const driftX = (G.time * (12 + s.layer * 24) * s.speed + Math.sin(G.time * s.speed + s.phase) * 8) % (VW + 20);
+      const sx = (s.x + driftX) % (VW + 20) - 10;
+      const sy = s.y + Math.sin(G.time * 0.3 + s.phase) * (2 + s.layer);
+      const alpha = 0.18 + Math.abs(Math.sin(G.time * (1.4 + s.layer * 0.5) + s.twinkle)) * 0.62;
+      g.globalAlpha = alpha * (0.45 + s.layer * 0.16);
       g.fillStyle = s.color;
-      g.fillRect(Math.round(s.x + driftX), Math.round(s.y), s.size, s.size);
+      g.fillRect(Math.round(sx), Math.round(sy), s.size, s.size);
+      if (s.layer === 2 && alpha > 0.62) g.fillRect(Math.round(sx - 2), Math.round(sy), 5, 1);
+    }
+    for (let m = 0; m < 3; m++) {
+      const mx = (VW + 160 - ((G.time * (90 + m * 36) + m * 260) % (VW + 360)));
+      const my = 58 + m * 112 + Math.sin(G.time + m) * 18;
+      g.globalAlpha = 0.14;
+      g.strokeStyle = m % 2 ? '#ffb347' : '#68efff';
+      g.lineWidth = 2;
+      g.beginPath(); g.moveTo(mx, my); g.lineTo(mx - 84, my + 24); g.stroke();
+    }
+    g.restore();
+    g.fillStyle = 'rgba(0,4,14,0.42)';
+    g.fillRect(0, 0, VW, VH);
+    g.globalAlpha = 0.10;
+    g.fillStyle = '#68efff';
+    for (let y = 0; y < VH; y += 6) g.fillRect(0, y + ((G.time * 18) % 6), VW, 1);
+    g.globalAlpha = 1;
+
+    const sel = G.characterSel;
+    const count = Characters.roster.length;
+    const ch = Characters.roster[sel];
+    const prev = Characters.roster[(sel - 1 + count) % count];
+    const next = Characters.roster[(sel + 1) % count];
+    const accentColors = {
+      'juan_p': { border: '#ff9a38', name: '#fff1c8', badge: '#ffbf54', bar: '#28e6ff' },
+      'elena_k': { border: '#68efff', name: '#e9fbff', badge: '#68efff', bar: '#6ef8ff' },
+      'sergio_h': { border: '#ff4d58', name: '#fff4e6', badge: '#ffb347', bar: '#ff765e' },
+    };
+    const accent = accentColors[ch.id] || accentColors.juan_p;
+
+    g.font = 'bold 20px "Courier New", monospace';
+    g.textAlign = 'left';
+    g.fillStyle = 'rgba(160,210,235,0.48)';
+    g.fillText('CONCEPT A', 22, 28);
+
+    const topY = 42;
+    drawCarouselPortrait(prev, 58, topY + 40, 210, 228, accent, false, true);
+    drawCarouselPortrait(next, 692, topY + 40, 210, 228, accent, false, true);
+    drawCarouselPortrait(ch, 335, topY, 290, 300, accent, true, false);
+
+    // Bottom dossier panel, matching the reference composition.
+    const infoX = 44, infoY = 348, infoW = 872, infoH = 158;
+    drawPixelPanel(infoX, infoY, infoW, infoH, '#45eaff', 1);
+    g.save();
+    g.fillStyle = '#ff9a38';
+    for (const c of [[infoX+16, infoY+13], [infoX+infoW-22, infoY+13], [infoX+16, infoY+infoH-18], [infoX+infoW-22, infoY+infoH-18]]) {
+      g.fillRect(c[0], c[1], 5, 5); g.fillRect(c[0] + 2, c[1] - 2, 1, 9); g.fillRect(c[0] - 2, c[1] + 2, 9, 1);
     }
     g.restore();
 
-    // Semi-transparent dark overlay (~70%)
-    g.fillStyle = 'rgba(2,5,14,0.65)';
-    g.fillRect(0, 0, VW, VH);
-
-    // ---- Navigation HUD (Layer 3) ----
-    // Bottom-left: back instruction
-    g.font = 'bold 10px "Courier New", monospace';
-    g.textAlign = 'left';
-    g.fillStyle = '#00E0E0';
-    g.fillText('ESC: RETURN', 14, VH - 10);
-
-    // Bottom-right: confirm instruction
-    g.textAlign = 'right';
-    g.fillStyle = '#39FF14';
-    g.fillText('ENTER: DEPLOY', VW - 14, VH - 10);
-
-    // ---- Character Card (Layer 2) ----
-    const cardW = 880, cardH = 470;
-    const cx = (VW - cardW) / 2, cy = (VH - cardH) / 2;
-    const sel = G.characterSel;
-    const ch = Characters.roster[sel];
-
-    // Determine accent color based on character
-    const accentColors = {
-      'juan_p': { border: '#D4AF37', name: '#FFFFFF', badge: '#D4AF37' },
-      'elena_k': { border: '#00E5FF', name: '#FFFFFF', badge: '#00E5FF' },
-      'sergio_h': { border: '#FF3333', name: '#FFFFFF', badge: '#FFAA00' },
-    };
-    const accent = accentColors[ch.id] || accentColors['juan_p'];
-
-    // Card shadow
-    g.fillStyle = 'rgba(0,0,0,0.6)';
-    g.fillRect(cx + 4, cy + 4, cardW, cardH);
-
-    // Glass-morphism background (semi-transparent dark slate)
-    const cardBg = g.createLinearGradient(cx, cy, cx, cy + cardH);
-    cardBg.addColorStop(0, 'rgba(15,22,38,0.88)');
-    cardBg.addColorStop(0.5, 'rgba(10,16,30,0.92)');
-    cardBg.addColorStop(1, 'rgba(6,10,20,0.95)');
-    g.fillStyle = cardBg;
-    g.fillRect(cx, cy, cardW, cardH);
-
-    // Subtle 2px border (golden/cyan)
-    g.strokeStyle = accent.border;
-    g.lineWidth = 2;
-    g.strokeRect(cx + 0.5, cy + 0.5, cardW - 1, cardH - 1);
-
-    // Inner subtle highlight at top
-    g.fillStyle = 'rgba(255,255,255,0.04)';
-    g.fillRect(cx + 2, cy + 2, cardW - 4, 1);
-
-    // ---- A. Identity Section (Left 55%) ----
-    const leftRegion = { x: cx + 28, y: cy + 22, w: Math.round(cardW * 0.55) };
-
-    // Name - Bold, Uppercase, ~28pt, White, with dark drop-shadow
     const nameStr = tr(ch.nameKey).toUpperCase();
-    g.font = 'bold 28px "Courier New", monospace';
-    g.textAlign = 'left';
-    g.fillStyle = 'rgba(0,0,0,0.7)';
-    g.fillText(nameStr, leftRegion.x + 2, leftRegion.y + 32);
-    g.fillStyle = ch.id === 'juan_p' ? '#FFFFFF' : ch.id === 'elena_k' ? '#E0F8FF' : '#FFFFFF';
-    g.fillText(nameStr, leftRegion.x, leftRegion.y + 30);
-
-    // Class Badge - ~14pt, Golden/Sand, with diamond bullet
     const roleStr = tr(ch.roleKey).toUpperCase();
-    g.font = 'bold 14px "Courier New", monospace';
-    // Diamond bullet
-    g.fillStyle = accent.badge;
-    g.fillText('\u25C6', leftRegion.x, leftRegion.y + 58);
-    g.fillText(roleStr, leftRegion.x + 22, leftRegion.y + 58);
-
-    // Flavor Description - 12pt, Light Grey, Italic
     const bioStr = tr(ch.bioKey);
-    g.font = 'italic 12px "Courier New", monospace';
-    g.fillStyle = '#B0B0B0';
-    // Word wrap bio
-    const bioWords = bioStr.split(/\s+/);
-    let bioLine = '';
-    let bioY = leftRegion.y + 84;
-    for (const word of bioWords) {
-      const test = bioLine ? bioLine + ' ' + word : word;
-      if (g.measureText(test).width > leftRegion.w - 10) {
-        g.fillText(bioLine, leftRegion.x, bioY);
-        bioLine = word;
-        bioY += 18;
-      } else {
-        bioLine = test;
-      }
-    }
-    if (bioLine) g.fillText(bioLine, leftRegion.x, bioY);
-
-    // Portrait - fill available space in left region
-    const portX = leftRegion.x;
-    const portY = bioY + 16;
-    const portW = leftRegion.w;
-    const portH = cy + cardH - 16 - portY;
-
-    // Portrait frame background
-    g.fillStyle = 'rgba(0,2,10,0.5)';
-    g.strokeStyle = 'rgba(255,255,255,0.08)';
-    g.lineWidth = 1;
-    g.fillRect(portX, portY, portW, portH);
-    g.strokeRect(portX + 0.5, portY + 0.5, portW - 1, portH - 1);
-
-    const portrait = Sprites.getCharacterPortrait(ch.id);
-    if (portrait) {
-      g.save();
-      const pScale = Math.min((portW - 20) / portrait.naturalWidth, (portH - 20) / portrait.naturalHeight);
-      const pDrawW = portrait.naturalWidth * pScale;
-      const pDrawH = portrait.naturalHeight * pScale;
-      const pDrawX = portX + (portW - pDrawW) / 2;
-      const pDrawY = portY + (portH - pDrawH) / 2;
-      g.drawImage(portrait, pDrawX, pDrawY, pDrawW, pDrawH);
-      g.restore();
-    } else {
-      const preview = Sprites.getCharacterFrame(ch.id, 'idle', G.time, 0);
-      Sprites.draw(g, preview, portX + portW / 2, portY + portH - 30, 1, 1);
-    }
-
-    // ---- B. Stats Section (Right 40%) ----
-    const rightX = cx + cardW - Math.round(cardW * 0.40) - 28;
-    const statYstart = cy + 30;
-    const statLabelW = 60;
-    const statBarW = Math.round(cardW * 0.38) - statLabelW - 60;
-    const statRowH = 48;
-    const maxStat = 50; // All stats scaled to max 50
-
-    // Map actual character stats to 0-50 scale for display
-    const statScale = {
-      speed: 50,       // max 310
-      jump: 50,        // max 840
-      armor: 50,       // max 2
-      ammo: 50,        // max 1 (multiplier)
-    };
-    const rawStats = [
-      { label: 'SPEED', val: ch.speed / 310 * 50, max: 50, color: '#00E5FF' },
-      { label: 'JUMP', val: Math.abs(ch.jumpVelocity) / 840 * 50, max: 50, color: '#39FF14' },
-      { label: 'ARMOR', val: ch.maxArmor / 2 * 50, max: 50, color: '#FFAA00' },
-      { label: 'AMMO', val: ch.ammoMultiplier * 50, max: 50, color: '#FF3333' },
-    ];
-
-    // Stats title
-    g.font = 'bold 11px "Courier New", monospace';
     g.textAlign = 'left';
-    g.fillStyle = '#8899AA';
-    g.fillText('COMBAT PROFILE', rightX, statYstart);
+    g.font = 'bold 24px "Courier New", monospace';
+    g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillText('Name: ' + nameStr, infoX + 36 + 2, infoY + 42 + 2);
+    g.fillStyle = '#ffe8b8'; g.fillText('Name: ', infoX + 36, infoY + 42);
+    g.fillStyle = accent.name; g.fillText(nameStr, infoX + 122, infoY + 42);
+    g.font = 'bold 21px "Courier New", monospace';
+    g.fillStyle = '#ffd28a'; g.fillText('Class: ', infoX + 36, infoY + 72);
+    g.fillStyle = accent.badge; g.fillText(roleStr, infoX + 124, infoY + 72);
+    g.font = 'bold 18px "Courier New", monospace';
+    g.fillStyle = '#ffe8b8'; g.fillText('Description:', infoX + 36, infoY + 94);
+    g.fillStyle = '#f8f4df';
+    let bioLine = bioStr;
+    while (bioLine.length > 8 && g.measureText(bioLine).width > 680) bioLine = bioLine.slice(0, -2);
+    if (bioLine !== bioStr) bioLine += '…';
+    g.fillText(bioLine, infoX + 174, infoY + 94);
 
-    for (let i = 0; i < rawStats.length; i++) {
-      const s = rawStats[i];
-      const rowY = statYstart + 14 + i * statRowH;
+    g.strokeStyle = 'rgba(104,239,255,0.40)';
+    g.lineWidth = 2;
+    g.beginPath(); g.moveTo(infoX + 34, infoY + 106); g.lineTo(infoX + infoW - 34, infoY + 106); g.stroke();
+    for (let x = infoX + 34; x < infoX + infoW - 34; x += 8) {
+      g.globalAlpha = 0.18 + Math.sin(G.time * 7 + x * 0.03) * 0.08;
+      g.fillStyle = '#68efff'; g.fillRect(x, infoY + 104, 3, 1);
+    }
+    g.globalAlpha = 1;
 
-      // Label
-      g.font = 'bold 10px "Courier New", monospace';
+    const stats = [
+      { label: 'SPEED', val: ch.speed / 310 * 50, max: 50, color: '#27e6ff' },
+      { label: 'JUMP', val: Math.abs(ch.jumpVelocity) / 840 * 50, max: 50, color: '#43ff82' },
+      { label: 'ARMOR', val: ch.maxArmor / 2 * 50, max: 50, color: '#ffb347' },
+      { label: 'AMMO', val: ch.ammoMultiplier * 50, max: 50, color: '#ff6558' },
+    ];
+    const statY = infoY + 115;
+    const cols = [infoX + 42, infoX + 430];
+    for (let i = 0; i < stats.length; i++) {
+      const st = stats[i];
+      const col = i < 2 ? 0 : 1;
+      const row = i % 2;
+      const x = cols[col], y = statY + row * 25;
+      g.font = 'bold 19px "Courier New", monospace';
       g.textAlign = 'left';
-      g.fillStyle = '#FFFFFF';
-      g.fillText(s.label, rightX, rowY + 14);
-
-      // Numerical value
-      g.font = 'bold 12px "Courier New", monospace';
-      g.textAlign = 'right';
-      g.fillStyle = '#FFFFFF';
-      g.fillText(String(Math.round(s.val)), rightX + statLabelW + statBarW + 20, rowY + 14);
-
-      // Progress bar
-      drawStatBar(rightX + statLabelW + 8, rowY, statBarW, 10, s.val, s.max, s.color);
+      g.fillStyle = '#fff3c7';
+      g.fillText(st.label, x, y + 16);
+      drawStatBar(x + 116, y, 162, 16, st.val, st.max, st.color, G.time, i * 0.9);
+      g.font = 'bold 19px "Courier New", monospace';
+      g.fillStyle = st.color;
+      g.fillText(String(Math.round(st.val)), x + 292, y + 16);
     }
 
-    // ---- Character navigation arrows ----
+    const ctlY = VH - 16;
+    g.font = 'bold 16px "Courier New", monospace';
+    g.textAlign = 'center';
+    g.fillStyle = '#b7c8d6';
+    g.fillText('LEFT / RIGHT SELECT', VW / 2 - 115, ctlY);
+    g.fillStyle = '#111925'; g.fillRect(VW / 2 + 65, ctlY - 17, 70, 20);
+    g.strokeStyle = '#8797a6'; g.strokeRect(VW / 2 + 65.5, ctlY - 16.5, 69, 19);
+    g.fillStyle = '#dce6ee'; g.fillText('ENTER', VW / 2 + 100, ctlY - 1);
+    g.fillStyle = '#b7c8d6'; g.fillText('CONFIRM', VW / 2 + 184, ctlY);
+
     if (Characters.roster.length > 1) {
-      const pulse = 0.45 + Math.sin(G.time * 5) * 0.25;
-      g.save();
-      g.globalAlpha = pulse;
-      g.font = 'bold 32px "Courier New", monospace';
-      g.textAlign = 'center';
-      g.fillStyle = accent.border;
-      // Left arrow
-      g.fillText('\u25C0', cx - 24, cy + cardH / 2 + 10);
-      // Right arrow
-      g.fillText('\u25B6', cx + cardW + 24, cy + cardH / 2 + 10);
+      const pulse = 0.55 + Math.sin(G.time * 5.2) * 0.25;
+      g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = pulse;
+      g.font = 'bold 34px "Courier New", monospace'; g.textAlign = 'center'; g.fillStyle = accent.border;
+      g.fillText('\u25C0', 36, topY + 170);
+      g.fillText('\u25B6', VW - 36, topY + 170);
       g.restore();
     }
-
-    // ---- Character name on top of card for context ----
-    g.font = 'bold 10px "Courier New", monospace';
-    g.textAlign = 'center';
-    g.fillStyle = 'rgba(255,255,255,0.25)';
-    g.fillText(tr(ch.nameKey).toUpperCase(), cx + cardW / 2, cy - 8);
   }
 
   // ---------- schermate ----------

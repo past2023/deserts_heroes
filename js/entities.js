@@ -868,9 +868,16 @@
           muzzleStyle = 'mg';
           SFX.mg();
         } else {
-          const socket = Sprites.getVehicleSocket('allyTank', 'mgFire', 'mainCannon', s.facing);
-          mx = s.x + (socket ? socket.x : s.facing * 88);
-          my = s.y + (socket ? socket.y : -68);
+          if (s.type === 'ally_tank02') {
+            // Drill tank laser starts at the actual drill point, not the higher turret socket.
+            // Keep this aligned with drawAllyTank02(): left + width*0.92, top + height*0.58.
+            mx = s.x + s.facing * 110;
+            my = s.y - 72;
+          } else {
+            const socket = Sprites.getVehicleSocket('allyTank', 'mgFire', 'mainCannon', s.facing);
+            mx = s.x + (socket ? socket.x : s.facing * 88);
+            my = s.y + (socket ? socket.y : -68);
+          }
           const aim = allyTankGroundAim(s, mx, my);
           dirX = aim.x;
           dirY = aim.y;

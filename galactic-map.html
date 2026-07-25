@@ -15,14 +15,15 @@
 </head>
 <body>
 <div id="loading">
-  <div>LOADING MAP</div>
+  <div id="loading-title">⍜⟁⌬ ▰⋔⟐</div>
   <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
 </div>
 <canvas id="galactic-map" width="960" height="540"></canvas>
 <script>
 (function(){
-  var bar=document.getElementById('loading-bar'),p=0;
-  var iv=setInterval(function(){p+=0.05+Math.random()*0.06;if(p>1)p=1;bar.style.width=Math.round(p*100)+'%';if(p>=1){setTimeout(function(){var el=document.getElementById('loading');if(el)el.style.display='none'},300);clearInterval(iv)}},150);
+  var bar=document.getElementById('loading-bar'),title=document.getElementById('loading-title'),p=0,glyphs='⟟⟁⌁⌬⍜⟊◬◈▰▱⋔⋇⟐⌯⌑◌';
+  function alienLine(len){var out='';for(var i=0;i<len;i++)out+=glyphs[(Math.random()*glyphs.length)|0];return out}
+  var iv=setInterval(function(){p+=0.05+Math.random()*0.06;if(p>1)p=1;bar.style.width=Math.round(p*100)+'%';title.textContent=alienLine(5)+' ▱ '+alienLine(4);if(p>=1){setTimeout(function(){var el=document.getElementById('loading');if(el)el.style.display='none'},300);clearInterval(iv)}},150);
 })();
 </script>
 <script src="js/music-tracks.js"></script>
