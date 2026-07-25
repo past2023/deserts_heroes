@@ -972,154 +972,268 @@
       }
     }
 
-    // Intermittent lava light leaking through the modular ground cutaway.
-    const lavaPulse = Math.max(0, Math.sin(G.time * 0.72 + camX * 0.002) - 0.28) / 0.72;
-    if (lavaPulse > 0) {
-      g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = lavaPulse * 0.28;
-      const lava = g.createLinearGradient(0, VH, 0, GROUND + 18);
-      lava.addColorStop(0, '#ff2d12'); lava.addColorStop(0.55, '#ff7a20');
-      lava.addColorStop(1, 'rgba(255,190,70,0)');
-      g.fillStyle = lava; g.fillRect(0, GROUND + 18, VW, VH - GROUND - 18); g.restore();
+    // Low amber light under the cutaway hints at molten heat without washing out
+    // the supplied terrain art.  The actual lava below is rebuilt from scratch:
+    // slow rolling magma, flame-animation plumes, smoke, bubbles and embers.
+    const lavaGlow = 0.18 + Math.max(0, Math.sin(hazardTime * 0.48 + camX * 0.0017)) * 0.12;
+    if (lavaGlow > 0) {
+      g.save();
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = lavaGlow;
+      const lava = g.createLinearGradient(0, VH, 0, GROUND - 12);
+      lava.addColorStop(0, 'rgba(180,24,12,0.55)');
+      lava.addColorStop(0.48, 'rgba(255,91,22,0.32)');
+      lava.addColorStop(1, 'rgba(255,178,54,0)');
+      g.fillStyle = lava;
+      g.fillRect(0, GROUND - 12, VW, VH - GROUND + 12);
+      g.restore();
     }
 
-    // Open lava cuts: vertical flame-lava columns inspired by the flame launcher,
-    // layered with molten surface sheets, heat haze, bubbles and ember sparks.
+    // Open lava cuts: slow arcade magma with readable hazards.  It deliberately
+    // borrows the flame-shot language (red/orange outer body, yellow core,
+    // white-hot tips) but adds heavy smoke and popping surface bubbles.
     for (const gap of lavaGaps) {
       const gx = gap.x - camX;
       if (gx + gap.w < 0 || gx > VW) continue;
       const visibleX = Math.max(0, gx), visibleRight = Math.min(VW, gx + gap.w);
+      const visibleW = Math.max(0, visibleRight - visibleX);
       const gapW = Math.max(1, gap.w);
-      // Slow magma clock: lava should feel heavy and molten, not like water.
-      // It reuses the flame-launcher color language but stretches the motion.
-      const lavaTime = hazardTime * 0.32 + gap.x * 0.0009;
+      const lavaTime = hazardTime * 0.54 + gap.x * 0.0011;
 
-      // Deep magma body with hot core and darker bottom.
-      const magma = g.createLinearGradient(0, GROUND - 8, 0, VH);
-      magma.addColorStop(0, '#fff6b0');
-      magma.addColorStop(0.07, '#ffcf3f');
-      magma.addColorStop(0.26, '#ff5e1e');
-      magma.addColorStop(0.62, '#b91d17');
-      magma.addColorStop(1, '#26070d');
-      g.fillStyle = magma;
-      g.fillRect(gx, GROUND - 6, gap.w, VH - GROUND + 8);
+      // Dark carved pit walls make the hot liquid read as a dangerous opening.
+      g.save();
+      g.fillStyle = '#120409';
+      g.fillRect(Math.round(gx - 5), GROUND - 10, Math.round(gap.w + 10), VH - GROUND + 14);
+      const wallShade = g.createLinearGradient(gx, 0, gx + gap.w, 0);
+      wallShade.addColorStop(0, 'rgba(0,0,0,0.62)');
+      wallShade.addColorStop(0.16, 'rgba(70,18,13,0.28)');
+      wallShade.addColorStop(0.50, 'rgba(255,74,18,0.08)');
+      wallShade.addColorStop(0.84, 'rgba(70,18,13,0.28)');
+      wallShade.addColorStop(1, 'rgba(0,0,0,0.62)');
+      g.fillStyle = wallShade;
+      g.fillRect(gx, GROUND - 4, gap.w, VH - GROUND + 8);
+      g.restore();
 
       g.save();
       g.beginPath();
-      g.rect(visibleX, GROUND - 26, Math.max(0, visibleRight - visibleX), VH - GROUND + 30);
+      g.rect(visibleX, GROUND - 112, visibleW, VH - GROUND + 126);
       g.clip();
+
+      // Deep molten body, darker below and white-hot near the surface.
+      const body = g.createLinearGradient(0, GROUND - 2, 0, VH);
+      body.addColorStop(0, '#fff0a4');
+      body.addColorStop(0.08, '#ffbd35');
+      body.addColorStop(0.28, '#ff6420');
+      body.addColorStop(0.62, '#921317');
+      body.addColorStop(1, '#1b0308');
+      g.fillStyle = body;
+      g.fillRect(gx, GROUND - 2, gap.w, VH - GROUND + 4);
+
+      // Slow rolling convection bands under the surface.
       g.globalCompositeOperation = 'lighter';
-
-      // Flame-launcher style vertical tongues climbing from inside the pit.
-      const columns = Math.max(5, Math.floor(gap.w / 38));
-      for (let i = 0; i < columns; i++) {
-        const lane = (i + 0.5) / columns;
-        const baseX = gx + lane * gapW + Math.sin(lavaTime * 1.35 + i * 2.1) * 10;
-        const phase = (lavaTime * (0.34 + (i % 5) * 0.045) + i * 0.137) % 1;
-        const flameH = 34 + (1 - phase) * 82 + Math.sin(lavaTime * 2.6 + i) * 9;
-        const flameW = 12 + (i % 4) * 6 + Math.sin(lavaTime * 2.1 + i) * 4;
-        const topY = GROUND + 40 - flameH;
-        const grad = g.createLinearGradient(baseX, GROUND + 54, baseX, topY);
-        grad.addColorStop(0, 'rgba(155,18,12,0)');
-        grad.addColorStop(0.18, 'rgba(255,76,20,0.34)');
-        grad.addColorStop(0.58, 'rgba(255,160,34,0.64)');
-        grad.addColorStop(0.86, 'rgba(255,244,165,0.72)');
-        grad.addColorStop(1, 'rgba(255,255,255,0)');
-        g.globalAlpha = 0.55 + (1 - phase) * 0.35;
-        g.fillStyle = grad;
+      for (let band = 0; band < 4; band++) {
+        const y0 = GROUND + 14 + band * 18;
+        g.globalAlpha = 0.18 + band * 0.035;
+        g.fillStyle = band % 2 ? '#ff3b18' : '#ff9b24';
         g.beginPath();
-        g.moveTo(baseX - flameW, GROUND + 58);
-        for (let k = 0; k < 5; k++) {
-          const yy = GROUND + 48 - k * flameH / 5;
-          const xx = baseX + Math.sin(lavaTime * 3.1 + i * 1.7 + k) * (5 + k * 2);
-          g.lineTo(xx - flameW * (1 - k / 7), yy);
+        g.moveTo(gx, y0 + 16);
+        for (let x = gx; x <= gx + gap.w + 8; x += 12) {
+          const wave = Math.sin(x * 0.035 + lavaTime * (0.85 - band * 0.09) + band * 1.7) * (5 + band * 1.5) +
+            Math.sin(x * 0.083 - lavaTime * 0.52 + band) * 2;
+          g.lineTo(x, y0 + wave);
         }
-        g.lineTo(baseX + Math.sin(lavaTime * 4.0 + i) * 5, topY);
-        for (let k = 4; k >= 0; k--) {
-          const yy = GROUND + 48 - k * flameH / 5;
-          const xx = baseX + Math.sin(lavaTime * 3.1 + i * 1.7 + k) * (5 + k * 2);
-          g.lineTo(xx + flameW * (1 - k / 7), yy);
-        }
+        g.lineTo(gx + gap.w, y0 + 35);
+        g.lineTo(gx, y0 + 35);
         g.closePath();
         g.fill();
       }
 
-      // Heavy flame-launcher-style lava ribbons: broad, slow, translucent
-      // tongues that drift upward under the bright crust.
-      for (let r = 0; r < Math.max(3, Math.floor(gap.w / 72)); r++) {
-        const lane = (r + 0.5) / Math.max(3, Math.floor(gap.w / 72));
-        const ribbonX = gx + lane * gapW + Math.sin(lavaTime * 0.9 + r * 3.7) * 18;
-        const ribbonTop = GROUND + 18 - (36 + Math.sin(lavaTime * 1.15 + r) * 14);
-        const ribbonW = 18 + (r % 3) * 9;
-        const ribbon = g.createLinearGradient(ribbonX, GROUND + 70, ribbonX, ribbonTop);
-        ribbon.addColorStop(0, 'rgba(210,28,18,0)');
-        ribbon.addColorStop(0.30, 'rgba(255,72,22,0.24)');
-        ribbon.addColorStop(0.66, 'rgba(255,172,42,0.40)');
-        ribbon.addColorStop(1, 'rgba(255,248,175,0.08)');
-        g.globalAlpha = 0.45 + Math.sin(lavaTime * 1.4 + r) * 0.08;
-        g.fillStyle = ribbon;
-        g.beginPath();
-        g.moveTo(ribbonX - ribbonW, GROUND + 72);
-        g.bezierCurveTo(ribbonX - ribbonW * 1.3, GROUND + 34, ribbonX - ribbonW * 0.3, GROUND + 6, ribbonX, ribbonTop);
-        g.bezierCurveTo(ribbonX + ribbonW * 0.7, GROUND + 8, ribbonX + ribbonW * 1.4, GROUND + 36, ribbonX + ribbonW, GROUND + 72);
-        g.closePath();
-        g.fill();
-      }
-
-      // Animated molten surface: broken bright wave with hot white islands.
-      g.globalAlpha = 0.95;
-      g.fillStyle = '#ff8b1f';
+      // Main molten skin, a thick animated lake instead of thin stripes.
+      const surfaceY = GROUND + 5;
+      const surface = g.createLinearGradient(0, GROUND - 8, 0, GROUND + 38);
+      surface.addColorStop(0, '#fff8be');
+      surface.addColorStop(0.18, '#ffd24b');
+      surface.addColorStop(0.46, '#ff7422');
+      surface.addColorStop(1, '#7e1012');
+      g.globalAlpha = 0.96;
+      g.fillStyle = surface;
       g.beginPath();
-      g.moveTo(gx, GROUND + 5);
-      for (let x = gx; x <= gx + gap.w; x += 7) {
-        const wave = Math.sin(x * 0.045 + lavaTime * 1.35) * 4 +
-          Math.sin(x * 0.105 - lavaTime * 0.95) * 2;
-        g.lineTo(x, GROUND + 7 + wave);
+      g.moveTo(gx, surfaceY + 7);
+      for (let x = gx; x <= gx + gap.w + 6; x += 6) {
+        const wave = Math.sin(x * 0.041 + lavaTime * 1.45) * 4.5 +
+          Math.sin(x * 0.119 - lavaTime * 0.72) * 2.4;
+        g.lineTo(x, surfaceY + wave);
       }
-      g.lineTo(gx + gap.w, GROUND + 28);
-      g.lineTo(gx, GROUND + 28);
+      g.lineTo(gx + gap.w, GROUND + 42);
+      g.lineTo(gx, GROUND + 42);
       g.closePath();
       g.fill();
-      for (let x = gx + 8; x < gx + gap.w - 6; x += 21) {
-        const y = GROUND + 1 + Math.sin(x * 0.07 + lavaTime * 1.7) * 4;
-        const length = 8 + ((Math.abs(Math.sin(x * 0.18 + lavaTime * 0.85)) * 20) | 0);
-        g.globalAlpha = 0.55 + Math.sin(lavaTime * 2.2 + x) * 0.2;
-        g.fillStyle = '#fff7b8'; g.fillRect(Math.round(x), Math.round(y), length, 2);
-        g.fillStyle = '#ffd248'; g.fillRect(Math.round(x + 2), Math.round(y + 3), Math.max(4, length - 5), 2);
+
+      // Dark crust plates drifting across the surface, broken by hot cracks.
+      g.globalCompositeOperation = 'source-over';
+      const plates = Math.max(5, Math.floor(gap.w / 48));
+      for (let i = 0; i < plates; i++) {
+        const lane = (i + ((lavaTime * 0.035 + i * 0.23) % 1)) / plates;
+        const px = gx + (lane % 1) * gapW;
+        const py = surfaceY + Math.sin(lavaTime * 0.8 + i * 1.9) * 3;
+        const pw = 18 + (i % 4) * 8;
+        g.globalAlpha = 0.30;
+        g.fillStyle = i % 2 ? '#2b0809' : '#4a0d0b';
+        g.beginPath();
+        g.moveTo(px - pw * 0.55, py + 5);
+        g.lineTo(px - pw * 0.20, py - 1);
+        g.lineTo(px + pw * 0.46, py + 1);
+        g.lineTo(px + pw * 0.62, py + 8);
+        g.lineTo(px + pw * 0.05, py + 11);
+        g.closePath();
+        g.fill();
+        g.globalAlpha = 0.46;
+        g.fillStyle = '#ffb536';
+        g.fillRect(Math.round(px - pw * 0.28), Math.round(py + 4), Math.max(5, pw * 0.42), 2);
       }
 
-      // Bubbles, embers and hot gas.
-      const bubbleCount = Math.max(7, Math.floor(gap.w / 38));
-      for (let i = 0; i < bubbleCount; i++) {
-        const phase = (lavaTime * (0.22 + i * 0.016) + i * 0.31) % 1;
-        const bx = gx + 16 + ((i * 73 + gap.x * 0.17) % Math.max(25, gap.w - 32));
-        const by = GROUND + 66 - phase * 78;
-        const radius = 2 + (i % 4);
-        g.globalAlpha = (1 - phase) * 0.75;
-        g.fillStyle = i % 3 ? '#ffef70' : '#ffffff';
-        g.fillRect(Math.round(bx - radius), Math.round(by - radius), radius * 2, radius * 2);
-        if (i % 3 === 0) {
-          g.globalAlpha = (1 - phase) * 0.35;
-          g.fillStyle = '#ff4d24';
-          g.fillRect(Math.round(bx + 6), Math.round(by + 2), 8, 2);
+      // Bright broken highlights ride on top of the animated surface.
+      g.globalCompositeOperation = 'lighter';
+      for (let x = gx + 10; x < gx + gap.w - 8; x += 18) {
+        const shimmer = Math.sin(x * 0.19 + lavaTime * 1.8);
+        const length = 6 + Math.abs(shimmer) * 20;
+        const y = surfaceY - 3 + Math.sin(x * 0.052 + lavaTime * 1.3) * 4;
+        g.globalAlpha = 0.42 + Math.max(0, shimmer) * 0.28;
+        g.fillStyle = '#fff4ae';
+        g.fillRect(Math.round(x), Math.round(y), Math.round(length), 2);
+        g.fillStyle = '#ffca3d';
+        g.fillRect(Math.round(x + 2), Math.round(y + 3), Math.max(3, Math.round(length - 5)), 2);
+      }
+
+      // Flame animation plumes: nested flame shapes that breathe upward from
+      // the lava, more like the weapon flame than the old vertical columns.
+      const plumeCount = Math.max(3, Math.floor(gap.w / 88));
+      for (let i = 0; i < plumeCount; i++) {
+        const cycle = (lavaTime * (0.23 + (i % 3) * 0.035) + i * 0.29) % 1;
+        const grow = Math.sin(cycle * Math.PI);
+        const baseX = gx + (i + 0.5) / plumeCount * gapW + Math.sin(lavaTime * 0.9 + i * 2.4) * 14;
+        const baseY = GROUND + 18 + Math.sin(lavaTime * 1.1 + i) * 3;
+        const height = (34 + (i % 4) * 10) * (0.55 + grow * 0.75);
+        const width = (16 + (i % 3) * 7) * (0.8 + grow * 0.45);
+        const sway = Math.sin(lavaTime * 1.6 + i * 1.8) * 13;
+        const colors = [
+          ['rgba(176,16,12,0)', 'rgba(255,54,18,0.62)', 'rgba(255,126,28,0.35)'],
+          ['rgba(255,64,18,0)', 'rgba(255,145,28,0.72)', 'rgba(255,216,70,0.28)'],
+          ['rgba(255,184,44,0)', 'rgba(255,244,142,0.78)', 'rgba(255,255,255,0.18)']
+        ];
+        for (let layer = 0; layer < 3; layer++) {
+          const scale = 1 - layer * 0.28;
+          const topY = baseY - height * scale;
+          const topX = baseX + sway * (0.34 + layer * 0.18);
+          const grad = g.createLinearGradient(baseX, baseY + 12, topX, topY);
+          grad.addColorStop(0, colors[layer][0]);
+          grad.addColorStop(0.32, colors[layer][1]);
+          grad.addColorStop(0.78, colors[layer][2]);
+          grad.addColorStop(1, 'rgba(255,255,255,0)');
+          g.globalAlpha = (0.42 + grow * 0.44) * (1 - layer * 0.17);
+          g.fillStyle = grad;
+          g.beginPath();
+          g.moveTo(baseX - width * scale, baseY + 12);
+          g.bezierCurveTo(baseX - width * 1.35 * scale, baseY - height * 0.28 * scale,
+            topX - width * 0.24 * scale, baseY - height * 0.72 * scale, topX, topY);
+          g.bezierCurveTo(topX + width * 0.38 * scale, baseY - height * 0.66 * scale,
+            baseX + width * 1.25 * scale, baseY - height * 0.24 * scale, baseX + width * scale, baseY + 12);
+          g.closePath();
+          g.fill();
         }
       }
 
-      // Heat glow/haze rising above the surface.
-      const surfaceGlow = g.createLinearGradient(0, GROUND - 50, 0, GROUND + 42);
-      surfaceGlow.addColorStop(0, 'rgba(255,120,25,0)');
-      surfaceGlow.addColorStop(0.45, 'rgba(255,140,32,0.28)');
-      surfaceGlow.addColorStop(1, 'rgba(255,45,15,0)');
-      g.globalAlpha = 1; g.fillStyle = surfaceGlow;
-      g.fillRect(visibleX, GROUND - 50, Math.max(0, visibleRight - visibleX), 92);
+      // Popping bubbles.  Most are glowing domes; at the end of their cycle they
+      // burst into small rings and sparks at the surface.
+      const bubbleCount = Math.max(9, Math.floor(gap.w / 34));
+      for (let i = 0; i < bubbleCount; i++) {
+        const phase = (lavaTime * (0.18 + (i % 5) * 0.018) + i * 0.173) % 1;
+        const bx = gx + 18 + ((i * 61 + gap.x * 0.13) % Math.max(26, gap.w - 36));
+        const rise = phase < 0.82 ? phase / 0.82 : 1;
+        const by = GROUND + 54 - rise * 52 + Math.sin(lavaTime + i) * 2;
+        const radius = 3 + (i % 5) + rise * 3;
+        if (phase < 0.82) {
+          g.globalAlpha = 0.30 + rise * 0.42;
+          g.fillStyle = i % 3 ? '#ffcf45' : '#fff2a6';
+          g.beginPath();
+          g.arc(bx, by, radius, 0, Math.PI * 2);
+          g.fill();
+          g.globalAlpha = 0.42;
+          g.strokeStyle = '#fff8b8';
+          g.lineWidth = 1;
+          g.beginPath();
+          g.arc(bx - radius * 0.25, by - radius * 0.25, Math.max(1, radius * 0.45), 0, Math.PI * 2);
+          g.stroke();
+        } else {
+          const pop = (phase - 0.82) / 0.18;
+          g.globalAlpha = (1 - pop) * 0.66;
+          g.strokeStyle = '#fff4a8';
+          g.lineWidth = 1.5;
+          g.beginPath();
+          g.arc(bx, surfaceY + 1, 5 + pop * 13, 0, Math.PI * 2);
+          g.stroke();
+          g.fillStyle = '#ffd34a';
+          g.fillRect(Math.round(bx - 2), Math.round(surfaceY - 6 - pop * 14), 3, 5);
+          g.fillRect(Math.round(bx + 5), Math.round(surfaceY - 3 - pop * 10), 2, 4);
+        }
+      }
+
+      // Embers rising through the same clipped pit space.
+      const emberCount = Math.max(18, Math.floor(gap.w / 12));
+      for (let i = 0; i < emberCount; i++) {
+        const phase = (lavaTime * (0.16 + (i % 7) * 0.012) + i * 0.071) % 1;
+        const ex = gx + 8 + ((i * 47 + gap.x * 0.21) % Math.max(18, gap.w - 16)) + Math.sin(lavaTime * 1.4 + i) * 8;
+        const ey = GROUND + 44 - phase * 136;
+        g.globalAlpha = (1 - phase) * (i % 4 ? 0.45 : 0.72);
+        g.fillStyle = i % 5 === 0 ? '#ffffff' : i % 2 ? '#ffd44c' : '#ff6424';
+        g.fillRect(Math.round(ex), Math.round(ey), i % 5 === 0 ? 2 : 1, 3 + (i % 3));
+      }
+
+      // Smoke puffs are drawn normally, above the glow, so they darken and sell
+      // heat without becoming neon.  They rise slowly and expand/fade.
+      g.globalCompositeOperation = 'source-over';
+      const smokeCount = Math.max(5, Math.floor(gap.w / 58));
+      for (let i = 0; i < smokeCount; i++) {
+        const phase = (lavaTime * (0.105 + (i % 4) * 0.01) + i * 0.211) % 1;
+        const sx = gx + (i + 0.5) / smokeCount * gapW + Math.sin(lavaTime * 0.55 + i) * 24;
+        const sy = GROUND - 8 - phase * 92;
+        const sr = 9 + phase * 22 + (i % 3) * 3;
+        g.globalAlpha = (1 - phase) * 0.20;
+        g.fillStyle = i % 2 ? '#1e1718' : '#3b2c27';
+        g.beginPath();
+        g.arc(sx, sy, sr, 0, Math.PI * 2);
+        g.fill();
+        g.globalAlpha *= 0.55;
+        g.beginPath();
+        g.arc(sx + sr * 0.55, sy + sr * 0.10, sr * 0.72, 0, Math.PI * 2);
+        g.fill();
+      }
+
+      // A translucent orange haze over the lip blends fire, smoke and terrain.
+      g.globalCompositeOperation = 'lighter';
+      const haze = g.createLinearGradient(0, GROUND - 80, 0, GROUND + 34);
+      haze.addColorStop(0, 'rgba(255,92,20,0)');
+      haze.addColorStop(0.55, 'rgba(255,116,24,0.18)');
+      haze.addColorStop(1, 'rgba(255,200,80,0.08)');
+      g.globalAlpha = 1;
+      g.fillStyle = haze;
+      g.fillRect(visibleX, GROUND - 80, visibleW, 114);
       g.restore();
 
-      // Small rock lips connect terrain edges without drawing across the lava.
-      g.fillStyle = '#5a3025';
-      g.fillRect(gx - 6, GROUND - 4, 10, 9);
-      g.fillRect(gx + gap.w - 4, GROUND - 4, 10, 9);
-      g.fillStyle = '#b25b31';
-      g.fillRect(gx - 4, GROUND - 4, 7, 3);
-      g.fillRect(gx + gap.w - 3, GROUND - 4, 7, 3);
+      // Small scorched lips connect terrain edges without covering the lava.
+      g.fillStyle = '#2a130f';
+      g.fillRect(Math.round(gx - 8), GROUND - 5, 13, 10);
+      g.fillRect(Math.round(gx + gap.w - 5), GROUND - 5, 13, 10);
+      g.fillStyle = '#7b321f';
+      g.fillRect(Math.round(gx - 5), GROUND - 5, 9, 3);
+      g.fillRect(Math.round(gx + gap.w - 4), GROUND - 5, 9, 3);
+      g.save();
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = 0.45;
+      g.fillStyle = '#ff8b25';
+      g.fillRect(Math.round(gx), GROUND - 2, 3, 6);
+      g.fillRect(Math.round(gx + gap.w - 2), GROUND - 2, 3, 6);
+      g.restore();
     }
 
     // Energy walls are readable: warning sparks precede every lethal beam.
