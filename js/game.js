@@ -1386,13 +1386,13 @@
     };
     const accent = accentColors[ch.id] || accentColors.juan_p;
 
-    const topY = 34;
+    const topY = 20;
     drawCarouselPortrait(prev, 58, topY + 40, 210, 228, accent, false, true);
     drawCarouselPortrait(next, 692, topY + 40, 210, 228, accent, false, true);
     drawCarouselPortrait(ch, 335, topY, 290, 300, accent, true, false);
 
     // Bottom dossier panel, matching the reference composition.
-    const infoX = 44, infoY = 342, infoW = 872, infoH = 170;
+    const infoX = 44, infoY = 326, infoW = 872, infoH = 176;
     drawPixelPanel(infoX, infoY, infoW, infoH, '#45eaff', 1);
     g.save();
     g.fillStyle = '#ff9a38';
@@ -1405,27 +1405,40 @@
     const roleStr = tr(ch.roleKey).toUpperCase();
     const bioStr = tr(ch.bioKey);
     g.textAlign = 'left';
-    g.font = 'bold 23px "Courier New", monospace';
+    g.font = 'bold 21px "Courier New", monospace';
     g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillText('Name: ' + nameStr, infoX + 36 + 2, infoY + 42 + 2);
     g.fillStyle = '#ffe8b8'; g.fillText('Name: ', infoX + 36, infoY + 42);
     g.fillStyle = accent.name; g.fillText(nameStr, infoX + 122, infoY + 42);
-    g.font = 'bold 20px "Courier New", monospace';
-    g.fillStyle = '#ffd28a'; g.fillText('Class: ', infoX + 36, infoY + 72);
-    g.fillStyle = accent.badge; g.fillText(roleStr, infoX + 124, infoY + 72);
-    g.font = 'bold 17px "Courier New", monospace';
+    g.font = 'bold 18px "Courier New", monospace';
+    g.fillStyle = '#ffd28a'; g.fillText('Class: ', infoX + 36, infoY + 70);
+    g.fillStyle = accent.badge; g.fillText(roleStr, infoX + 118, infoY + 70);
+    function wrapSelectInfo(textValue, maxWidth, maxLines) {
+      const words = textValue.split(/\s+/);
+      const lines = [];
+      let line = '';
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        if (line && g.measureText(test).width > maxWidth) { lines.push(line); line = word; }
+        else line = test;
+      }
+      if (line) lines.push(line);
+      return lines.slice(0, maxLines || lines.length);
+    }
+    g.font = 'bold 13px "Courier New", monospace';
     g.fillStyle = '#ffe8b8'; g.fillText('Description:', infoX + 36, infoY + 94);
     g.fillStyle = '#f8f4df';
-    let bioLine = bioStr;
-    while (bioLine.length > 8 && g.measureText(bioLine).width > 640) bioLine = bioLine.slice(0, -2);
-    if (bioLine !== bioStr) bioLine += '…';
-    g.fillText(bioLine, infoX + 174, infoY + 94);
+    let bioLines = wrapSelectInfo(bioStr, 650, 3);
+    if (bioLines.length > 2) { g.font = 'bold 12px "Courier New", monospace'; bioLines = wrapSelectInfo(bioStr, 690, 3); }
+    if (bioLines.length > 2) { g.font = 'bold 11px "Courier New", monospace'; bioLines = wrapSelectInfo(bioStr, 720, 3); }
+    for (let i = 0; i < bioLines.length; i++) g.fillText(bioLines[i], infoX + 150, infoY + 94 + i * 14);
 
+    const sepY = infoY + 122;
     g.strokeStyle = 'rgba(104,239,255,0.40)';
     g.lineWidth = 2;
-    g.beginPath(); g.moveTo(infoX + 34, infoY + 106); g.lineTo(infoX + infoW - 34, infoY + 106); g.stroke();
+    g.beginPath(); g.moveTo(infoX + 34, sepY); g.lineTo(infoX + infoW - 34, sepY); g.stroke();
     for (let x = infoX + 34; x < infoX + infoW - 34; x += 8) {
       g.globalAlpha = 0.18 + Math.sin(G.time * 7 + x * 0.03) * 0.08;
-      g.fillStyle = '#68efff'; g.fillRect(x, infoY + 104, 3, 1);
+      g.fillStyle = '#68efff'; g.fillRect(x, sepY - 2, 3, 1);
     }
     g.globalAlpha = 1;
 
@@ -1435,7 +1448,7 @@
       { label: 'ARMOR', val: ch.maxArmor / 2 * 50, max: 50, color: '#ffb347' },
       { label: 'AMMO', val: ch.ammoMultiplier * 50, max: 50, color: '#ff6558' },
     ];
-    const statY = infoY + 118;
+    const statY = sepY + 12;
     const cols = [infoX + 42, infoX + 430];
     for (let i = 0; i < stats.length; i++) {
       const st = stats[i];
@@ -1452,15 +1465,15 @@
       g.fillText(String(Math.round(st.val)), x + 278, y + 16);
     }
 
-    const ctlY = VH - 16;
-    g.font = 'bold 16px "Courier New", monospace';
+    const ctlY = VH - 9;
+    g.font = 'bold 14px "Courier New", monospace';
     g.textAlign = 'center';
     g.fillStyle = '#b7c8d6';
-    g.fillText('LEFT / RIGHT SELECT', VW / 2 - 115, ctlY);
-    g.fillStyle = '#111925'; g.fillRect(VW / 2 + 65, ctlY - 17, 70, 20);
-    g.strokeStyle = '#8797a6'; g.strokeRect(VW / 2 + 65.5, ctlY - 16.5, 69, 19);
-    g.fillStyle = '#dce6ee'; g.fillText('ENTER', VW / 2 + 100, ctlY - 1);
-    g.fillStyle = '#b7c8d6'; g.fillText('CONFIRM', VW / 2 + 184, ctlY);
+    g.fillText('LEFT / RIGHT SELECT', VW / 2 - 118, ctlY);
+    g.fillStyle = '#111925'; g.fillRect(VW / 2 + 66, ctlY - 16, 62, 18);
+    g.strokeStyle = '#8797a6'; g.strokeRect(VW / 2 + 66.5, ctlY - 15.5, 61, 17);
+    g.fillStyle = '#dce6ee'; g.fillText('ENTER', VW / 2 + 97, ctlY - 2);
+    g.fillStyle = '#b7c8d6'; g.fillText('CONFIRM', VW / 2 + 174, ctlY);
 
     if (Characters.roster.length > 1) {
       const pulse = 0.55 + Math.sin(G.time * 5.2) * 0.25;

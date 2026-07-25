@@ -871,8 +871,10 @@
           if (s.type === 'ally_tank02') {
             // Drill tank laser starts at the actual drill point, not the higher turret socket.
             // Tuned to the visible center of the drill's extreme front point in drawAllyTank02().
-            mx = s.x + s.facing * 120;
-            my = s.y - 70;
+            // Reference image green point: source image (391,211) in 400x274 art.
+            // Runtime scale 0.62 with bottom anchor => x +118.5, y -39.1.
+            mx = s.x + s.facing * 119;
+            my = s.y - 39;
           } else {
             const socket = Sprites.getVehicleSocket('allyTank', 'mgFire', 'mainCannon', s.facing);
             mx = s.x + (socket ? socket.x : s.facing * 88);

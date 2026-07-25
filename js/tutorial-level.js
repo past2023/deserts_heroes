@@ -196,74 +196,90 @@
   const END_LIGHT = { x: W - 260, y: 200, r: 28, triggered:false };
 
   // Light FX placed at positions matching actual pixel art in mid PNGs.
-  // Module order: 0=mid01b, 1=mid02b, 2=mid03b, 3=mid04b,
-  // 4=mid06b, 5=mid07b, 6=mid08b, 7=mid05b.
-  // Fires are only used where the art has an actual flame; wall glows are lamps.
+  // Screen entries use exact pixel-bounds from the monitor art, so the glow
+  // follows the rectangular PC-screen shape instead of a generic floating blob.
+  // Fires are only used where the art has a visible flame source.
   const lights=[
     // Module 0 — mid01b (satellite dish lab)
-    { module:0, x:70, y:392, type:'lamp', color:'#ffb44a', r:18, pulse:1.7, intensity:0.68 },
-    { module:0, x:72, y:420, type:'screen', color:'#4af1ff', r:24, pulse:3.2, intensity:0.58 },
-    { module:0, x:284, y:620, type:'screen', color:'#58f0ff', r:20, pulse:2.7, intensity:0.42 },
-    { module:0, x:560, y:106, type:'lamp', color:'#ff9a2a', r:30, pulse:1.1, intensity:0.82 },
-    { module:0, x:1020, y:144, type:'lamp', color:'#ffb44a', r:26, pulse:1.4, intensity:0.74 },
-    { module:0, x:1116, y:116, type:'screen', color:'#42f2ff', r:22, pulse:2.4, intensity:0.58 },
-    { module:0, x:1236, y:395, type:'lamp', color:'#ffaa3a', r:22, pulse:1.3, intensity:0.64 },
-    { module:0, x:1250, y:418, type:'screen', color:'#58f0ff', r:20, pulse:2.8, intensity:0.52 },
-    { module:0, x:910, y:532, type:'fire', color:'#ff6a18', r:34, pulse:11, intensity:0.82 },
+    { module:0, x:70, y:392, type:'lamp', color:'#ffb44a', r:16, pulse:1.7, intensity:0.62 },
+    { module:0, x:70, y:418, w:27, h:9, type:'screen', color:'#4af1ff', r:21, pulse:3.2, intensity:0.58 },
+    { module:0, x:612, y:346, w:7, h:7, type:'screen', color:'#58f0ff', r:10, pulse:2.4, intensity:0.34 },
+    { module:0, x:607, y:354, w:5, h:7, type:'screen', color:'#58f0ff', r:9, pulse:2.5, intensity:0.30 },
+    { module:0, x:594, y:366, w:8, h:11, type:'screen', color:'#58f0ff', r:12, pulse:2.6, intensity:0.34 },
+    { module:0, x:560, y:106, type:'lamp', color:'#ff9a2a', r:29, pulse:1.1, intensity:0.80 },
+    { module:0, x:1020, y:144, type:'lamp', color:'#ffb44a', r:24, pulse:1.4, intensity:0.70 },
+    { module:0, x:1111, y:88, w:33, h:4, type:'screen', color:'#42f2ff', r:18, pulse:2.2, intensity:0.46 },
+    { module:0, x:1116, y:116, w:28, h:11, type:'screen', color:'#42f2ff', r:22, pulse:2.4, intensity:0.58 },
+    { module:0, x:1236, y:395, type:'lamp', color:'#ffaa3a', r:20, pulse:1.3, intensity:0.58 },
+    { module:0, x:1249, y:416, w:30, h:8, type:'screen', color:'#58f0ff', r:18, pulse:2.8, intensity:0.52 },
+    { module:0, x:900, y:530, type:'fire', color:'#ff6a18', r:30, pulse:11, intensity:0.82 },
 
     // Module 1 — mid02b (broken circular)
-    { module:1, x:72, y:395, type:'lamp', color:'#ffaa3a', r:20, pulse:1.6, intensity:0.62 },
-    { module:1, x:72, y:420, type:'screen', color:'#4aff88', r:28, pulse:2.5, intensity:0.58 },
-    { module:1, x:232, y:126, type:'screen', color:'#6fffee', r:20, pulse:2.0, intensity:0.44 },
-    { module:1, x:410, y:490, type:'screen', color:'#5afcff', r:38, pulse:1.8, intensity:0.64 },
-    { module:1, x:1020, y:144, type:'lamp', color:'#ff9a2a', r:26, pulse:1.2, intensity:0.74 },
-    { module:1, x:1238, y:392, type:'lamp', color:'#ffaa3a', r:22, pulse:1.5, intensity:0.62 },
-    { module:1, x:1242, y:419, type:'screen', color:'#58f0ff', r:20, pulse:2.8, intensity:0.50 },
+    { module:1, x:72, y:395, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.60 },
+    { module:1, x:69, y:418, w:25, h:9, type:'screen', color:'#4aff88', r:22, pulse:2.5, intensity:0.58 },
+    { module:1, x:414, y:487, w:57, h:23, type:'screen', color:'#5afcff', r:36, pulse:1.8, intensity:0.64 },
+    { module:1, x:1020, y:144, type:'lamp', color:'#ff9a2a', r:24, pulse:1.2, intensity:0.72 },
+    { module:1, x:1238, y:392, type:'lamp', color:'#ffaa3a', r:20, pulse:1.5, intensity:0.58 },
+    { module:1, x:1249, y:416, w:30, h:8, type:'screen', color:'#58f0ff', r:18, pulse:2.8, intensity:0.50 },
 
     // Module 2 — mid03b (suspended ship)
-    { module:2, x:72, y:392, type:'lamp', color:'#ffaa3a', r:20, pulse:1.7, intensity:0.62 },
-    { module:2, x:236, y:130, type:'lamp', color:'#ff9a2a', r:28, pulse:1.3, intensity:0.78 },
-    { module:2, x:660, y:460, type:'screen', color:'#4af1ff', r:26, pulse:2.2, intensity:0.60 },
-    { module:2, x:902, y:532, type:'fire', color:'#ff6a18', r:36, pulse:10, intensity:0.86 },
-    { module:2, x:1020, y:144, type:'lamp', color:'#ffb44a', r:26, pulse:1.4, intensity:0.74 },
-    { module:2, x:1116, y:116, type:'screen', color:'#42f2ff', r:22, pulse:2.4, intensity:0.58 },
-    { module:2, x:1240, y:395, type:'lamp', color:'#ffaa3a', r:22, pulse:1.5, intensity:0.62 },
+    { module:2, x:72, y:392, type:'lamp', color:'#ffaa3a', r:18, pulse:1.7, intensity:0.60 },
+    { module:2, x:236, y:130, type:'lamp', color:'#ff9a2a', r:27, pulse:1.3, intensity:0.76 },
+    { module:2, x:660, y:459, w:37, h:11, type:'screen', color:'#4af1ff', r:26, pulse:2.2, intensity:0.60 },
+    { module:2, x:900, y:532, type:'fire', color:'#ff6a18', r:32, pulse:10, intensity:0.86 },
+    { module:2, x:1020, y:144, type:'lamp', color:'#ffb44a', r:24, pulse:1.4, intensity:0.72 },
+    { module:2, x:1116, y:116, w:28, h:11, type:'screen', color:'#42f2ff', r:22, pulse:2.4, intensity:0.58 },
+    { module:2, x:1240, y:395, type:'lamp', color:'#ffaa3a', r:20, pulse:1.5, intensity:0.60 },
+    { module:2, x:1249, y:416, w:30, h:8, type:'screen', color:'#58f0ff', r:18, pulse:2.8, intensity:0.50 },
 
-    // Module 3 — mid04b (desert view upper + big robots)
-    { module:3, x:72, y:396, type:'lamp', color:'#ffaa3a', r:20, pulse:1.7, intensity:0.62 },
-    { module:3, x:572, y:378, type:'robotEye', color:'#ff4a22', r:8, pulse:2.4, intensity:0.95 },
-    { module:3, x:574, y:384, type:'electric', color:'#5affff', r:30, pulse:18, intensity:0.75 },
-    { module:3, x:742, y:410, type:'lamp', color:'#ffaa3a', r:22, pulse:1.8, intensity:0.58 },
-    { module:3, x:1192, y:372, type:'lamp', color:'#ffb44a', r:18, pulse:1.6, intensity:0.50 },
+    // Module 3 — mid04b (desert view upper + two broken robots)
+    { module:3, x:72, y:396, type:'lamp', color:'#ffaa3a', r:18, pulse:1.7, intensity:0.60 },
+    { module:3, x:69, y:418, w:25, h:9, type:'screen', color:'#4aff88', r:20, pulse:2.5, intensity:0.50 },
+    { module:3, x:332, y:362, type:'robotEye', color:'#ff4a22', r:7, pulse:2.6, intensity:0.92 },
+    { module:3, x:334, y:366, type:'electric', color:'#5affff', r:26, pulse:18, intensity:0.62 },
+    { module:3, x:520, y:360, type:'robotEye', color:'#ff5a1a', r:7, pulse:2.1, intensity:0.86 },
+    { module:3, x:522, y:366, type:'electric', color:'#7af4ff', r:28, pulse:14, intensity:0.66 },
+    { module:3, x:532, y:493, w:9, h:2, type:'screen', color:'#5afcff', r:10, pulse:2.3, intensity:0.30 },
+    { module:3, x:539, y:498, w:6, h:2, type:'screen', color:'#5afcff', r:10, pulse:2.3, intensity:0.30 },
+    { module:3, x:742, y:410, type:'lamp', color:'#ffaa3a', r:20, pulse:1.8, intensity:0.56 },
+    { module:3, x:1192, y:372, type:'lamp', color:'#ffb44a', r:16, pulse:1.6, intensity:0.48 },
 
     // Module 4 — mid06b (elevator lab)
-    { module:4, x:72, y:395, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.60 },
-    { module:4, x:72, y:420, type:'screen', color:'#4aff88', r:24, pulse:2.8, intensity:0.50 },
-    { module:4, x:260, y:126, type:'lamp', color:'#ff9a2a', r:20, pulse:1.2, intensity:0.60 },
-    { module:4, x:700, y:42, type:'lamp', color:'#ffb44a', r:24, pulse:1.3, intensity:0.72 },
-    { module:4, x:832, y:528, type:'fire', color:'#ff7a22', r:32, pulse:10, intensity:0.82 },
-    { module:4, x:842, y:466, type:'screen', color:'#72e7ff', r:26, pulse:2.1, intensity:0.52 },
-    { module:4, x:1076, y:196, type:'screen', color:'#4af1ff', r:24, pulse:2.4, intensity:0.58 },
-    { module:4, x:1244, y:392, type:'lamp', color:'#ffaa3a', r:20, pulse:1.5, intensity:0.58 },
-    { module:4, x:1245, y:418, type:'screen', color:'#5afcff', r:22, pulse:2.5, intensity:0.50 },
+    { module:4, x:72, y:395, type:'lamp', color:'#ffaa3a', r:17, pulse:1.6, intensity:0.58 },
+    { module:4, x:70, y:418, w:26, h:9, type:'screen', color:'#4aff88', r:21, pulse:2.8, intensity:0.50 },
+    { module:4, x:260, y:126, type:'lamp', color:'#ff9a2a', r:18, pulse:1.2, intensity:0.58 },
+    { module:4, x:700, y:42, type:'lamp', color:'#ffb44a', r:23, pulse:1.3, intensity:0.70 },
+    { module:4, x:832, y:526, type:'fire', color:'#ff7a22', r:30, pulse:10, intensity:0.82 },
+    { module:4, x:850, y:437, w:18, h:6, type:'screen', color:'#72e7ff', r:18, pulse:2.1, intensity:0.46 },
+    { module:4, x:839, y:466, w:37, h:51, type:'screen', color:'#72e7ff', r:34, pulse:2.1, intensity:0.54 },
+    { module:4, x:1077, y:196, w:38, h:30, type:'screen', color:'#4af1ff', r:28, pulse:2.4, intensity:0.60 },
+    { module:4, x:1244, y:392, type:'lamp', color:'#ffaa3a', r:18, pulse:1.5, intensity:0.56 },
+    { module:4, x:1249, y:416, w:30, h:8, type:'screen', color:'#5afcff', r:18, pulse:2.5, intensity:0.50 },
 
     // Module 5 — mid07b (sand hangar - no fire in art)
-    { module:5, x:160, y:260, type:'lamp', color:'#ffaa3a', r:20, pulse:1.6, intensity:0.55 },
-    { module:5, x:1000, y:280, type:'lamp', color:'#ffaa3a', r:18, pulse:1.5, intensity:0.52 },
-    { module:5, x:1028, y:450, type:'screen', color:'#5afcff', r:24, pulse:2.5, intensity:0.54 },
-    { module:5, x:1060, y:528, type:'screen', color:'#5afcff', r:26, pulse:2.2, intensity:0.58 },
-    { module:5, x:1238, y:394, type:'lamp', color:'#ff4d38', r:18, pulse:2.4, intensity:0.48 },
+    { module:5, x:160, y:260, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.52 },
+    { module:5, x:912, y:390, w:23, h:4, type:'screen', color:'#5afcff', r:14, pulse:2.5, intensity:0.38 },
+    { module:5, x:916, y:409, w:15, h:6, type:'screen', color:'#5afcff', r:14, pulse:2.5, intensity:0.38 },
+    { module:5, x:1000, y:280, type:'lamp', color:'#ffaa3a', r:17, pulse:1.5, intensity:0.50 },
+    { module:5, x:1043, y:450, w:28, h:23, type:'screen', color:'#5afcff', r:24, pulse:2.5, intensity:0.54 },
+    { module:5, x:1042, y:491, w:38, h:29, type:'screen', color:'#5afcff', r:28, pulse:2.2, intensity:0.58 },
+    { module:5, x:1091, y:494, w:21, h:21, type:'screen', color:'#5afcff', r:22, pulse:2.2, intensity:0.54 },
+    { module:5, x:1029, y:530, w:29, h:23, type:'screen', color:'#5afcff', r:24, pulse:2.3, intensity:0.54 },
+    { module:5, x:1073, y:531, w:28, h:25, type:'screen', color:'#5afcff', r:24, pulse:2.3, intensity:0.54 },
+    { module:5, x:1238, y:394, type:'lamp', color:'#ff4d38', r:17, pulse:2.4, intensity:0.46 },
+    { module:5, x:1249, y:416, w:30, h:8, type:'screen', color:'#5afcff', r:18, pulse:2.5, intensity:0.46 },
 
     // Module 6 — mid08b (second elevator/satellite)
-    { module:6, x:72, y:396, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.58 },
+    { module:6, x:72, y:396, type:'lamp', color:'#ffaa3a', r:17, pulse:1.6, intensity:0.56 },
     { module:6, x:535, y:616, type:'fire', color:'#ff7a22', r:30, pulse:11, intensity:0.78 },
-    { module:6, x:825, y:530, type:'lamp', color:'#ffb44a', r:22, pulse:1.3, intensity:0.58 },
-    { module:6, x:1076, y:196, type:'screen', color:'#4af1ff', r:24, pulse:2.6, intensity:0.56 },
-    { module:6, x:1242, y:394, type:'lamp', color:'#ff4d38', r:18, pulse:2.2, intensity:0.50 },
+    { module:6, x:825, y:530, type:'lamp', color:'#ffb44a', r:20, pulse:1.3, intensity:0.56 },
+    { module:6, x:1077, y:196, w:36, h:30, type:'screen', color:'#4af1ff', r:28, pulse:2.6, intensity:0.58 },
+    { module:6, x:1242, y:394, type:'lamp', color:'#ff4d38', r:17, pulse:2.2, intensity:0.48 },
+    { module:6, x:1249, y:416, w:30, h:8, type:'screen', color:'#5afcff', r:18, pulse:2.5, intensity:0.46 },
 
     // Module 7 — mid05b (desert exit final)
-    { module:7, x:350, y:390, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.50 },
-    { module:7, x:785, y:150, type:'screen', color:'#7befff', r:38, pulse:2.1, intensity:0.38 },
+    { module:7, x:350, y:390, type:'lamp', color:'#ffaa3a', r:18, pulse:1.4, intensity:0.48 },
+    { module:7, x:785, y:150, w:66, h:78, type:'screen', color:'#7befff', r:42, pulse:2.1, intensity:0.34 },
   ];
 
   function resetPlatforms(){ for(const p of platforms){ p.dead=false; p.triggered=false; p.breakT=0; p.y=p.baseY; } }
@@ -345,10 +361,20 @@
         g.globalAlpha=0.88*intensity; g.fillStyle=grad; g.beginPath(); g.arc(screenX,screenY,lt.r*intensity*1.7,0,Math.PI*2); g.fill();
         g.globalAlpha=1; g.fillStyle='#fff8cc'; g.beginPath(); g.arc(screenX,screenY,3+intensity*2,0,Math.PI*2); g.fill();
       } else if(lt.type==='screen'){
-        g.globalCompositeOperation='lighter'; g.globalAlpha=0.40*intensity; g.fillStyle=lt.color; g.fillRect(screenX-14,screenY-10,28,20);
+        g.globalCompositeOperation='lighter';
+        const sw = (lt.w || 28) * MID_SCALE;
+        const sh = (lt.h || 20) * MID_SCALE;
+        const left = screenX - sw/2, top = screenY - sh/2;
+        // Exact rectangular screen face: the fill follows the monitor pixel bounds.
+        g.globalAlpha=0.30*intensity; g.fillStyle=lt.color; g.fillRect(Math.round(left), Math.round(top), Math.max(1,Math.round(sw)), Math.max(1,Math.round(sh)));
+        // Small inner pixel scanlines, clipped to the same face bounds.
+        g.globalAlpha=0.16*intensity; g.fillStyle='#ffffff';
+        for(let yy=top+2; yy<top+sh-1; yy+=4) g.fillRect(Math.round(left+2), Math.round(yy), Math.max(1,Math.round(sw-4)), 1);
+        // Rectangular halo, then a soft radial spill around the monitor.
+        g.globalAlpha=0.20*intensity; g.fillStyle=lt.color; g.fillRect(Math.round(left-2), Math.round(top-2), Math.max(1,Math.round(sw+4)), Math.max(1,Math.round(sh+4)));
         const grad=g.createRadialGradient(screenX,screenY,2,screenX,screenY,lt.r);
-        grad.addColorStop(0,lt.color); grad.addColorStop(1,'rgba(0,0,0,0)');
-        g.globalAlpha=0.58*intensity; g.fillStyle=grad; g.beginPath(); g.arc(screenX,screenY,lt.r,0,Math.PI*2); g.fill();
+        grad.addColorStop(0,lt.color); grad.addColorStop(0.45,lt.color+'88'); grad.addColorStop(1,'rgba(0,0,0,0)');
+        g.globalAlpha=0.42*intensity; g.fillStyle=grad; g.beginPath(); g.arc(screenX,screenY,lt.r,0,Math.PI*2); g.fill();
       } else if(lt.type==='fire'){
         g.globalCompositeOperation='lighter';
         const fireFlick=Math.sin(time*lt.pulse)*3+Math.random()*2;
