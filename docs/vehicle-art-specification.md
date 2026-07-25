@@ -368,3 +368,9 @@ Before delivery, confirm:
 ## Documentation synchronization
 
 Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-23).
+
+---
+
+## Current implementation sync — 2026-07-25
+
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, critical black smog for both ally tanks, and casino-style coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed.

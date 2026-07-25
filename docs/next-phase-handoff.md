@@ -35,7 +35,7 @@ Start future chats by reading, in order:
 - Tutorial foreground uses `pilar01.png` seams and `pilar02.png` center accents with smoke/electric crawls; `tutorial_foreground01.png` is not drawn.
 - Tutorial screens use fast malfunctioning CRT-style FX and two normal Soldier06 observers spawn at different heights, use stronger tank-piercing red lasers, and can be destroyed by the player. Tutorial pickups now reward upper-platform exploration.
 - Ally Tank 02 laser origin is tuned in `js/entities.js` to the visible drill tip; both ally tanks use wheel/chain dust and both emit black smog in critical mode. Tank02 has top-left exhaust smoke.
-- Level 1 includes the rising `enemy_ship01` vista on a very distant parallax plane and a farther daylight 2x `bigship03.png` ship/platform section in the palm/cactus layer; platforms come from `bigship03_refe.png` and include enemies/pickups only on ship decks. Lava gaps use the new non-parallax fire/smoke/bubble animation and platform routes hold more rewards than the ground.
+- Level 1 includes the rising `enemy_ship01` vista fixed in world space with no horizontal self/parallax drift and a farther daylight 2x `bigship03.png` ship/platform section in the palm/cactus layer; platforms come from `bigship03_refe.png` and include enemies/pickups only on ship decks. Lava gaps use the new non-parallax fire/smoke/bubble animation, platform routes hold more rewards than the ground, and destroyed helicopters/tanks/gunships/boss trigger coin-jackpot award animation with casino-style SFX.
 - Loading pages use a simple retro pixel loading bar without visible glyph text instead of English status labels.
 
 ## Technical cautions
@@ -46,3 +46,9 @@ Start future chats by reading, in order:
 - Do not reintroduce large per-frame array allocations.
 - Keep authored PNG fallbacks until modular replacements are validated.
 - Update `docs/current-runtime-status.md` and this handoff after every major phase.
+
+---
+
+## Current implementation sync — 2026-07-25
+
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, critical black smog for both ally tanks, and casino-style coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed.

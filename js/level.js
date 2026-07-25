@@ -684,12 +684,12 @@
     const sw = enemyShip01Image.naturalWidth || enemyShip01Image.width;
     const sh = enemyShip01Image.naturalHeight || enemyShip01Image.height;
     const dw = Math.round(sw * scale), dh = Math.round(sh * scale);
-    const vibX = Math.sin(time * 66.0) * 0.14 + Math.sin(time * 113.0) * 0.07;
     const vibY = Math.cos(time * 47.0) * 1.15 + Math.sin(time * 83.0) * 0.55;
-    // Decorative UFO sits on a very distant depth plane.  It no longer stays
-    // screen-locked to the player, but its parallax is intentionally tiny.
-    const distantShipParallax = 0.07;
-    const sx = Math.round(520 - camX * distantShipParallax - dw / 2 + vibX);
+    // Opening UFO is anchored in world space and has no self/parallax horizontal
+    // drift: it only rises upward. If the player runs away, the camera leaves it
+    // behind instead of the ship following the player across the screen.
+    const UFO_WORLD_X = 520;
+    const sx = Math.round(UFO_WORLD_X - camX - dw / 2);
     const startY = 386;
     const endY = -dh - 90;
     const sy = Math.round(startY + (endY - startY) * rise + Math.sin(time * 0.35) * 3 + vibY);

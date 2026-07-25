@@ -1203,6 +1203,27 @@
     }
   }
 
+  function spawnCoinAward(x, y, tier) {
+    const count = tier === 'boss' ? 42 : tier === 'big' ? 24 : tier === 'tank' ? 16 : 12;
+    const spread = tier === 'boss' ? 150 : tier === 'big' ? 96 : 70;
+    const baseVy = tier === 'boss' ? -440 : tier === 'big' ? -350 : -300;
+    if (SFX.coinAward) SFX.coinAward(tier === 'boss' ? 'boss' : tier === 'big' ? 'big' : 'small');
+    for (let i = 0; i < count; i++) {
+      const side = i - (count - 1) / 2;
+      G.particles.push({
+        kind: 'coin', x: x + rnd(-spread * 0.28, spread * 0.28), y: y + rnd(-18, 12),
+        vx: side * (tier === 'boss' ? 7.5 : 8.5) + rnd(-70, 70),
+        vy: baseVy + rnd(-160, 60), t: 0, life: rnd(0.72, tier === 'boss' ? 1.28 : 1.02),
+        color: Math.random() < 0.22 ? '#fff4a8' : Math.random() < 0.58 ? '#ffd24a' : '#ff9f22',
+        size: rnd(tier === 'boss' ? 5 : 4, tier === 'boss' ? 9 : 7), grav: 820,
+        rot: rnd(0, Math.PI * 2), spin: rnd(-16, 16), phase: rnd(0, Math.PI * 2),
+      });
+    }
+    G.scorePops.push({
+      x: x, y: y - (tier === 'boss' ? 170 : 90), label: tier === 'boss' ? 'COIN JACKPOT!' : 'COIN BONUS!', t: 0,
+    });
+  }
+
   function spawnEnemy(type, x, opts) {
     opts = opts || {};
     const base = {
@@ -1336,6 +1357,7 @@
     } else if (e.type === 'heli' || e.type === 'gunship') {
       const big = e.type === 'gunship';
       if (big && G.mode === 'arcade') SFX.setIntensity(0);
+      spawnCoinAward(e.x, e.y - (big ? 34 : 18), big ? 'big' : 'heli');
       explode(e.x, e.y, big ? 72 : 55, false, false);
       spawnDestructionFire(e.x, e.y, big ? 1.35 : 0.95, big ? 14 : 9);
       G.corpses.push({
@@ -1345,6 +1367,7 @@
         facing: e.facing, t: 0, life: 2.35, nextBoom: 0.24, boomCount: 0,
       });
     } else if (e.type === 'tank') {
+      spawnCoinAward(e.x, e.y - 58, 'tank');
       explode(e.x, e.y - 30, 58, false, false);
       spawnDestructionFire(e.x, e.y - 30, 1.05, 10);
       G.corpses.push({ tank: true, vehicleWreck: true, x: e.x, y: e.y,
@@ -2353,6 +2376,7 @@
       b.hp = 0;
       b.state = 'die';
       EntityScore.add(5000, b.x, b.y - 150);
+      spawnCoinAward(b.x, b.y - 118, 'boss');
       G.hitStop = Math.max(G.hitStop, 0.18);
       SFX.bigExplosion();
     }
@@ -3057,7 +3081,7 @@
       pa.x += pa.vx * dt;
       pa.y += pa.vy * dt;
       if (pa.rot !== undefined) pa.rot += (pa.spin || 0) * dt;
-      if (pa.y > Level.GROUND && pa.vy > 0 && pa.kind !== 'ring' && pa.kind !== 'glow') {
+      if (pa.y > Level.GROUND && pa.vy > 0 && pa.kind !== 'ring' && pa.kind !== 'glow' && pa.kind !== 'coin') {
         pa.y = Level.GROUND;
         if (pa.kind === 'casing' && !pa.bounced) {
           pa.bounced = true;
@@ -3146,7 +3170,33 @@
       const sx = pa.x - camX;
       g.save();
 
-      if (pa.kind === 'fireball') {
+      if (pa.kind === 'coin') {
+        const spin = Math.abs(Math.sin((pa.phase || 0) + pa.t * 18 + (pa.spin || 0) * 0.08));
+        const radius = pa.size * (0.75 + alpha * 0.28);
+        g.translate(sx, pa.y);
+        g.globalCompositeOperation = 'lighter';
+        g.globalAlpha = alpha;
+        const coinGrad = g.createRadialGradient(-radius * 0.2, -radius * 0.25, 1, 0, 0, Math.max(2, radius));
+        coinGrad.addColorStop(0, '#ffffff');
+        coinGrad.addColorStop(0.28, '#fff4a8');
+        coinGrad.addColorStop(0.62, pa.color || '#ffd24a');
+        coinGrad.addColorStop(1, '#b86a12');
+        g.fillStyle = coinGrad;
+        g.beginPath();
+        g.ellipse(0, 0, Math.max(1.3, radius * (0.22 + spin * 0.82)), radius, 0, 0, Math.PI * 2);
+        g.fill();
+        g.globalAlpha = alpha * 0.85;
+        g.strokeStyle = '#fff7bf';
+        g.lineWidth = 1;
+        g.beginPath();
+        g.ellipse(0, 0, Math.max(1, radius * (0.16 + spin * 0.62)), radius * 0.72, 0, 0, Math.PI * 2);
+        g.stroke();
+        if (spin > 0.62) {
+          g.globalAlpha = alpha * 0.9;
+          g.fillStyle = '#fffbd2';
+          g.fillRect(-1, -radius * 0.55, 2, radius * 1.1);
+        }
+      } else if (pa.kind === 'fireball') {
         // Expanded Flame Shot look: brilliant white core, yellow plasma,
         // orange body and a soft red transparent rim.
         const pulse = 0.9 + Math.sin(pa.phase + pa.t * 31) * 0.1;

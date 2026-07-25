@@ -97,3 +97,9 @@ File:// also works due to no ES modules.
 
 
 Implementation by Technical Director: kept 60Hz fixed step, file:// compatibility, procedural fallback, no deps, no build.
+
+---
+
+## Current implementation sync — 2026-07-25
+
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, critical black smog for both ally tanks, and casino-style coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed.

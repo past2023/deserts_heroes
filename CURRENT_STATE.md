@@ -159,7 +159,7 @@ Main arcade level with:
 - Lava gaps use a fresh non-parallax molten animation: slow surface waves, fire plumes, embers, smoke, bubbles and clean unboxed cutaway edges
 - 6 enemy types, POW rescues, weapon pickups
 - Portal trigger, boss fight at end
-- Mission intro with supplied PNG rocket-board fly-in and a rising enemy UFO ship on a very distant parallax plane
+- Mission intro with supplied PNG rocket-board fly-in and a fixed-world opening UFO that only rises vertically with no horizontal self/parallax drift
 
 ---
 
@@ -191,7 +191,7 @@ Main arcade level with:
 - 3-cannon salvos, MG bursts, infantry reinforcement spawn
 
 ### Other Entities
-- Slugs: Ally tanks (drivable), ally_tank02 drill variant, wheel/chain dust, tank02 top-left exhaust smoke, and black critical-smoke plumes on both ally tank types at 1 HP
+- Slugs: Ally tanks (drivable), ally_tank02 drill variant, wheel/chain dust, tank02 top-left exhaust smoke, black critical-smoke plumes on both ally tank types at 1 HP, and coin-jackpot awards for destroyed enemy vehicles/boss
 - POWs: Tied prisoners (2 hands down) → rescued → 1 hand up → drop weapon
 - Pickups: Weapons, grenades, homing, jetpack, heart
 - Props: Barrels, crates, mines, decor
@@ -222,7 +222,7 @@ Main arcade level with:
 - `tutorial_foreground01.png` was removed from runtime drawing; `pilar02.png` is used as optional center-level foreground accent.
 - Ally Tank 02 laser origin was moved to the center of the drill tip.
 - Loading screens use a simple retro pixel loading bar without visible glyph text instead of English-only status labels.
-- Tutorial/Level 1 pickups were shifted toward upper platform exploration, enemy hit-taunt dialogue was added, Soldier06 laser shots now damage ally tanks, Level 1 lava was rebuilt without parallax drift or black boxed cutaway lines, and the opening UFO no longer stays screen-locked to the player.
+- Tutorial/Level 1 pickups were shifted toward upper platform exploration, enemy hit-taunt dialogue was added, Soldier06 laser shots now damage ally tanks, Level 1 lava was rebuilt without parallax drift or black boxed cutaway lines, the opening UFO is fixed in world space and only rises vertically, and destroyed helicopters/tanks/gunships/boss trigger coin-jackpot award animation with casino-style SFX.
 
 ### Known Bugs
 - No level2-level6 content beyond galactic map nodes
@@ -234,3 +234,9 @@ Main arcade level with:
 - Additional POW types
 - Full soundtrack integration
 - Leaderboards / achievements
+
+---
+
+## Current implementation sync — 2026-07-25
+
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, critical black smog for both ally tanks, and casino-style coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed.
