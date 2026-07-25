@@ -1015,14 +1015,11 @@
       // Draw drill at same size, no rotation
       g.drawImage(allyTank02Art.drill, left, top, width, height);
       g.restore();
-      if (s.occupied) {
-        g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.48 + Math.sin(time * 13) * 0.18;
-        g.fillStyle = '#ff8a24'; g.beginPath(); g.arc(left+width*0.86+pistonX, top+height*0.58+vibY, 8, 0, Math.PI * 2); g.fill();
-        g.fillStyle = '#ffe8a0'; g.beginPath(); g.arc(left+width*0.86+pistonX, top+height*0.58+vibY, 3.2, 0, Math.PI * 2); g.fill();
-        // impact spark at drill tip when hammering
-        if (drillActive && Math.random()<0.28) {
-          g.globalAlpha=0.7; g.fillStyle='#ffb347'; g.beginPath(); g.arc(left+width*0.92+pistonX, top+height*0.58+vibY + (Math.random()-0.5)*4, 1.8,0,Math.PI*2); g.fill();
-        }
+      if (s.occupied && drillActive && Math.random()<0.18) {
+        // Subtle metal impact spark only; no yellow/orange persistent glow on the drill.
+        g.save(); g.globalCompositeOperation = 'lighter';
+        g.globalAlpha=0.55; g.fillStyle='#d9f8ff';
+        g.beginPath(); g.arc(left+width*0.92+pistonX, top+height*0.58+vibY + (Math.random()-0.5)*4, 1.4,0,Math.PI*2); g.fill();
         g.restore();
       }
     }
@@ -1071,6 +1068,31 @@
     }
   }
 
+  function spawnSlugGroundDust(s) {
+    if (!window.G || !G.particles || s.destroying || s.dead) return;
+    const moveSpeed = Math.abs(s.vx || 0);
+    const active = s.occupied || moveSpeed > 3 || s.onGround;
+    if (!active) return;
+    const rate = moveSpeed > 8 ? 0.42 : 0.12;
+    if (Math.random() > rate) return;
+    const facing = s.facing || 1;
+    const count = moveSpeed > 35 ? 3 : 1;
+    for (let i = 0; i < count; i++) {
+      const side = i % 2 ? 1 : -1;
+      G.particles.push({
+        kind: 'smoke',
+        x: s.x + side * rnd(24, 66),
+        y: s.y - rnd(2, 10),
+        vx: -facing * rnd(8, 28) + rnd(-18, 18) - side * rnd(4, 14),
+        vy: rnd(-34, -8),
+        t: 0, life: rnd(0.30, 0.62),
+        color: moveSpeed > 20 ? '#b88a57' : '#8c7358',
+        size: rnd(2.2, moveSpeed > 20 ? 6.2 : 4.4),
+        grav: -8, drag: 0.82
+      });
+    }
+  }
+
   function drawSlugs(g, camX) {
     for (const s of G.slugs) {
       const sx = s.x - camX;
@@ -1089,6 +1111,8 @@
             s.occupied, Math.max(0, s.recoil));
         }
       }
+
+      spawnSlugGroundDust(s);
 
       if (s.hp > 0 && s.hp <= 1 && !s.destroying) {
         drawCriticalText(g, sx, s.y - 142, G.time);

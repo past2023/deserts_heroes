@@ -645,34 +645,59 @@
     const sw = enemyShip01Image.naturalWidth || enemyShip01Image.width;
     const sh = enemyShip01Image.naturalHeight || enemyShip01Image.height;
     const dw = Math.round(sw * scale), dh = Math.round(sh * scale);
-    const sx = Math.round(520 - camX * 0.035 - dw / 2);
+    const vibX = Math.sin(time * 19.0) * 1.2 + Math.sin(time * 31.0) * 0.55;
+    const vibY = Math.cos(time * 17.0) * 0.9 + Math.sin(time * 29.0) * 0.45;
+    const sx = Math.round(520 - camX * 0.012 - dw / 2 + vibX);
     const startY = 386;
     const endY = -dh - 90;
-    const sy = Math.round(startY + (endY - startY) * rise + Math.sin(time * 0.35) * 3);
+    const sy = Math.round(startY + (endY - startY) * rise + Math.sin(time * 0.35) * 3 + vibY);
     if (sx + dw < -80 || sx > VW + 80) return;
     g.save();
     g.imageSmoothingEnabled = false;
     g.globalAlpha = 0.92 * (life > duration - 5 ? Math.max(0, (duration - life) / 5) : 1);
     g.drawImage(enemyShip01Image, sx, sy, dw, dh);
-    // Heat/engine glow under the ship, still behind the dune layer.
+    // Three failing reactor glows under the ship, still behind the dune layer.
     g.globalCompositeOperation = 'lighter';
-    const glow = g.createRadialGradient(sx + dw * 0.46, sy + dh * 0.82, 8, sx + dw * 0.46, sy + dh * 0.82, 190);
-    glow.addColorStop(0, 'rgba(255,188,92,0.28)');
-    glow.addColorStop(0.45, 'rgba(255,126,48,0.12)');
-    glow.addColorStop(1, 'rgba(255,126,48,0)');
-    g.fillStyle = glow;
-    g.beginPath(); g.arc(sx + dw * 0.46, sy + dh * 0.82, 190, 0, Math.PI * 2); g.fill();
-    // Falling sand sheets from the lower hull, deterministic and allocation-free.
+    const reactorXs = [0.30, 0.47, 0.64];
+    for (let r = 0; r < reactorXs.length; r++) {
+      const rx = sx + dw * reactorXs[r] + Math.sin(time * 13 + r) * 2;
+      const ry = sy + dh * (0.78 + (r === 1 ? 0.03 : 0));
+      const flick = 0.78 + Math.sin(time * (9 + r * 2.7)) * 0.16 + Math.sin(time * 31 + r) * 0.06;
+      const glow = g.createRadialGradient(rx, ry, 5, rx, ry, 72 * flick);
+      glow.addColorStop(0, 'rgba(255,245,190,0.70)');
+      glow.addColorStop(0.20, 'rgba(255,146,48,0.42)');
+      glow.addColorStop(0.58, 'rgba(255,78,24,0.16)');
+      glow.addColorStop(1, 'rgba(255,78,24,0)');
+      g.globalAlpha = 0.75 * flick;
+      g.fillStyle = glow;
+      g.beginPath(); g.arc(rx, ry, 72 * flick, 0, Math.PI * 2); g.fill();
+      g.globalAlpha = 0.92 * flick;
+      g.fillStyle = '#fff0a8';
+      g.fillRect(Math.round(rx - 8), Math.round(ry - 2), 16, 4);
+    }
+    // Old-ship smoke puffs venting from damaged hull seams.
     g.globalCompositeOperation = 'source-over';
-    for (let i = 0; i < 54; i++) {
+    for (let i = 0; i < 12; i++) {
+      const baseX = sx + dw * (i % 2 ? 0.28 : 0.72);
+      const baseY = sy + dh * (i % 3 ? 0.34 : 0.48);
+      const drift = (time * (12 + i) + i * 23) % 120;
+      const puff = 1 - drift / 120;
+      g.globalAlpha = 0.10 * puff;
+      g.fillStyle = i % 2 ? '#2f2d2a' : '#4a453d';
+      g.beginPath();
+      g.arc(baseX + Math.sin(time + i) * 10 - drift * 0.18, baseY - drift * 0.28, 10 + (1 - puff) * 18, 0, Math.PI * 2);
+      g.fill();
+    }
+    // Heavy falling sand sheets from the lower hull, deterministic and allocation-free.
+    for (let i = 0; i < 150; i++) {
       const seed = (i * 73) % 101;
-      const px = sx + dw * (0.18 + ((seed % 67) / 67) * 0.64) + Math.sin(time * 1.7 + i) * 7;
-      const fall = ((time * (34 + (i % 5) * 7) + i * 19) % 230);
-      const py = sy + dh * 0.58 + fall;
-      if (py > sy + dh * 0.72 && py < GROUND + 14) {
-        g.globalAlpha = 0.18 + (i % 4) * 0.035;
-        g.fillStyle = i % 3 ? '#d39a5a' : '#ffd18a';
-        g.fillRect(Math.round(px), Math.round(py), 1 + (i % 2), 5 + (i % 4));
+      const px = sx + dw * (0.10 + ((seed % 89) / 89) * 0.80) + Math.sin(time * 2.0 + i) * (4 + (i % 5));
+      const fall = ((time * (52 + (i % 7) * 9) + i * 19) % 300);
+      const py = sy + dh * (0.50 + (i % 6) * 0.045) + fall;
+      if (py > sy + dh * 0.60 && py < GROUND + 20) {
+        g.globalAlpha = 0.16 + (i % 6) * 0.035;
+        g.fillStyle = i % 4 ? '#d39a5a' : '#ffd18a';
+        g.fillRect(Math.round(px), Math.round(py), 1 + (i % 3 === 0 ? 2 : 0), 4 + (i % 8));
       }
     }
     g.restore();
