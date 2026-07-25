@@ -632,22 +632,27 @@
   }
 
   function drawIntroEnemyShip(g, camX, time, VW) {
-    // Opening vista: a huge enemy ship slowly rises behind the nearest dunes.
-    // It is intentionally drawn before the dune layer so sand occludes the hull.
+    // Opening vista: the enemy ship starts mostly hidden by the nearest dunes,
+    // then rises slowly until it exits above the screen. Drawn before dunes so
+    // the sand layer naturally occludes the lower hull.
     if (!imageReady(enemyShip01Image) || !window.G || G.state !== 'play' || G.mode !== 'arcade') return;
-    const t = Math.max(0, Math.min(1, (G.bannerT || 0) / 18));
-    if ((G.bannerT || 0) > 24 || camX > 1800) return;
-    const ease = 1 - Math.pow(1 - t, 3);
-    const scale = 1.45;
+    const life = G.bannerT || 0;
+    const duration = 42;
+    if (life > duration) return;
+    const t = Math.max(0, Math.min(1, life / duration));
+    const rise = t * t * (3 - 2 * t); // slow reveal, steady climb, gentle exit
+    const scale = 0.72;
     const sw = enemyShip01Image.naturalWidth || enemyShip01Image.width;
     const sh = enemyShip01Image.naturalHeight || enemyShip01Image.height;
     const dw = Math.round(sw * scale), dh = Math.round(sh * scale);
-    const sx = Math.round(520 - camX * 0.18 - dw / 2);
-    const sy = Math.round(500 - ease * 178 + Math.sin(time * 0.35) * 3);
+    const sx = Math.round(520 - camX * 0.035 - dw / 2);
+    const startY = 386;
+    const endY = -dh - 90;
+    const sy = Math.round(startY + (endY - startY) * rise + Math.sin(time * 0.35) * 3);
     if (sx + dw < -80 || sx > VW + 80) return;
     g.save();
     g.imageSmoothingEnabled = false;
-    g.globalAlpha = 0.92;
+    g.globalAlpha = 0.92 * (life > duration - 5 ? Math.max(0, (duration - life) / 5) : 1);
     g.drawImage(enemyShip01Image, sx, sy, dw, dh);
     // Heat/engine glow under the ship, still behind the dune layer.
     g.globalCompositeOperation = 'lighter';
