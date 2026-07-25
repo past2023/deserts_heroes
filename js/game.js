@@ -1130,15 +1130,38 @@
       }
     }
 
-    // banner inizio missione (arcade)
-    if (G.mode === 'arcade' && G.bannerT < 2.2) {
-      const a = G.bannerT < 1.8 ? 1 : (2.2 - G.bannerT) / 0.4;
+    // Arcade-style mission intro text: no panel, longer hold, heavier START typography.
+    if (G.mode === 'arcade' && G.bannerT < 3.8) {
+      const t = G.bannerT;
+      const a = t < 0.35 ? t / 0.35 : t < 3.25 ? 1 : (3.8 - t) / 0.55;
+      const pulse = 1 + Math.sin(t * 12) * 0.035;
       g.save();
-      g.globalAlpha = a;
-      hudPanel(VW / 2 - 230, VH / 2 - 105, 460, 142, '#ffb347');
-      text(tr('mission.label', { number: Content.mission.number }), VW / 2, VH / 2 - 54, 42, '#ffe28a', 'center');
-      text(tr('mission.name'), VW / 2, VH / 2 - 16, 18, '#ffae42', 'center');
-      text(tr('mission.start'), VW / 2, VH / 2 + 20, 30, '#fff', 'center');
+      g.globalAlpha = Math.max(0, Math.min(1, a));
+      g.globalCompositeOperation = 'lighter';
+      const cx = VW / 2, cy = VH / 2;
+      const sweep = (t * 220) % 520;
+      g.strokeStyle = 'rgba(255,226,138,0.35)';
+      g.lineWidth = 2;
+      g.beginPath(); g.moveTo(cx - sweep, cy - 74); g.lineTo(cx - sweep + 180, cy - 74); g.stroke();
+      g.beginPath(); g.moveTo(cx + sweep - 180, cy + 48); g.lineTo(cx + sweep, cy + 48); g.stroke();
+      g.globalCompositeOperation = 'source-over';
+      g.fillStyle = 'rgba(0,0,0,0.55)';
+      g.fillRect(0, cy - 90, VW, 2); g.fillRect(0, cy + 62, VW, 2);
+      g.globalCompositeOperation = 'lighter';
+      g.fillStyle = 'rgba(255,174,66,0.16)';
+      g.fillRect(0, cy - 72 + Math.sin(t * 18) * 3, VW, 3);
+      g.fillRect(0, cy + 40 + Math.cos(t * 16) * 3, VW, 3);
+      g.globalCompositeOperation = 'source-over';
+      text(tr('mission.label', { number: Content.mission.number }), cx, cy - 58, 20, '#ffca72', 'center');
+      text(tr('mission.name'), cx, cy - 30, 15, '#ffae42', 'center');
+      g.save();
+      g.translate(cx, cy + 24);
+      g.scale(pulse, pulse);
+      text(tr('mission.start'), 0, 0, 58, '#ffffff', 'center');
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = 0.35 * a;
+      text(tr('mission.start'), 0, 0, 62, '#ffe28a', 'center');
+      g.restore();
       g.restore();
     }
 
@@ -1386,13 +1409,13 @@
     };
     const accent = accentColors[ch.id] || accentColors.juan_p;
 
-    const topY = 20;
-    drawCarouselPortrait(prev, 58, topY + 40, 210, 228, accent, false, true);
-    drawCarouselPortrait(next, 692, topY + 40, 210, 228, accent, false, true);
-    drawCarouselPortrait(ch, 335, topY, 290, 300, accent, true, false);
+    const topY = 18;
+    drawCarouselPortrait(prev, 74, topY + 50, 184, 198, accent, false, true);
+    drawCarouselPortrait(next, 702, topY + 50, 184, 198, accent, false, true);
+    drawCarouselPortrait(ch, 352, topY, 256, 266, accent, true, false);
 
     // Bottom dossier panel, matching the reference composition.
-    const infoX = 44, infoY = 326, infoW = 872, infoH = 176;
+    const infoX = 44, infoY = 304, infoW = 872, infoH = 170;
     drawPixelPanel(infoX, infoY, infoW, infoH, '#45eaff', 1);
     g.save();
     g.fillStyle = '#ff9a38';
@@ -1406,7 +1429,9 @@
     const bioStr = tr(ch.bioKey);
     g.textAlign = 'left';
     g.font = 'bold 21px "Courier New", monospace';
-    g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillText('Name: ' + nameStr, infoX + 36 + 2, infoY + 42 + 2);
+    g.fillStyle = 'rgba(0,0,0,0.55)';
+    g.fillText('Name: ', infoX + 38, infoY + 44);
+    g.fillText(nameStr, infoX + 124, infoY + 44);
     g.fillStyle = '#ffe8b8'; g.fillText('Name: ', infoX + 36, infoY + 42);
     g.fillStyle = accent.name; g.fillText(nameStr, infoX + 122, infoY + 42);
     g.font = 'bold 18px "Courier New", monospace';
@@ -1432,7 +1457,7 @@
     if (bioLines.length > 2) { g.font = 'bold 11px "Courier New", monospace'; bioLines = wrapSelectInfo(bioStr, 720, 3); }
     for (let i = 0; i < bioLines.length; i++) g.fillText(bioLines[i], infoX + 150, infoY + 94 + i * 14);
 
-    const sepY = infoY + 122;
+    const sepY = infoY + 116;
     g.strokeStyle = 'rgba(104,239,255,0.40)';
     g.lineWidth = 2;
     g.beginPath(); g.moveTo(infoX + 34, sepY); g.lineTo(infoX + infoW - 34, sepY); g.stroke();
@@ -1448,24 +1473,24 @@
       { label: 'ARMOR', val: ch.maxArmor / 2 * 50, max: 50, color: '#ffb347' },
       { label: 'AMMO', val: ch.ammoMultiplier * 50, max: 50, color: '#ff6558' },
     ];
-    const statY = sepY + 12;
+    const statY = sepY + 8;
     const cols = [infoX + 42, infoX + 430];
     for (let i = 0; i < stats.length; i++) {
       const st = stats[i];
       const col = i < 2 ? 0 : 1;
       const row = i % 2;
-      const x = cols[col], y = statY + row * 25;
-      g.font = 'bold 19px "Courier New", monospace';
+      const x = cols[col], y = statY + row * 22;
+      g.font = 'bold 17px "Courier New", monospace';
       g.textAlign = 'left';
       g.fillStyle = '#fff3c7';
       g.fillText(st.label, x, y + 16);
-      drawStatBar(x + 110, y, 154, 15, st.val, st.max, st.color, G.time, i * 0.9);
-      g.font = 'bold 19px "Courier New", monospace';
+      drawStatBar(x + 104, y + 1, 150, 13, st.val, st.max, st.color, G.time, i * 0.9);
+      g.font = 'bold 17px "Courier New", monospace';
       g.fillStyle = st.color;
-      g.fillText(String(Math.round(st.val)), x + 278, y + 16);
+      g.fillText(String(Math.round(st.val)), x + 268, y + 15);
     }
 
-    const ctlY = VH - 9;
+    const ctlY = 510;
     g.font = 'bold 14px "Courier New", monospace';
     g.textAlign = 'center';
     g.fillStyle = '#b7c8d6';

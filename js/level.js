@@ -56,6 +56,9 @@
   const portalDoorImage = new Image();
   portalDoorImage.decoding = 'async';
   portalDoorImage.src = 'assets/props/deco_portal02.png';
+  const enemyShip01Image = new Image();
+  enemyShip01Image.decoding = 'async';
+  enemyShip01Image.src = 'assets/vehicles/enemy_ship01/enemy_ship01.png';
   const PORTAL_X = 20750;
 
   const GROUND_MODULE_W = 512;
@@ -614,6 +617,7 @@
     // Native sand platforms occupy a dedicated depth plane immediately before
     // the dune layer, so dunes can naturally occlude their lower edges.
     if (window.ForegroundDecor) ForegroundDecor.drawBehindDunes(g);
+    drawIntroEnemyShip(g, camX, time, VW);
     drawDuneLayer(g, camX, VW);
 
     // A single atmospheric grade unifies transparent cloud, mountain, and dune
@@ -625,6 +629,48 @@
       g.fillRect(0, 0, VW, GROUND + 6);
       g.restore();
     }
+  }
+
+  function drawIntroEnemyShip(g, camX, time, VW) {
+    // Opening vista: a huge enemy ship slowly rises behind the nearest dunes.
+    // It is intentionally drawn before the dune layer so sand occludes the hull.
+    if (!imageReady(enemyShip01Image) || !window.G || G.state !== 'play' || G.mode !== 'arcade') return;
+    const t = Math.max(0, Math.min(1, (G.bannerT || 0) / 18));
+    if ((G.bannerT || 0) > 24 || camX > 1800) return;
+    const ease = 1 - Math.pow(1 - t, 3);
+    const scale = 1.45;
+    const sw = enemyShip01Image.naturalWidth || enemyShip01Image.width;
+    const sh = enemyShip01Image.naturalHeight || enemyShip01Image.height;
+    const dw = Math.round(sw * scale), dh = Math.round(sh * scale);
+    const sx = Math.round(520 - camX * 0.18 - dw / 2);
+    const sy = Math.round(500 - ease * 178 + Math.sin(time * 0.35) * 3);
+    if (sx + dw < -80 || sx > VW + 80) return;
+    g.save();
+    g.imageSmoothingEnabled = false;
+    g.globalAlpha = 0.92;
+    g.drawImage(enemyShip01Image, sx, sy, dw, dh);
+    // Heat/engine glow under the ship, still behind the dune layer.
+    g.globalCompositeOperation = 'lighter';
+    const glow = g.createRadialGradient(sx + dw * 0.46, sy + dh * 0.82, 8, sx + dw * 0.46, sy + dh * 0.82, 190);
+    glow.addColorStop(0, 'rgba(255,188,92,0.28)');
+    glow.addColorStop(0.45, 'rgba(255,126,48,0.12)');
+    glow.addColorStop(1, 'rgba(255,126,48,0)');
+    g.fillStyle = glow;
+    g.beginPath(); g.arc(sx + dw * 0.46, sy + dh * 0.82, 190, 0, Math.PI * 2); g.fill();
+    // Falling sand sheets from the lower hull, deterministic and allocation-free.
+    g.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 54; i++) {
+      const seed = (i * 73) % 101;
+      const px = sx + dw * (0.18 + ((seed % 67) / 67) * 0.64) + Math.sin(time * 1.7 + i) * 7;
+      const fall = ((time * (34 + (i % 5) * 7) + i * 19) % 230);
+      const py = sy + dh * 0.58 + fall;
+      if (py > sy + dh * 0.72 && py < GROUND + 14) {
+        g.globalAlpha = 0.18 + (i % 4) * 0.035;
+        g.fillStyle = i % 3 ? '#d39a5a' : '#ffd18a';
+        g.fillRect(Math.round(px), Math.round(py), 1 + (i % 2), 5 + (i % 4));
+      }
+    }
+    g.restore();
   }
 
   function drawDuneLayer(g, camX, VW) {

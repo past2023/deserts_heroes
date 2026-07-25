@@ -26,10 +26,11 @@ Campaign map choices currently available:
 - Static nearest-plane antenna bunkers
 - Pixel-quantized iris and portal transitions
 - Loading overlays use animated alien/pixel glyph strings instead of English-only status labels
+- Level 1 opening vista draws the uploaded enemy_ship01 rising slowly behind the dune layer with falling sand particles
 
 ## Gameplay
 
-- Three selectable heroes with an animated carousel selection screen, side pilot panels, bottom dossier, and pulsing pixel stat bars
+- Three selectable heroes with an adjusted animated carousel selection screen, smaller pilot panels, higher bottom dossier, wrapped descriptions, and pulsing pixel stat bars
 - Double jump and ten-second jet pack
 - Arcade and Survival modes
 - 26,000-pixel Level 1 with calm exploration spaces and enemy territories
@@ -71,7 +72,7 @@ Updated sand platforms render at 50% native size between mountains and dunes. Th
 
 ## Story and dialogue
 
-The current canon is defined in `docs/world-story-bible.md`: Scientific Frontier Corps explorer-soldiers defend the right of isolated planets to choose their own future against the knowledge-destroying Atavist Dominion. An 11.5-second centered procedural story-text slide follows the cinematic credit slide. Level 1 queues localized compact teleprompter transmissions from the selected hero, enemy forces and the fortress boss. Player transmissions use the supplied 12-expression face sheet with scanlines, chromatic split, jitter and dropout effects.
+The current canon is defined in `docs/world-story-bible.md`: Scientific Frontier Corps explorer-soldiers defend the right of isolated planets to choose their own future against the knowledge-destroying Atavist Dominion. An 11.5-second centered procedural story-text slide follows the cinematic credit slide. Level 1 queues localized compact teleprompter transmissions from the selected hero, enemy forces and the fortress boss. Player transmissions use the supplied 12-expression face sheet with aspect-preserved portrait framing, scanlines, chromatic split, jitter, dropout effects, and larger bold white text.
 
 Two supplied modular prisoner sets now replace generated POW visuals. Their `hand_down` layer renders first, with independent legs, torso, head where supplied, raised hand and escape animation.
 
