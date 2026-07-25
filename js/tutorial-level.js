@@ -20,6 +20,7 @@
   const tutorialBack = new Image(); tutorialBack.decoding='async'; tutorialBack.src='assets/tutorial/tutorial_back01.png';
   const pilarImage = new Image(); pilarImage.decoding='async'; pilarImage.src='assets/tutorial/pilar01.png';
   const pilar02Image = new Image(); pilar02Image.decoding='async'; pilar02Image.src='assets/tutorial/pilar02.png';
+  const soldier06DecorImage = new Image(); soldier06DecorImage.decoding='async'; soldier06DecorImage.src='assets/enemies/soldier06/enemie_soldier06.png';
 
   // 8 modular mids
   const midSources = [
@@ -330,6 +331,55 @@
     g.restore();
   }
 
+  const decorDrones = [
+    { module:1, x:610, y:245, phase:0.2, scale:0.34 },
+    { module:3, x:930, y:245, phase:1.8, scale:0.36 },
+    { module:5, x:640, y:220, phase:3.4, scale:0.32 },
+    { module:6, x:880, y:245, phase:5.0, scale:0.34 },
+  ];
+  function drawDecorDrones(g,camX,time,VW){
+    if(!imageReady(soldier06DecorImage)) return;
+    g.save(); g.imageSmoothingEnabled=false;
+    for(const d of decorDrones){
+      const cycle=(time+d.phase)%6.2;
+      const exploding=cycle>4.85;
+      const wx=d.module*MODULE_W + d.x + Math.sin(time*1.15+d.phase)*34;
+      const sx=Math.round(wx-camX);
+      if(sx<-120 || sx>VW+120) continue;
+      const sy=Math.round(MID_BASE_Y + d.y + Math.sin(time*2.1+d.phase)*8);
+      const sw=soldier06DecorImage.naturalWidth*d.scale, sh=soldier06DecorImage.naturalHeight*d.scale;
+      if(!exploding){
+        const glitch=Math.sin(time*41+d.phase)>0.82 ? Math.sin(time*90)*3 : 0;
+        g.globalAlpha=0.62;
+        g.drawImage(soldier06DecorImage, sx-sw/2+glitch, sy-sh/2, sw, sh);
+        g.globalCompositeOperation='lighter';
+        g.globalAlpha=0.35+Math.sin(time*9+d.phase)*0.12;
+        g.fillStyle='#68efff';
+        g.beginPath(); g.arc(sx+sw*0.08, sy-sh*0.16, 7, 0, Math.PI*2); g.fill();
+        if(Math.sin(time*17+d.phase)>0.65){
+          g.strokeStyle='#7af4ff'; g.lineWidth=1;
+          g.beginPath(); g.moveTo(sx,sy-sh*0.1); g.lineTo(sx+18,sy-sh*0.16+Math.sin(time*31)*7); g.stroke();
+        }
+        g.globalCompositeOperation='source-over';
+      } else {
+        const p=Math.min(1,(cycle-4.85)/1.35);
+        g.globalCompositeOperation='lighter';
+        g.globalAlpha=(1-p)*0.75;
+        for(let i=0;i<16;i++){
+          const a=i*0.78+time*3;
+          const r=8+p*(18+i*2.4);
+          g.fillStyle=i%2?'#68efff':'#ffffff';
+          g.fillRect(Math.round(sx+Math.cos(a)*r), Math.round(sy+Math.sin(a)*r), 2+(i%3), 2+(i%2));
+        }
+        g.globalAlpha=(1-p)*0.28;
+        g.fillStyle='#ff7a22';
+        g.beginPath(); g.arc(sx,sy,18+p*28,0,Math.PI*2); g.fill();
+        g.globalCompositeOperation='source-over';
+      }
+    }
+    g.restore();
+  }
+
   function drawBackground(g,camX,time,VW,VH){
     time=time||(window.G&&G.time)||0;
     drawProceduralNeon(g,time,VW,VH);
@@ -345,6 +395,8 @@
       g.drawImage(img, screenX, Math.round(MID_BASE_Y), midW, midH);
       g.restore();
     }
+    drawDecorDrones(g, camX, time, VW);
+
     g.save();
     for(const lt of lights){
       const worldX=lt.module*MODULE_W + lt.x*MID_SCALE;

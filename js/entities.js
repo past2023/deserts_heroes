@@ -1045,23 +1045,23 @@
         });
       }
     }
-    // Two exhaust pipes at turret top-left - continuous light smoke, heavier when moving/occupied
-    if (Math.random() < (exhaustActive?0.52:0.14)) {
-      for(let k=0;k<2;k++){
-        const offsetX = -18 + k*7; // top-left relative to turret
-        const offsetY = -68 + k*9;
+    // Top-left exhaust tubes: continuous old-engine smoke from the high pipes.
+    if (Math.random() < (exhaustActive?0.72:0.26)) {
+      for(let k=0;k<3;k++){
+        const offsetX = -56 + k*11; // top-left exhaust stack relative to tank center
+        const offsetY = -126 + k*7;
         G.particles.push({
           kind: 'smoke', x: s.x + facing*offsetX, y: s.y + offsetY + Math.sin(time*8+k)*0.8,
-          vx: -facing*rnd(6,18)+rnd(-8,8) + (moveSpeed>2? -facing*4:0), vy: rnd(-52,-18),
-          t: 0, life: 0.62+Math.random()*0.58,
-          color: k===0 ? '#2a2522' : '#302c28', size: 3.0+Math.random()*4.2, grav:-14, drag:0.86
+          vx: -facing*rnd(10,30)+rnd(-10,10) + (moveSpeed>2? -facing*6:0), vy: rnd(-72,-24),
+          t: 0, life: 0.76+Math.random()*0.70,
+          color: k===0 ? '#24211f' : '#34302b', size: 4.0+Math.random()*5.6, grav:-18, drag:0.84
         });
         // occasional darker puff
-        if (Math.random()<0.18) {
+        if (Math.random()<0.28) {
           G.particles.push({
             kind: 'smoke', x: s.x + facing*offsetX, y: s.y + offsetY,
-            vx: -facing*rnd(10,24), vy: rnd(-38,-16),
-            t:0, life:0.48+Math.random()*0.42, color:'#1e1a18', size:2.2+Math.random()*3.0, grav:-10, drag:0.88
+            vx: -facing*rnd(14,34), vy: rnd(-54,-20),
+            t:0, life:0.58+Math.random()*0.52, color:'#1e1a18', size:3.0+Math.random()*4.0, grav:-12, drag:0.86
           });
         }
       }
@@ -1073,10 +1073,10 @@
     const moveSpeed = Math.abs(s.vx || 0);
     const active = s.occupied || moveSpeed > 3 || s.onGround;
     if (!active) return;
-    const rate = moveSpeed > 8 ? 0.42 : 0.12;
+    const rate = moveSpeed > 8 ? 0.55 : 0.24;
     if (Math.random() > rate) return;
     const facing = s.facing || 1;
-    const count = moveSpeed > 35 ? 3 : 1;
+    const count = moveSpeed > 35 ? 4 : (moveSpeed > 8 ? 2 : 1);
     for (let i = 0; i < count; i++) {
       const side = i % 2 ? 1 : -1;
       G.particles.push({

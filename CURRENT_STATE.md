@@ -145,19 +145,19 @@ Animated data-driven campaign map with:
 
 **Extreme foreground:** `pilar01.png` hides module seams. `tutorial_foreground01.png` is no longer drawn. Optional/generated `pilar02.png` appears as a center-level foreground accent if present.
 
-**Light FX:** Lamps, screens, fires, robot eyes, electric sparks positioned per module after checking mid PNG pixel art. Floating fire FX removed; only art-backed flames remain.
+**Light FX:** Lamps, fires, robot eyes and electric sparks are positioned per module after checking mid PNG pixel art. Floating fire FX removed; only art-backed flames remain. Computer-screen FX now use fast malfunctioning CRT-style flicker, jitter, scanlines and dropouts.
 
-**Falling particles:** Cyan/blue data-sparks rain only in selected modules (0, 2, 4, 6), so other modules stay visually calmer.
+**Extra tutorial atmosphere:** Decorative Soldier06 drones drift left/right and periodically malfunction/explode; `pilar02.png` emits smoke and electric crawls. Small electric sparks can occur throughout the annex, while heavier cyan/blue data-rain stays limited to modules 0, 2, 4, 6.
 
 ---
 
 ## 8. Level 1 (`js/level.js`)
 
 Main arcade level with:
-- Terrain, sky, mountains, dunes parallax layers
+- Terrain, sky, mountains, dunes parallax layers plus `bigship03.png` high ship platform decoration
 - 6 enemy types, POW rescues, weapon pickups
 - Portal trigger, boss fight at end
-- Mission intro with rocket-board fly-in
+- Mission intro with supplied PNG rocket-board fly-in and rising enemy ship vista
 
 ---
 
@@ -189,7 +189,7 @@ Main arcade level with:
 - 3-cannon salvos, MG bursts, infantry reinforcement spawn
 
 ### Other Entities
-- Slugs: Ally tanks (drivable), ally_tank02 drill variant
+- Slugs: Ally tanks (drivable), ally_tank02 drill variant, wheel/chain dust, and tank02 top-left exhaust smoke
 - POWs: Tied prisoners (2 hands down) → rescued → 1 hand up → drop weapon
 - Pickups: Weapons, grenades, homing, jetpack, heart
 - Props: Barrels, crates, mines, decor
@@ -227,8 +227,7 @@ Main arcade level with:
 
 ### Planned Features
 - Level 2-6 mission maps
-- More enemy types
-- Boss variants
+- More enemy types and boss variants
 - Additional POW types
 - Full soundtrack integration
 - Leaderboards / achievements

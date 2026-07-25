@@ -48,9 +48,9 @@ Extreme foreground update:
 - Lamps/screens were added to visible art positions.
 - Floating fire FX were removed.
 - Fire FX are only kept where there is a visible flame in the art.
-- Ambient data-spark rain now appears only in selected modules (0, 2, 4, 6) instead of all tutorial modules.
-
-Future work: do one final in-browser visual pass to tune exact glow radius/intensity after playing through the full tutorial.
+- Ambient data-spark rain now appears only in selected modules (0, 2, 4, 6), while small malfunction sparks can appear everywhere.
+- Decorative Soldier06 drones drift and malfunction/explode in the background.
+- `pilar02.png` emits foreground smoke/electric crawls.
 
 
 ## 🎨 Player Select Screen
@@ -76,8 +76,6 @@ Register new tracks in `js/music-tracks.js` `files` object, then call `MusicTrac
 
 ## Other To-Dos
 - Level 2-6 mission implementations
-- More POW variants
 - Survival mode balancing
 - Achievement/leaderboard system
 - Full soundtrack composition
-- Boss variants for later levels

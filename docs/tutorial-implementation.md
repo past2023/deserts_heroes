@@ -7,11 +7,11 @@ Status: Playable / visually polished
 - **Back:** `assets/tutorial/tutorial_back01.png` 2400x448, tiled at parallax 0.12 behind lab
 - **Mid modular:** `tutorial_mid01b`, `02b`, `03b`, `04b`, `06b`, `07b`, `08b`, `05b`, each 1376x768 @ 1.0 scale, world-locked at x = moduleIndex*1376, y = MID_BASE_Y (-150)
 - **Extreme foreground seams:** `pilar01.png` at module boundaries
-- **Extreme foreground accents:** optional `pilar02.png` in center modules (assets path with upload fallback)
+- **Extreme foreground accents:** `pilar02.png` in center modules with smoke puffs and electric crawls
 - **Removed front layer:** `tutorial_foreground01.png` is no longer drawn at runtime
 - **Procedural layer 0:** blue neon pulse — dark gradient #071425→#102f52 + radial glow 380px pulsing sin(1.15 time) + faint cyan scanlines
 - **Ally Tank 02:** `assets/vehicles/ally_tank02/` — full/chassis/wheels/gunturret/drill point, 400x274, drawAllyTank02 with bob, wheel spin via tread, turret recoil, drill spin 0.35 rad/frame, exhaust smoke particles, occupied glow
-- **Observer Drone (soldier06):** `assets/enemies/soldier06/` — modular head/torso/legs/laser_camera + full, hover bob sin(1.8), patrol ±160px, laser burst with red flash additive, cyan eye glow, death explosion with cyan debris
+- **Observer Drone (soldier06):** `assets/enemies/soldier06/` — combat drone plus decorative malfunctioning background drones that drift left/right and periodically explode
 
 ## 4-Layer Parallax implementation (`js/tutorial-level.js`)
 
@@ -19,7 +19,7 @@ Status: Playable / visually polished
 0: drawProceduralNeon() — base gradient + lighter radial + scanlines
 1: drawTiled(back01, parallax 0.12, y=12)
 2: for each mid: screenX = worldX - camX (parallax 1.0), draw scaled, then lights FX
-3: drawGround + platforms + drawExtremeForeground(pilar01 seams + optional pilar02 center accents)
+3: drawGround + platforms + drawExtremeForeground(pilar01 seams + pilar02 center accents)
 ```
 
 ## Lights FX (internal engine, no external deps)
@@ -27,10 +27,10 @@ Status: Playable / visually polished
 Light FX were rechecked against the actual module PNG pixels:
 
 - **Lamps:** orange/yellow radial glows placed on visible bulbs and wall lights.
-- **Screens:** cyan/green additive computer panels placed on visible monitor art.
+- **Screens:** cyan/green additive computer panels placed on visible monitor art, with fast malfunctioning TV/CRT flicker, jitter, scanlines and dropout.
 - **Fire:** only art-backed flames receive fire FX; floating fire FX were removed. Current fire FX are in modules 0, 2, 4, and 6 where the artwork shows flame sources.
 - **Robot/electric:** robot eye and electric spark FX remain in module 3 where the art supports them.
-- **Particle rain:** cyan/blue falling data sparks run only on modules 0, 2, 4, and 6 instead of every tutorial section.
+- **Particles:** small electric malfunction sparks can appear everywhere; heavier cyan/blue falling data sparks run only on modules 0, 2, 4, and 6.
 
 Fire uses two-triangle flame tongues plus radial glow and occasional ember particles. Screen/lamp FX use `lighter` composite and conservative intensity so the mid art is not washed out.
 
@@ -91,15 +91,9 @@ File:// also works due to no ES modules.
 
 - Neon pulse uses lighter composite to avoid washing mid art
 - Fire uses two-triangle flame + outer radial + ember particle spawn
-- Tank drill glows orange when occupied; Ally Tank 02 laser originates from the visible drill tip
+- Ally tanks emit wheel/chain dust; Ally Tank 02 laser originates from the visible drill tip and top-left exhaust pipes smoke
 - Observer laser camera red flash via lighter + shadowBlur before shot
 - `pilar01.png` seam pillars and optional `pilar02.png` center accents give depth without the removed `tutorial_foreground01.png` layer
 
-## Future improvements (not blocking)
-
-- Auto-detect red walkable areas via image processing to generate platforms.json instead of hardcoded
-- Replace generated/fallback `pilar02.png` with final authored art if a bespoke file is supplied
-- Add tutorial-specific boss (drill tank malfunction)
-- Save tutorial progress (per-objective) in localStorage
 
 Implementation by Technical Director: kept 60Hz fixed step, file:// compatibility, procedural fallback, no deps, no build.
