@@ -85,11 +85,11 @@
 
     // Invisible playable surfaces extracted from assets/vehicles/ships/bigship03_refe.png
     // after drawing BigShip03 later in the level at scale 0.96 with its bottom on Level.GROUND.
-    { x: 7389, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
-    { x: 7169, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
-    { x: 7602, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
-    { x: 7424, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
-    { x: 7132, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
+    { x: 3589, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
+    { x: 3369, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
+    { x: 3802, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
+    { x: 3624, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
+    { x: 3332, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
     // Extended exploration route: alternating low, medium and high paths.
     { x: 7180, baseY: 390, y: 390, w: 170, amp: 14, speed: 0.55, phase: 0.8 },
     { x: 7520, baseY: 300, y: 300, w: 140, amp: 20, speed: 0.72, phase: 2.2, fragile: true },
@@ -171,15 +171,10 @@
     { x: 3150, type: 'grenadier' },
     // Guaranteed shoulder-launcher upgrade: 10 guided missiles.
     { x: 3230, type: 'pickup', pickup: 'homing' },
-    { x: 3380, type: 'tank' },
-    { x: 3520, type: 'turret' },
-    { x: 3650, type: 'pow' },
-    { x: 3780, type: 'bazooka' },
-    { x: 3850, type: 'soldier' },
-    { x: 3930, type: 'soldier' },
-    { x: 4150, type: 'gunship' }, // miniboss di metà missione
-    { x: 4260, type: 'grenadier' },
-    { x: 4340, type: 'soldier' },
+    // BigShip03 ship-platform encounter: normal enemies only on the first three upper decks.
+    { x: 3405, y: 166, type: 'soldier' },
+    { x: 3645, y: 26, type: 'bazooka' },
+    { x: 3865, y: 167, type: 'grenadier' },
     { x: 4480, type: 'pickup', pickup: 'jetpack' },
     { x: 4550, type: 'knife' },
     { x: 4610, type: 'knife' },
@@ -189,6 +184,7 @@
     { x: 5180, type: 'turret' },
     { x: 5250, type: 'soldier' },
     { x: 5330, type: 'soldier' },
+    { x: 5350, type: 'gunship' }, // miniboss, delayed until after BigShip03 section
     { x: 5410, type: 'soldier' },
     { x: 5560, type: 'heli' },
     { x: 5650, type: 'grenadier' },
@@ -203,11 +199,6 @@
     { x: 6720, type: 'grenadier' },
     { x: 6800, type: 'grenadier' },
     { x: 6860, type: 'bazooka' },
-    // BigShip03 ship-platform encounter: normal enemies only, placed on the first three ship decks.
-    { x: 7205, y: 166, type: 'soldier' },
-    { x: 7445, y: 26, type: 'bazooka' },
-    { x: 7665, y: 167, type: 'grenadier' },
-    { x: 7875, y: 167, type: 'soldier' },
     // Second quiet traversal pocket around 8500-8900.
     { x: 8920, type: 'pow' },
     { x: 9100, type: 'knife' }, { x: 9170, type: 'knife' },
@@ -363,9 +354,9 @@
 
   // Persistent life rewards on optional high-platform routes.
   const highPickups = [
-    { x:7240, y:140, type:'mg' },
-    { x:7480, y:2, type:'homing' },
-    { x:7800, y:142, type:'grenades' },
+    { x:3440, y:140, type:'mg' },
+    { x:3680, y:2, type:'homing' },
+    { x:4000, y:142, type:'grenades' },
     { x:8368, y:250, type:'heart' },
     { x:12652, y:198, type:'heart' },
     { x:15732, y:193, type:'heart' },
@@ -740,7 +731,7 @@
   function drawBigShip03Decor(g, camX, VW) {
     if (!imageReady(bigShip03Image)) return;
     if(window.G && G.state !== 'play') return;
-    const worldX = 7600;
+    const worldX = 3800;
     const screenX = Math.round(worldX - camX);
     const scale = 0.96;
     const iw = bigShip03Image.naturalWidth || bigShip03Image.width;

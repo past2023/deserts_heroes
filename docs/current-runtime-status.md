@@ -22,11 +22,11 @@ Campaign map choices currently available:
 - Four rapid day/night changes with a detailed nearest-neighbor cratered pixel moon
 - Modular sky, cloud, mountain, dune and terrain rendering
 - Animated lava gaps with molten currents, surface ribbons, bubbles, sparks, heat glow and allied-tank damage
-- Native sand platforms between mountains and dunes, plus a 2x `bigship03.png` ship-platform section later in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies/pickups on upper decks, reactor glows and black smoke
+- Native sand platforms between mountains and dunes, plus an early-daytime 2x `bigship03.png` ship-platform section in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies/pickups on upper decks, reactor glows and black smoke
 - Static nearest-plane antenna bunkers
 - Pixel-quantized iris and portal transitions
-- Loading overlays use pixelated animated alien/pixel glyph strings and chunky stepped loading bars instead of English-only status labels
-- Level 1 opening vista draws `enemy_ship01` rising vertically from the dune layer with tight motor vibration, three lower reactor glows, smoke puffs and heavy falling sand; the later BigShip03 platform section is separated from this intro vista
+- Loading overlays use pixelated animated alien/pixel glyph strings and simple pixel-styled loading bars instead of English-only status labels
+- Level 1 opening vista draws `enemy_ship01` rising vertically from the dune layer with no horizontal parallax, tight motor vibration, three lower reactor glows, smoke puffs and heavy falling sand; the BigShip03 platform section appears soon afterward in daylight
 
 ## Gameplay
 
@@ -62,7 +62,7 @@ Authored PNG pickups replace generated crates for heavy machine gun, spread, roc
 
 ## Tutorial runtime
 
-`tutorial.html` contains the 8-module Frontier Training Annex. Invisible platforms are generated from white-on-black reference rectangles, `pilar01.png` hides module seams, and `pilar02.png` is used as a center-level extreme-foreground accent. The old `tutorial_foreground01.png` layer is no longer drawn. Tutorial light FX were rechecked against the mid PNG art: lamps/screens are placed on visible art, fire FX only appear on illustrated flames, all computer screens use fast malfunctioning CRT/TV flicker, pilar02 emits smoke/electric crawls, decorative Soldier06 drones render at normal observer scale, patrol slightly, malfunction once, explode, and do not reappear, small sparks appear throughout the annex, and heavier data-spark rain is limited to selected modules for pacing.
+`tutorial.html` contains the 8-module Frontier Training Annex. Invisible platforms are generated from white-on-black reference rectangles, `pilar01.png` hides module seams, and `pilar02.png` is used as a center-level extreme-foreground accent. The old `tutorial_foreground01.png` layer is no longer drawn. Tutorial light FX were rechecked against the mid PNG art: lamps/screens are placed on visible art, fire FX only appear on illustrated flames, all computer screens use fast malfunctioning CRT/TV flicker, pilar02 emits smoke/electric crawls, decorative Soldier06 drones render at normal observer scale, patrol slightly, act as normal decorative Soldier06 observers at two heights, small sparks appear throughout the annex, and heavier data-spark rain is limited to selected modules for pacing.
 
 Ally Tank 02 uses the drill variant art, fires its main cyan laser from the visible drill tip, emits top-left exhaust smoke, and uses chain/wheel dust like the main ally tank.
 

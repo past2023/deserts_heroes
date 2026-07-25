@@ -147,14 +147,14 @@ Animated data-driven campaign map with:
 
 **Light FX:** Lamps, fires, robot eyes and electric sparks are positioned per module after checking mid PNG pixel art. Floating fire FX removed; only art-backed flames remain. Computer-screen FX now use fast malfunctioning CRT-style flicker, jitter, scanlines and dropouts.
 
-**Extra tutorial atmosphere:** Decorative Soldier06 drones render at normal observer scale, drift left/right and malfunction once, explode, and do not reappear; `pilar02.png` emits smoke and electric crawls. Small electric sparks can occur throughout the annex, while heavier cyan/blue data-rain stays limited to modules 0, 2, 4, 6.
+**Extra tutorial atmosphere:** Decorative Soldier06 drones render at normal observer scale, drift left/right and act as normal decorative Soldier06 observers at two heights; `pilar02.png` emits smoke and electric crawls. Small electric sparks can occur throughout the annex, while heavier cyan/blue data-rain stays limited to modules 0, 2, 4, 6.
 
 ---
 
 ## 8. Level 1 (`js/level.js`)
 
 Main arcade level with:
-- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship-platform section placed after the rising UFO intro, with `bigship03_refe.png` reference-extracted invisible platforms, enemies/pickups only on ship decks, reactor lights and black smoke
+- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship-platform section appears soon after the rising UFO intro during daylight, with `bigship03_refe.png` reference-extracted invisible platforms, enemies/pickups only on ship decks, reactor lights and black smoke
 - 6 enemy types, POW rescues, weapon pickups
 - Portal trigger, boss fight at end
 - Mission intro with supplied PNG rocket-board fly-in and rising enemy ship vista
@@ -219,7 +219,7 @@ Main arcade level with:
 - Tutorial floating fire FX were removed/repositioned to real flame art only.
 - `tutorial_foreground01.png` was removed from runtime drawing; `pilar02.png` is used as optional center-level foreground accent.
 - Ally Tank 02 laser origin was moved to the center of the drill tip.
-- Loading screens use pixelated animated alien glyph text and chunky pixel bars instead of English-only status labels.
+- Loading screens use pixelated animated alien glyph text and simple pixel-styled bars instead of English-only status labels.
 
 ### Known Bugs
 - No level2-level6 content beyond galactic map nodes
