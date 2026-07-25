@@ -61,7 +61,7 @@
     pilarImage.onerror = function(){ this.src = 'upload/pilar01.png'; };
   }
 
-  // Platforms extracted from tutorial_midXX_refe.png (black background + green lines).
+  // Platforms extracted from tutorial_midXX_refe.png (black background + white guide rectangles).
   // Module-to-refe mapping: 0=mid01_refe, 1=mid02_refe, 2=mid03_refe, 3=mid04_refe,
   // 4=mid06_refe, 5=mid07_refe, 6=mid08_refe, 7=mid05_refe (desert exit).
   const platforms = [];
@@ -71,96 +71,90 @@
     platforms.push({ x: wx, baseY: wy, y: wy, w: lw, amp:0, speed:0, phase:0, fragile:false, invisible:true });
   }
 
-  // Module 0 — mid01b (satellite dish lab)
-  addP(0, 327, 215, 29);
-  addP(0, 454, 213, 17);
-  addP(0, 594, 259, 21);
-  addP(0, 1122, 259, 16);
-  addP(0, 1234, 259, 16);
-  addP(0, 231, 260, 20);
-  addP(0, 545, 260, 32);
-  addP(0, 939, 260, 19);
-  addP(0, 502, 263, 21);
-  addP(0, 113, 264, 45);
-  addP(0, 190, 267, 18);
+  // Platforms extracted from the user-provided white-on-black reference PNGs.
+  // Each white rectangle becomes one invisible platform; its top edge is the walkable Y.
+  // Module-to-refe mapping: 0=mid01_refe, 1=mid02_refe, 2=mid03_refe, 3=mid04_refe,
+  // 4=mid06_refe, 5=mid07_refe, 6=mid08_refe, 7=mid05_refe (desert exit).
 
-  // Module 1 — mid02b (broken circular)
-  addP(1, 934, 257, 183);
-  addP(1, 1118, 262, 177);
-  addP(1, 1296, 266, 17);
-  addP(1, 73, 306, 473);
-  addP(1, 547, 322, 379);
+  // Module 0 — mid01b (satellite dish lab) — tutorial_mid01_refe.png (10 guide rectangles)
+  addP(0, 268, 214, 201);
+  addP(0, 494, 259, 120);
+  addP(0, 667, 259, 604);
+  addP(0, 79, 261, 170);
+  addP(0, 389, 435, 83);
+  addP(0, 980, 450, 130);
+  addP(0, 514, 473, 48);
+  addP(0, 560, 484, 39);
+  addP(0, 596, 499, 68);
+  addP(0, 127, 501, 125);
 
-  // Module 2 — mid03b (suspended ship)
-  addP(2, 305, 212, 44);
-  addP(2, 440, 212, 40);
-  addP(2, 385, 213, 37);
-  addP(2, 726, 261, 46);
-  addP(2, 831, 261, 32);
-  addP(2, 921, 261, 24);
-  addP(2, 973, 261, 22);
-  addP(2, 1041, 261, 18);
-  addP(2, 1088, 261, 40);
-  addP(2, 1211, 261, 81);
-  addP(2, 209, 263, 42);
+  // Module 1 — mid02b (broken circular) — tutorial_mid02_refe.png (5 guide rectangles)
+  addP(1, 927, 258, 384);
+  addP(1, 65, 307, 900);
+  addP(1, 474, 387, 91);
+  addP(1, 297, 442, 180);
+  addP(1, 1055, 507, 53);
 
-  // Module 3 — mid04b (desert view upper)
-  addP(3, 130, 261, 28);
-  addP(3, 697, 261, 22);
-  addP(3, 810, 261, 40);
-  addP(3, 111, 262, 18);
-  addP(3, 166, 262, 45);
-  addP(3, 1297, 265, 29);
-  addP(3, 215, 266, 74);
-  addP(3, 1251, 266, 44);
-  addP(3, 1212, 271, 19);
-  addP(3, 1113, 449, 18);
-  addP(3, 630, 497, 22);
+  // Module 2 — mid03b (suspended ship) — tutorial_mid03_refe.png (11 guide rectangles)
+  addP(2, 270, 212, 208);
+  addP(2, 494, 260, 128);
+  addP(2, 708, 260, 599);
+  addP(2, 76, 264, 173);
+  addP(2, 396, 438, 79);
+  addP(2, 981, 453, 128);
+  addP(2, 517, 468, 40);
+  addP(2, 558, 481, 32);
+  addP(2, 125, 498, 70);
+  addP(2, 596, 500, 79);
+  addP(2, 197, 509, 63);
 
-  // Module 4 — mid06b (elevator lab)
-  addP(4, 299, 209, 26);
-  addP(4, 89, 263, 15);
-  addP(4, 124, 265, 113);
-  addP(4, 1225, 271, 56);
-  addP(4, 1297, 273, 16);
-  addP(4, 985, 289, 44);
-  addP(4, 942, 290, 16);
-  addP(4, 1033, 292, 43);
-  addP(4, 487, 422, 119);
+  // Module 3 — mid04b (desert view upper) — tutorial_mid04_refe.png (10 guide rectangles)
+  addP(3, 467, 260, 146);
+  addP(3, 662, 261, 216);
+  addP(3, 91, 262, 196);
+  addP(3, 1204, 265, 120);
+  addP(3, 1102, 443, 137);
+  addP(3, 504, 468, 50);
+  addP(3, 558, 482, 32);
+  addP(3, 585, 498, 77);
+  addP(3, 140, 503, 62);
+  addP(3, 202, 509, 57);
 
-  // Module 5 — mid07b (sand hangar robots)
-  addP(5, 160, 259, 193);
-  addP(5, 1280, 271, 36);
-  addP(5, 371, 282, 22);
-  addP(5, 929, 289, 21);
-  addP(5, 785, 469, 21);
+  // Module 4 — mid06b (elevator lab) — tutorial_mid06_refe.png (8 guide rectangles)
+  addP(4, 264, 209, 59);
+  addP(4, 84, 263, 157);
+  addP(4, 1077, 271, 244);
+  addP(4, 923, 290, 151);
+  addP(4, 482, 422, 122);
+  addP(4, 1024, 431, 41);
+  addP(4, 888, 450, 121);
+  addP(4, 160, 458, 157);
 
-  // Module 6 — mid08b (second elevator/satellite)
-  addP(6, 289, 208, 47);
-  addP(6, 92, 255, 93);
-  addP(6, 188, 266, 22);
-  addP(6, 1154, 270, 98);
-  addP(6, 1108, 271, 18);
-  addP(6, 1258, 273, 38);
-  addP(6, 949, 287, 19);
-  addP(6, 1005, 288, 70);
-  addP(6, 969, 289, 19);
-  addP(6, 478, 420, 126);
+  // Module 5 — mid07b (sand hangar robots) — tutorial_mid07_refe.png (7 guide rectangles)
+  addP(5, 87, 260, 304);
+  addP(5, 1077, 271, 237);
+  addP(5, 920, 289, 152);
+  addP(5, 1022, 429, 52);
+  addP(5, 239, 454, 41);
+  addP(5, 763, 465, 50);
+  addP(5, 161, 502, 62);
 
-  // Module 7 — mid05b (desert exit final)
-  addP(7, 258, 451, 36);
-  addP(7, 31, 469, 58);
+  // Module 6 — mid08b (second elevator/satellite) — tutorial_mid08_refe.png (8 guide rectangles)
+  addP(6, 265, 208, 69);
+  addP(6, 77, 255, 162);
+  addP(6, 1076, 271, 233);
+  addP(6, 913, 288, 160);
+  addP(6, 470, 421, 133);
+  addP(6, 1021, 431, 44);
+  addP(6, 163, 459, 148);
+  addP(6, 572, 530, 52);
 
-  // Bridging platforms
-  addP(0, 1250, 500, 180);
-  addP(1, 1300, 400, 150);
-  addP(2, 1280, 500, 150);
-  addP(3, 1300, 450, 150);
-  addP(4, 1300, 450, 150);
-  addP(5, 1300, 450, 150);
-  addP(6, 1300, 450, 150);
+  // Module 7 — mid05b (desert exit final) — tutorial_mid05_refe.png (3 guide rectangles)
+  addP(7, 863, 416, 47);
+  addP(7, 229, 451, 63);
+  addP(7, 0, 469, 88);
 
-  
+
   const spawns=[
     { x:700, type:'soldier' },
     { x:1150, type:'pow' },
