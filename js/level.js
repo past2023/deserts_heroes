@@ -788,23 +788,20 @@
     g.fillRect(Math.round(screenX - 468), 348, 854, 2);
     const t = (window.G&&G.time)||0;
 
-    // The PNG has no lamps on the right engine bank, so the former three right
-    // glows are intentionally gone.  Instead, the two left-end reactor outlets
-    // sputter with flame tongues and dirty black smog to sell the crashed-ship
-    // platform fantasy.
-    const leftReactors = [
-      { x:0.030, y:0.505, s:1.05, phase:0.0 },
-      { x:0.035, y:0.735, s:0.92, phase:1.7 },
+    // Reactors and flame/smog on the right end (engine bank side of BigShip03).
+    const rightReactors = [
+      { x:0.86, y:0.68, s:1.15, phase:0.0 },
+      { x:0.94, y:0.72, s:1.0, phase:1.7 },
     ];
     g.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < leftReactors.length; i++) {
-      const r = leftReactors[i];
+    for (let i = 0; i < rightReactors.length; i++) {
+      const r = rightReactors[i];
       const rx = sx + dw * r.x;
       const ry = sy + dh * r.y;
       const flick = 0.72 + Math.sin(t * 9.0 + r.phase) * 0.18 + Math.sin(t * 31.0 + i) * 0.08;
-      const flameLen = (58 + Math.sin(t * 5.5 + i) * 10) * r.s * flick;
-      const flameW = 13 * r.s * (0.85 + flick * 0.35);
-      const flame = g.createLinearGradient(rx + 4, ry, rx - flameLen, ry);
+      const flameLen = (62 + Math.sin(t * 5.5 + i) * 12) * r.s * flick;
+      const flameW = 15 * r.s * (0.85 + flick * 0.35);
+      const flame = g.createLinearGradient(rx - 4, ry, rx + flameLen, ry);
       flame.addColorStop(0, 'rgba(255,255,220,0.92)');
       flame.addColorStop(0.22, 'rgba(255,210,72,0.80)');
       flame.addColorStop(0.55, 'rgba(255,96,28,0.58)');
@@ -812,54 +809,50 @@
       g.globalAlpha = 0.78;
       g.fillStyle = flame;
       g.beginPath();
-      g.moveTo(rx + 2, ry - flameW * 0.45);
-      g.bezierCurveTo(rx - flameLen * 0.30, ry - flameW * 1.25, rx - flameLen * 0.70, ry - flameW * 0.52, rx - flameLen, ry);
-      g.bezierCurveTo(rx - flameLen * 0.70, ry + flameW * 0.58, rx - flameLen * 0.28, ry + flameW * 1.12, rx + 2, ry + flameW * 0.45);
+      g.moveTo(rx - 2, ry - flameW * 0.45);
+      g.bezierCurveTo(rx + flameLen * 0.30, ry - flameW * 1.25, rx + flameLen * 0.70, ry - flameW * 0.52, rx + flameLen, ry);
+      g.bezierCurveTo(rx + flameLen * 0.70, ry + flameW * 0.58, rx + flameLen * 0.28, ry + flameW * 1.12, rx - 2, ry + flameW * 0.45);
       g.closePath();
       g.fill();
       g.globalAlpha = 0.95;
       g.fillStyle = '#fff5b0';
-      g.fillRect(Math.round(rx - flameLen * 0.28), Math.round(ry - 2), Math.round(flameLen * 0.32), 4);
+      g.fillRect(Math.round(rx - 2), Math.round(ry - 2), Math.round(flameLen * 0.32), 4);
     }
 
-    // Black smog plumes from reactor outlets and damaged hull seams.  These are
-    // deterministic procedural puffs (no allocations) so they can run every
-    // frame as decoration on the ship-platform encounter.
+    // Realistic oily black smog code (like ally tanks critical smoke) on the right side and crash vents across BigShip03.
     g.globalCompositeOperation = 'source-over';
     const smokeSources = [
-      { x:0.030, y:0.505, strength:1.35, drift:1.15 },
-      { x:0.035, y:0.735, strength:1.18, drift:1.05 },
-      { x:0.245, y:0.315, strength:0.88, drift:0.70 },
-      { x:0.420, y:0.690, strength:0.72, drift:0.55 },
-      { x:0.575, y:0.475, strength:0.82, drift:0.62 },
-      { x:0.735, y:0.365, strength:0.95, drift:0.72 },
-      { x:0.835, y:0.575, strength:1.10, drift:0.82 },
+      { x:0.86, y:0.68, strength:1.45, drift:1.25 },
+      { x:0.94, y:0.72, strength:1.30, drift:1.15 },
+      { x:0.72, y:0.42, strength:0.95, drift:0.75 },
+      { x:0.55, y:0.68, strength:0.85, drift:0.60 },
+      { x:0.40, y:0.45, strength:0.90, drift:0.65 },
     ];
     for (let sIdx = 0; sIdx < smokeSources.length; sIdx++) {
       const src = smokeSources[sIdx];
-      const count = sIdx < 2 ? 9 : 6;
+      const count = sIdx < 2 ? 10 : 6;
       const baseX = sx + dw * src.x;
       const baseY = sy + dh * src.y;
       for (let i = 0; i < count; i++) {
-        const drift = (t * (11 + sIdx * 0.8) + i * 17 + sIdx * 23) % 150;
-        const puff = 1 - drift / 150;
-        const wobble = Math.sin(t * 0.9 + i * 1.7 + sIdx) * (4 + i % 3);
-        g.globalAlpha = (0.10 + src.strength * 0.055) * puff;
-        g.fillStyle = i % 3 === 0 ? '#050506' : i % 2 ? '#151316' : '#242126';
+        const drift = (t * (12 + sIdx * 0.9) + i * 19 + sIdx * 29) % 160;
+        const puff = 1 - drift / 160;
+        const wobble = Math.sin(t * 0.85 + i * 1.6 + sIdx) * (4 + i % 3);
+        g.globalAlpha = (0.12 + src.strength * 0.065) * puff;
+        g.fillStyle = i % 3 === 0 ? '#040405' : i % 2 ? '#111115' : '#1c1210';
         g.beginPath();
         g.arc(
-          baseX - drift * (0.30 + src.drift * 0.22) + wobble,
-          baseY - drift * (0.22 + src.drift * 0.15),
-          (8 + (1 - puff) * 24 + (i % 4) * 2) * src.strength,
+          baseX + drift * (0.35 + src.drift * 0.25) + wobble,
+          baseY - drift * (0.25 + src.drift * 0.18),
+          (9 + (1 - puff) * 26 + (i % 4) * 2) * src.strength,
           0, Math.PI * 2
         );
         g.fill();
         if (i % 3 === 1) {
-          g.globalAlpha *= 0.45;
-          g.fillStyle = '#3a3430';
+          g.globalAlpha *= 0.5;
+          g.fillStyle = '#050506';
           g.beginPath();
-          g.arc(baseX - drift * 0.42 + wobble + 8, baseY - drift * 0.28 - 3,
-            (6 + (1 - puff) * 13) * src.strength, 0, Math.PI * 2);
+          g.arc(baseX + drift * 0.45 + wobble - 6, baseY - drift * 0.32 - 4,
+            (7 + (1 - puff) * 14) * src.strength, 0, Math.PI * 2);
           g.fill();
         }
       }

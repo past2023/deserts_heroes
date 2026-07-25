@@ -3,7 +3,7 @@
   const queue=[];
   let current=null,timer=0;
   const portraits={boss:new Image(),enemy:new Image(),robot:new Image(),faces:new Image()};
-  portraits.boss.src='assets/vehicles/boss_tank01/full.png';
+  portraits.boss.src='assets/vehicles/boss_tank01/boss_tank01_portrait.png';
   portraits.enemy.src='assets/enemies/soldier05/full.png';
   portraits.robot.src='assets/enemies/soldier01/full.png';
   portraits.faces.src='assets/ui/dialogue/face_expresion01.png';
