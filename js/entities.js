@@ -1206,8 +1206,8 @@
   function spawnCoinAward(x, y, tier) {
     const finalBoss = tier === 'boss' || tier === 'bossFinal';
     const bossBattle = tier === 'bossBattle';
-    const count = finalBoss ? 112 : bossBattle ? 18 : tier === 'big' ? 32 : tier === 'tank' ? 24 : 18;
-    const spread = finalBoss ? 230 : bossBattle ? 95 : tier === 'big' ? 120 : 88;
+    const count = finalBoss ? 64 : bossBattle ? 8 : tier === 'big' ? 16 : tier === 'tank' ? 12 : 8;
+    const spread = finalBoss ? 210 : bossBattle ? 80 : tier === 'big' ? 110 : 78;
     const baseVy = finalBoss ? -590 : bossBattle ? -390 : tier === 'big' ? -430 : -360;
     if (SFX.coinAward) SFX.coinAward(finalBoss ? 'boss' : tier === 'big' ? 'big' : 'small');
     for (let i = 0; i < count; i++) {
@@ -3203,33 +3203,33 @@
         // Low-res coin matching the HUD score icon: only chunky rectangles,
         // no gradients or vector arcs, so the award reads as pixel art.
         if (frame === 2) {
-          g.fillStyle = '#5a3510';
+          g.fillStyle = '#a66a12';
           g.fillRect(-5, -8, 10, 16); g.fillRect(-8, -5, 16, 10);
-          g.fillStyle = '#8a5a20';
+          g.fillStyle = '#e3a21e';
           g.fillRect(-4, -7, 8, 14); g.fillRect(-7, -4, 14, 8);
-          g.fillStyle = '#ffd15a';
+          g.fillStyle = '#ffe65a';
           g.fillRect(-5, -3, 10, 6); g.fillRect(-3, -6, 6, 12);
-          g.fillStyle = '#fff0a0';
+          g.fillStyle = '#fff7b4';
           g.fillRect(-3, -4, 3, 5);
-          g.fillStyle = '#b97925';
+          g.fillStyle = '#f3b82a';
           g.fillRect(2, -1, 3, 5);
         } else if (frame === 1) {
-          g.fillStyle = '#5a3510';
+          g.fillStyle = '#a66a12';
           g.fillRect(-4, -8, 8, 16); g.fillRect(-5, -5, 10, 10);
-          g.fillStyle = '#8a5a20';
+          g.fillStyle = '#e3a21e';
           g.fillRect(-3, -7, 6, 14); g.fillRect(-4, -4, 8, 8);
-          g.fillStyle = '#ffd15a';
+          g.fillStyle = '#ffe65a';
           g.fillRect(-2, -6, 4, 12); g.fillRect(-3, -2, 6, 4);
-          g.fillStyle = '#fff0a0';
+          g.fillStyle = '#fff7b4';
           g.fillRect(-2, -4, 2, 5);
-          g.fillStyle = '#b97925';
+          g.fillStyle = '#f3b82a';
           g.fillRect(1, -1, 2, 5);
         } else {
-          g.fillStyle = '#5a3510';
+          g.fillStyle = '#a66a12';
           g.fillRect(-2, -8, 4, 16); g.fillRect(-3, -5, 6, 10);
-          g.fillStyle = '#ffd15a';
+          g.fillStyle = '#ffe65a';
           g.fillRect(-1, -7, 2, 14);
-          g.fillStyle = '#fff0a0';
+          g.fillStyle = '#fff7b4';
           g.fillRect(-1, -5, 1, 5);
         }
         if (spin > 0.80) {
