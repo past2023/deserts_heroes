@@ -160,7 +160,8 @@
     { x:1150, type:'pow' },
     { x:1720, type:'observer' },
     { x:2050, type:'soldier' },
-    { x:2380, type:'grenadier' },
+    { x:2380, type:'observer', y:210 },
+    { x:2600, type:'grenadier' },
     { x:2950, type:'observer' },
     { x:3350, type:'knife' },
     { x:3850, type:'soldier' },
@@ -169,6 +170,7 @@
     { x:6000, type:'soldier' },
     { x:6500, type:'grenadier' },
     { x:7000, type:'observer' },
+    { x:7350, type:'observer', y:165 },
     { x:7800, type:'soldier' },
     { x:8600, type:'bazooka' },
     { x:9200, type:'observer' },
@@ -331,36 +333,6 @@
     g.restore();
   }
 
-  const decorDrones = [
-    { module:1, x:610, y:235, phase:0.2, scale:0.56 },
-    { module:5, x:640, y:170, phase:3.4, scale:0.56 },
-  ];
-  function drawDecorDrones(g,camX,time,VW){
-    if(!imageReady(soldier06DecorImage)) return;
-    g.save(); g.imageSmoothingEnabled=false;
-    for(const d of decorDrones){
-      // Decorative normal Soldier06 observers only: no scripted destruction.
-      // They patrol slowly at different heights to enrich the tutorial backdrop.
-      const wx=d.module*MODULE_W + d.x + Math.sin(time*0.85+d.phase)*42;
-      const sx=Math.round(wx-camX);
-      if(sx<-150 || sx>VW+150) continue;
-      const sy=Math.round(MID_BASE_Y + d.y + Math.sin(time*1.8+d.phase)*7);
-      const sw=soldier06DecorImage.naturalWidth*d.scale, sh=soldier06DecorImage.naturalHeight*d.scale;
-      g.globalAlpha=0.82;
-      g.drawImage(soldier06DecorImage, sx-sw/2, sy-sh/2, sw, sh);
-      g.globalCompositeOperation='lighter';
-      g.globalAlpha=0.38+Math.sin(time*3.2+d.phase)*0.12;
-      g.fillStyle='#68efff';
-      g.beginPath(); g.arc(sx+sw*0.08, sy-sh*0.16, 7, 0, Math.PI*2); g.fill();
-      if(Math.sin(time*8+d.phase)>0.72){
-        g.strokeStyle='#7af4ff'; g.lineWidth=1;
-        g.beginPath(); g.moveTo(sx,sy-sh*0.1); g.lineTo(sx+20,sy-sh*0.16+Math.sin(time*17)*8); g.stroke();
-      }
-      g.globalCompositeOperation='source-over';
-    }
-    g.restore();
-  }
-
   function drawBackground(g,camX,time,VW,VH){
     time=time||(window.G&&G.time)||0;
     drawProceduralNeon(g,time,VW,VH);
@@ -376,8 +348,6 @@
       g.drawImage(img, screenX, Math.round(MID_BASE_Y), midW, midH);
       g.restore();
     }
-    drawDecorDrones(g, camX, time, VW);
-
     g.save();
     for(const lt of lights){
       const worldX=lt.module*MODULE_W + lt.x*MID_SCALE;

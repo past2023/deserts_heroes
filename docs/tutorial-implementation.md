@@ -11,7 +11,7 @@ Status: Playable / visually polished
 - **Removed front layer:** `tutorial_foreground01.png` is no longer drawn at runtime
 - **Procedural layer 0:** blue neon pulse — dark gradient #071425→#102f52 + radial glow 380px pulsing sin(1.15 time) + faint cyan scanlines
 - **Ally Tank 02:** `assets/vehicles/ally_tank02/` — full/chassis/wheels/gunturret/drill point, 400x274, drawAllyTank02 with bob, wheel spin via tread, turret recoil, drill spin 0.35 rad/frame, exhaust smoke particles, occupied glow
-- **Observer Drone (soldier06):** `assets/enemies/soldier06/` — combat drone plus decorative malfunctioning background drones drawn at normal observer scale that drift left/right and periodically explode
+- **Observer Drone (soldier06):** `assets/enemies/soldier06/` — combat drones at multiple heights using the normal observer behavior and destruction sequence
 
 ## 4-Layer Parallax implementation (`js/tutorial-level.js`)
 

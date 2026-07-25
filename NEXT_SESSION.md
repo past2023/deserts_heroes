@@ -49,7 +49,7 @@ Extreme foreground update:
 - Floating fire FX were removed.
 - Fire FX are only kept where there is a visible flame in the art.
 - Ambient data-spark rain now appears only in selected modules (0, 2, 4, 6), while small malfunction sparks can appear everywhere.
-- Decorative Soldier06 drones render at normal observer scale, drift and act as normal decorative Soldier06 observers at two heights in the background.
+- Two normal Soldier06 observers spawn at different tutorial heights and can be destroyed by the player.
 - `pilar02.png` emits foreground smoke/electric crawls.
 
 

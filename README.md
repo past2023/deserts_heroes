@@ -38,7 +38,7 @@ Standard Gamepad API controllers are detected automatically in gameplay, menus, 
 
 * **Three playable explorers**: after choosing Arcade or Survival, select from an animated carousel character-select screen inspired by the supplied concept art: compact center pilot panel, previous/next side panels, raised bottom dossier with wrapped name/class/description, pulsing pixel stat bars, and a layered star/meteor background.
 * **Mission entrance**: the selected explorer arrives in a short in-engine cinematic on the supplied PNG rocket surfboard with animated twin reactors while a huge enemy ship rises vertically from the dunes with motor vibration, reactor glow, smoke and falling sand; the rider jumps to the ground as the board accelerates away.
-* **Language-neutral loading screens**: mission, tutorial, map, and rift loading overlays use animated alien/pixel glyphs and simple bars with pixelated styling instead of English status text.
+* **Language-neutral loading screens**: mission, tutorial, map, and rift loading overlays use animated alien/pixel glyphs and retro segmented pixel bars instead of English status text.
 * **Two modes**: *Arcade Mission* (single extended mission ~26,000px with final boss) and *Survival* (endless waves in an arena, separate high score). Mode selected from menu with Up/Down.
 * **Enemies**: rifle soldiers, grenadiers, melee attackers, elite bazooka troops, sandbag turrets, helicopters, and tanks.
 * **Mini-boss**: Gunship helicopter with HP bar, bullet spreads, and bombing runs.

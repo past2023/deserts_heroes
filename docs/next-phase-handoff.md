@@ -33,10 +33,10 @@ Start future chats by reading, in order:
 - Character select is a carousel in `js/game.js`; keep text inside the bottom dossier at 960×540.
 - Tutorial platforms come from white reference rectangles in `assets/tutorial/*_refe.png`.
 - Tutorial foreground uses `pilar01.png` seams and `pilar02.png` center accents with smoke/electric crawls; `tutorial_foreground01.png` is not drawn.
-- Tutorial screens use fast malfunctioning CRT-style FX and decorative Soldier06 drones drift, act as normal decorative Soldier06 observers at two heights.
+- Tutorial screens use fast malfunctioning CRT-style FX and two normal Soldier06 observers spawn at different heights and can be destroyed by the player.
 - Ally Tank 02 laser origin is tuned in `js/entities.js` to the visible drill tip; both ally tanks use wheel/chain dust and Tank02 has top-left exhaust smoke.
 - Level 1 includes the rising `enemy_ship01` vista and an earlier daylight 2x `bigship03.png` ship/platform section in the palm/cactus layer; platforms come from `bigship03_refe.png` and include enemies/pickups only on ship decks.
-- Loading pages use pixelated animated alien glyph text and simple bars with pixelated styling instead of English status labels.
+- Loading pages use pixelated animated alien glyph text and retro segmented pixel bars instead of English status labels.
 
 ## Technical cautions
 
