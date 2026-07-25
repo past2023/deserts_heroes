@@ -1204,24 +1204,26 @@
   }
 
   function spawnCoinAward(x, y, tier) {
-    const count = tier === 'boss' ? 52 : tier === 'big' ? 32 : tier === 'tank' ? 24 : 18;
-    const spread = tier === 'boss' ? 180 : tier === 'big' ? 120 : 88;
-    const baseVy = tier === 'boss' ? -520 : tier === 'big' ? -430 : -360;
-    if (SFX.coinAward) SFX.coinAward(tier === 'boss' ? 'boss' : tier === 'big' ? 'big' : 'small');
+    const finalBoss = tier === 'boss' || tier === 'bossFinal';
+    const bossBattle = tier === 'bossBattle';
+    const count = finalBoss ? 112 : bossBattle ? 18 : tier === 'big' ? 32 : tier === 'tank' ? 24 : 18;
+    const spread = finalBoss ? 230 : bossBattle ? 95 : tier === 'big' ? 120 : 88;
+    const baseVy = finalBoss ? -590 : bossBattle ? -390 : tier === 'big' ? -430 : -360;
+    if (SFX.coinAward) SFX.coinAward(finalBoss ? 'boss' : tier === 'big' ? 'big' : 'small');
     for (let i = 0; i < count; i++) {
       const side = i - (count - 1) / 2;
       G.particles.push({
         kind: 'coin', x: x + rnd(-spread * 0.28, spread * 0.28), y: y + rnd(-18, 12),
-        vx: side * (tier === 'boss' ? 8.8 : 10.2) + rnd(-95, 95),
-        vy: baseVy + rnd(-180, 90), t: 0, life: rnd(tier === 'boss' ? 2.7 : 2.15, tier === 'boss' ? 3.35 : 2.85),
+        vx: side * (finalBoss ? 5.2 : 10.2) + rnd(-95, 95),
+        vy: baseVy + rnd(-190, 105), t: 0, life: rnd(finalBoss ? 3.1 : 2.15, finalBoss ? 4.0 : 2.85),
         color: Math.random() < 0.22 ? '#fff4a8' : Math.random() < 0.58 ? '#ffd24a' : '#ff9f22',
-        size: rnd(tier === 'boss' ? 13 : 10, tier === 'boss' ? 22 : 17), grav: 1040,
+        size: rnd(finalBoss ? 14 : 10, finalBoss ? 24 : 17), grav: 1040,
         rot: rnd(0, Math.PI * 2), spin: rnd(-18, 18), phase: rnd(0, Math.PI * 2),
         landed: false,
       });
     }
     G.scorePops.push({
-      x: x, y: y - (tier === 'boss' ? 170 : 90), label: tier === 'boss' ? 'COIN JACKPOT!' : 'COIN BONUS!', t: 0,
+      x: x, y: y - (finalBoss ? 170 : 90), label: finalBoss ? 'COIN JACKPOT!' : 'COIN BONUS!', t: 0,
     });
   }
 
@@ -2219,6 +2221,7 @@
       flash: 0, tread: 0, recoil: 0, dieT: 0, dieBoomT: 0.12, dieBoomCount: 0, minions: 0,
       mgBurst: 0, mgShotT: 0,
       phase2: false, rainT: 0,
+      coinAwardHp: 60,
     };
   }
 
@@ -2373,11 +2376,16 @@
     b.hp -= dmg;
     b.flash = 0.07;
     SFX.bossHit();
+    while (b.hp > 0 && b.coinAwardHp !== undefined && b.hp <= b.coinAwardHp) {
+      spawnCoinAward(b.x + rnd(-95, 75), b.y - rnd(80, 145), 'bossBattle');
+      EntityScore.add(250, b.x + rnd(-70, 70), b.y - 150);
+      b.coinAwardHp -= 10;
+    }
     if (b.hp <= 0) {
       b.hp = 0;
       b.state = 'die';
       EntityScore.add(5000, b.x, b.y - 150);
-      spawnCoinAward(b.x, b.y - 118, 'boss');
+      spawnCoinAward(b.x, b.y - 118, 'bossFinal');
       G.hitStop = Math.max(G.hitStop, 0.18);
       SFX.bigExplosion();
     }
@@ -3186,45 +3194,49 @@
 
       if (pa.kind === 'coin') {
         const spin = Math.abs(Math.sin((pa.phase || 0) + pa.t * 18 + (pa.spin || 0) * 0.08));
-        const radius = pa.size * (0.96 + alpha * 0.18);
-        const coinW = Math.max(3.4, radius * (0.30 + spin * 0.95));
-        g.translate(sx, pa.y);
-        // Strong dark edge first: the coins must read clearly over explosions,
-        // smoke, desert ground and lava.
-        g.globalAlpha = alpha * 0.88;
-        g.fillStyle = 'rgba(72,35,6,0.92)';
-        g.beginPath();
-        g.ellipse(1, 2, coinW + 2.6, radius + 2.6, 0, 0, Math.PI * 2);
-        g.fill();
-        g.globalCompositeOperation = 'lighter';
+        const scale = Math.max(1, Math.round(pa.size / 7));
+        const frame = spin > 0.66 ? 2 : spin > 0.30 ? 1 : 0;
+        g.translate(Math.round(sx), Math.round(pa.y));
+        g.scale(scale, scale);
         g.globalAlpha = alpha;
-        const coinGrad = g.createRadialGradient(-radius * 0.22, -radius * 0.28, 1, 0, 0, Math.max(2, radius));
-        coinGrad.addColorStop(0, '#ffffff');
-        coinGrad.addColorStop(0.20, '#fff9c8');
-        coinGrad.addColorStop(0.50, pa.color || '#ffd24a');
-        coinGrad.addColorStop(0.82, '#ff9f22');
-        coinGrad.addColorStop(1, '#8b4a08');
-        g.fillStyle = coinGrad;
-        g.beginPath();
-        g.ellipse(0, 0, coinW, radius, 0, 0, Math.PI * 2);
-        g.fill();
-        g.globalCompositeOperation = 'source-over';
-        g.globalAlpha = alpha * 0.95;
-        g.strokeStyle = '#fff7bf';
-        g.lineWidth = 2;
-        g.beginPath();
-        g.ellipse(0, 0, Math.max(1.8, coinW * 0.68), radius * 0.72, 0, 0, Math.PI * 2);
-        g.stroke();
-        g.fillStyle = '#8b4a08';
-        g.font = 'bold ' + Math.max(9, Math.round(radius * 0.9)) + 'px "Courier New", monospace';
-        g.textAlign = 'center';
-        g.textBaseline = 'middle';
-        if (coinW > radius * 0.45) g.fillText('$', 0, 1);
-        if (spin > 0.58) {
+        g.imageSmoothingEnabled = false;
+        // Low-res coin matching the HUD score icon: only chunky rectangles,
+        // no gradients or vector arcs, so the award reads as pixel art.
+        if (frame === 2) {
+          g.fillStyle = '#5a3510';
+          g.fillRect(-5, -8, 10, 16); g.fillRect(-8, -5, 16, 10);
+          g.fillStyle = '#8a5a20';
+          g.fillRect(-4, -7, 8, 14); g.fillRect(-7, -4, 14, 8);
+          g.fillStyle = '#ffd15a';
+          g.fillRect(-5, -3, 10, 6); g.fillRect(-3, -6, 6, 12);
+          g.fillStyle = '#fff0a0';
+          g.fillRect(-3, -4, 3, 5);
+          g.fillStyle = '#b97925';
+          g.fillRect(2, -1, 3, 5);
+        } else if (frame === 1) {
+          g.fillStyle = '#5a3510';
+          g.fillRect(-4, -8, 8, 16); g.fillRect(-5, -5, 10, 10);
+          g.fillStyle = '#8a5a20';
+          g.fillRect(-3, -7, 6, 14); g.fillRect(-4, -4, 8, 8);
+          g.fillStyle = '#ffd15a';
+          g.fillRect(-2, -6, 4, 12); g.fillRect(-3, -2, 6, 4);
+          g.fillStyle = '#fff0a0';
+          g.fillRect(-2, -4, 2, 5);
+          g.fillStyle = '#b97925';
+          g.fillRect(1, -1, 2, 5);
+        } else {
+          g.fillStyle = '#5a3510';
+          g.fillRect(-2, -8, 4, 16); g.fillRect(-3, -5, 6, 10);
+          g.fillStyle = '#ffd15a';
+          g.fillRect(-1, -7, 2, 14);
+          g.fillStyle = '#fff0a0';
+          g.fillRect(-1, -5, 1, 5);
+        }
+        if (spin > 0.80) {
           g.globalCompositeOperation = 'lighter';
-          g.globalAlpha = alpha;
+          g.globalAlpha = alpha * 0.88;
           g.fillStyle = '#fffbd2';
-          g.fillRect(-1, -radius * 0.64, 3, radius * 1.28);
+          g.fillRect(-1, -8, 2, 16);
         }
       } else if (pa.kind === 'fireball') {
         // Expanded Flame Shot look: brilliant white core, yellow plasma,
