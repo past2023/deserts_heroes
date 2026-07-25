@@ -154,7 +154,7 @@ Animated data-driven campaign map with:
 ## 8. Level 1 (`js/level.js`)
 
 Main arcade level with:
-- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship-platform section moved farther from the opening skirmish, with `bigship03_refe.png` reference-extracted invisible platforms, enemies/pickups only on ship decks, reactor lights and black smoke
+- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship-platform section moved farther from the opening skirmish, with `bigship03_refe.png` reference-extracted invisible platforms, enemies/pickups only on ship decks, left-end reactor flame/smog, and several realistic crash-smoke vents; incorrect right-side engine glow lamps are removed
 - Level 1 platform routes carry more visible rewards while ground prop loot is reduced
 - Lava gaps use a fresh non-parallax molten animation: slow surface waves, fire plumes, embers, smoke, bubbles and clean unboxed cutaway edges
 - 6 enemy types, POW rescues, weapon pickups
@@ -191,7 +191,7 @@ Main arcade level with:
 - 3-cannon salvos, MG bursts, infantry reinforcement spawn
 
 ### Other Entities
-- Slugs: Ally tanks (drivable), ally_tank02 drill variant, wheel/chain dust, tank02 top-left exhaust smoke, black critical-smoke plumes on both ally tank types at 1 HP, and pixel-art coin-jackpot awards for destroyed enemy vehicles/boss, with mid-fight boss coin drops and a brighter final boss jackpot
+- Slugs: Ally tanks (drivable), ally_tank02 drill variant, wheel/chain dust, tank02 top-left exhaust smoke, more realistic oily black critical-smoke plumes on both ally tank types at 1 HP, and pixel-art coin-jackpot awards for destroyed enemy vehicles/boss, with mid-fight boss coin drops and a brighter final boss jackpot
 - POWs: Tied prisoners (2 hands down) → rescued → 1 hand up → drop weapon
 - Pickups: Weapons, grenades, homing, jetpack, heart
 - Props: Barrels, crates, mines, decor
@@ -239,4 +239,4 @@ Main arcade level with:
 
 ## Current implementation sync — 2026-07-25
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, critical black smog for both ally tanks, and pixel-art casino coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed, including smaller mid-fight boss coin drops and a brighter final boss jackpot.
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, more realistic oily black critical smog for both ally tanks, left-end reactor flame/smog and additional crash-smoke damage on BigShip03 with incorrect right-side glow lights removed, and pixel-art casino coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed, including smaller mid-fight boss coin drops and a brighter final boss jackpot.

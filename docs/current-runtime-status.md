@@ -22,7 +22,7 @@ Campaign map choices currently available:
 - Four rapid day/night changes with a detailed nearest-neighbor cratered pixel moon
 - Modular sky, cloud, mountain, dune and terrain rendering
 - Animated lava gaps with a non-parallax molten surface, flame plumes, bubbles, embers, smoke, heat glow, clean unboxed cutaway edges and allied-tank damage
-- Native sand platforms between mountains and dunes, plus a delayed daylight 2x `bigship03.png` ship-platform section in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies/pickups on upper decks, reactor glows and black smoke
+- Native sand platforms between mountains and dunes, plus a delayed daylight 2x `bigship03.png` ship-platform section in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies/pickups on upper decks, left-end reactor flame/smog, extra crash-smoke vents, and removed incorrect right-side glows
 - Static nearest-plane antenna bunkers
 - Pixel-quantized iris and portal transitions
 - Loading overlays use a simple retro pixel loading bar without visible glyph text instead of English-only status labels
@@ -84,4 +84,4 @@ The game preserves 960×540 Canvas 2D, fixed 60 Hz simulation, direct browser co
 
 ## Current implementation sync — 2026-07-25
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, critical black smog for both ally tanks, and pixel-art casino coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed, including smaller mid-fight boss coin drops and a brighter final boss jackpot.
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, more realistic oily black critical smog for both ally tanks, left-end reactor flame/smog and additional crash-smoke damage on BigShip03 with incorrect right-side glow lights removed, and pixel-art casino coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed, including smaller mid-fight boss coin drops and a brighter final boss jackpot.

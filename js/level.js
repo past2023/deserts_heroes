@@ -787,30 +787,82 @@
     g.fillStyle = '#68efff';
     g.fillRect(Math.round(screenX - 468), 348, 854, 2);
     const t = (window.G&&G.time)||0;
-    // Decorative reactor lamps and failing vents on the ship hull.
-    const reactors = [
-      { x:0.76, y:0.66, r:48 }, { x:0.86, y:0.70, r:60 }, { x:0.95, y:0.67, r:54 }
+
+    // The PNG has no lamps on the right engine bank, so the former three right
+    // glows are intentionally gone.  Instead, the two left-end reactor outlets
+    // sputter with flame tongues and dirty black smog to sell the crashed-ship
+    // platform fantasy.
+    const leftReactors = [
+      { x:0.030, y:0.505, s:1.05, phase:0.0 },
+      { x:0.035, y:0.735, s:0.92, phase:1.7 },
     ];
-    for(const r of reactors){
-      const rx=sx+dw*r.x, ry=sy+dh*r.y;
-      const flick=0.75+Math.sin(t*8+r.x*10)*0.18+Math.sin(t*29+r.y*6)*0.07;
-      const grad=g.createRadialGradient(rx,ry,3,rx,ry,r.r*flick);
-      grad.addColorStop(0,'rgba(255,245,190,0.55)');
-      grad.addColorStop(0.28,'rgba(255,138,50,0.32)');
-      grad.addColorStop(1,'rgba(255,80,20,0)');
-      g.globalAlpha=0.65*flick; g.fillStyle=grad; g.beginPath(); g.arc(rx,ry,r.r*flick,0,Math.PI*2); g.fill();
-    }
-    g.globalCompositeOperation='source-over';
-    for(let i=0;i<22;i++){
-      const drift=(t*(12+i*0.9)+i*21)%150;
-      const puff=1-drift/150;
-      g.globalAlpha=0.16*puff;
-      g.fillStyle=i%2?'#171719':'#2a2725';
+    g.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < leftReactors.length; i++) {
+      const r = leftReactors[i];
+      const rx = sx + dw * r.x;
+      const ry = sy + dh * r.y;
+      const flick = 0.72 + Math.sin(t * 9.0 + r.phase) * 0.18 + Math.sin(t * 31.0 + i) * 0.08;
+      const flameLen = (58 + Math.sin(t * 5.5 + i) * 10) * r.s * flick;
+      const flameW = 13 * r.s * (0.85 + flick * 0.35);
+      const flame = g.createLinearGradient(rx + 4, ry, rx - flameLen, ry);
+      flame.addColorStop(0, 'rgba(255,255,220,0.92)');
+      flame.addColorStop(0.22, 'rgba(255,210,72,0.80)');
+      flame.addColorStop(0.55, 'rgba(255,96,28,0.58)');
+      flame.addColorStop(1, 'rgba(120,16,8,0)');
+      g.globalAlpha = 0.78;
+      g.fillStyle = flame;
       g.beginPath();
-      const baseX = i<14 ? (0.74+(i%4)*0.065) : (0.18+(i%5)*0.12);
-      const baseY = i<14 ? (0.60+(i%3)*0.055) : (0.36+(i%4)*0.11);
-      g.arc(sx+dw*baseX-drift*0.18, sy+dh*baseY-drift*0.24, 10+(1-puff)*24, 0, Math.PI*2);
+      g.moveTo(rx + 2, ry - flameW * 0.45);
+      g.bezierCurveTo(rx - flameLen * 0.30, ry - flameW * 1.25, rx - flameLen * 0.70, ry - flameW * 0.52, rx - flameLen, ry);
+      g.bezierCurveTo(rx - flameLen * 0.70, ry + flameW * 0.58, rx - flameLen * 0.28, ry + flameW * 1.12, rx + 2, ry + flameW * 0.45);
+      g.closePath();
       g.fill();
+      g.globalAlpha = 0.95;
+      g.fillStyle = '#fff5b0';
+      g.fillRect(Math.round(rx - flameLen * 0.28), Math.round(ry - 2), Math.round(flameLen * 0.32), 4);
+    }
+
+    // Black smog plumes from reactor outlets and damaged hull seams.  These are
+    // deterministic procedural puffs (no allocations) so they can run every
+    // frame as decoration on the ship-platform encounter.
+    g.globalCompositeOperation = 'source-over';
+    const smokeSources = [
+      { x:0.030, y:0.505, strength:1.35, drift:1.15 },
+      { x:0.035, y:0.735, strength:1.18, drift:1.05 },
+      { x:0.245, y:0.315, strength:0.88, drift:0.70 },
+      { x:0.420, y:0.690, strength:0.72, drift:0.55 },
+      { x:0.575, y:0.475, strength:0.82, drift:0.62 },
+      { x:0.735, y:0.365, strength:0.95, drift:0.72 },
+      { x:0.835, y:0.575, strength:1.10, drift:0.82 },
+    ];
+    for (let sIdx = 0; sIdx < smokeSources.length; sIdx++) {
+      const src = smokeSources[sIdx];
+      const count = sIdx < 2 ? 9 : 6;
+      const baseX = sx + dw * src.x;
+      const baseY = sy + dh * src.y;
+      for (let i = 0; i < count; i++) {
+        const drift = (t * (11 + sIdx * 0.8) + i * 17 + sIdx * 23) % 150;
+        const puff = 1 - drift / 150;
+        const wobble = Math.sin(t * 0.9 + i * 1.7 + sIdx) * (4 + i % 3);
+        g.globalAlpha = (0.10 + src.strength * 0.055) * puff;
+        g.fillStyle = i % 3 === 0 ? '#050506' : i % 2 ? '#151316' : '#242126';
+        g.beginPath();
+        g.arc(
+          baseX - drift * (0.30 + src.drift * 0.22) + wobble,
+          baseY - drift * (0.22 + src.drift * 0.15),
+          (8 + (1 - puff) * 24 + (i % 4) * 2) * src.strength,
+          0, Math.PI * 2
+        );
+        g.fill();
+        if (i % 3 === 1) {
+          g.globalAlpha *= 0.45;
+          g.fillStyle = '#3a3430';
+          g.beginPath();
+          g.arc(baseX - drift * 0.42 + wobble + 8, baseY - drift * 0.28 - 3,
+            (6 + (1 - puff) * 13) * src.strength, 0, Math.PI * 2);
+          g.fill();
+        }
+      }
     }
     g.globalAlpha=1;
     g.restore();

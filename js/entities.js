@@ -745,26 +745,42 @@
     if (s.criticalSmokeT > 0) return;
     const facing = s.facing || 1;
     const isDrill = s.type === 'ally_tank02';
-    const baseX = s.x - facing * (isDrill ? 54 : 42) + rnd(-10, 10);
-    const baseY = s.y - (isDrill ? rnd(120, 150) : rnd(76, 104));
-    const count = isDrill ? 3 : 2;
-    for (let i = 0; i < count; i++) {
-      G.particles.push({
-        kind: 'smoke',
-        x: baseX + rnd(-10, 12), y: baseY + rnd(-8, 8),
-        vx: -facing * rnd(8, 26) + rnd(-20, 18), vy: rnd(-56, -24),
-        t: 0, life: rnd(0.78, 1.38), color: i % 2 ? '#09090b' : '#19171a',
-        size: rnd(8, 16), grav: rnd(-42, -18), drag: 0.72,
-      });
+    // Tank02 already has strong top-left exhaust pipes; use those as reference
+    // and give both ally tanks layered, oily black plumes from believable seams.
+    const sources = isDrill ? [
+      { ox:-58, oy:-132, power:1.24 }, { ox:-46, oy:-122, power:1.08 },
+      { ox:-68, oy:-60, power:0.86 }, { ox:34, oy:-92, power:0.74 }
+    ] : [
+      { ox:-46, oy:-88, power:1.08 }, { ox:-18, oy:-74, power:0.88 },
+      { ox:42, oy:-64, power:0.72 }
+    ];
+    const bursts = isDrill ? 3 : 2;
+    for (let b = 0; b < bursts; b++) {
+      const src = sources[(Math.random() * sources.length) | 0];
+      const baseX = s.x + facing * src.ox + rnd(-7, 7);
+      const baseY = s.y + src.oy + rnd(-5, 6);
+      const count = Math.random() < 0.35 ? 2 : 1;
+      for (let i = 0; i < count; i++) {
+        const hot = Math.random() < 0.18;
+        G.particles.push({
+          kind: 'smoke', dark: true,
+          x: baseX + rnd(-8, 9), y: baseY + rnd(-7, 7),
+          vx: -facing * rnd(18, 52) + rnd(-20, 20), vy: rnd(-94, -32),
+          t: 0, life: rnd(1.05, 2.25) * src.power,
+          color: hot ? '#201411' : Math.random() < 0.45 ? '#050506' : '#111115',
+          size: rnd(11, 25) * src.power, grav: rnd(-72, -30), drag: 0.58,
+        });
+      }
+      if (Math.random() < 0.26) {
+        G.particles.push({
+          kind: 'ember', x: baseX + rnd(-6, 6), y: baseY + rnd(-2, 8),
+          vx: -facing * rnd(8, 32) + rnd(-25, 25), vy: rnd(-92, -32), t: 0,
+          life: rnd(0.18, 0.42), color: Math.random() < 0.5 ? '#ff7a24' : '#ffd34a',
+          size: rnd(2, 4), grav: 180,
+        });
+      }
     }
-    if (Math.random() < 0.34) {
-      G.particles.push({
-        kind: 'ember', x: baseX + rnd(-8, 8), y: baseY + rnd(-4, 8),
-        vx: rnd(-38, 38), vy: rnd(-70, -28), t: 0, life: rnd(0.18, 0.36),
-        color: Math.random() < 0.5 ? '#ff7a24' : '#ffd34a', size: rnd(2, 4), grav: 180,
-      });
-    }
-    s.criticalSmokeT = rnd(0.11, 0.22);
+    s.criticalSmokeT = rnd(0.075, 0.15);
   }
 
   function destroySlug(s) {
@@ -3265,16 +3281,23 @@
           0, 0, Math.PI * 2); g.fill();
       } else if (pa.kind === 'smoke') {
         const radius = pa.size * (0.55 + k * 1.35);
-        g.globalAlpha = alpha * 0.58;
+        g.globalAlpha = alpha * (pa.dark ? 0.72 : 0.58);
         g.fillStyle = pa.color;
         g.beginPath();
         g.arc(sx, pa.y, radius, 0, Math.PI * 2);
         g.fill();
-        g.globalAlpha = alpha * 0.22;
-        g.fillStyle = '#c5c8ca';
+        g.globalAlpha = alpha * (pa.dark ? 0.12 : 0.22);
+        g.fillStyle = pa.dark ? '#332d2b' : '#c5c8ca';
         g.beginPath();
         g.arc(sx - radius * 0.24, pa.y - radius * 0.2, radius * 0.55, 0, Math.PI * 2);
         g.fill();
+        if (pa.dark) {
+          g.globalAlpha = alpha * 0.34;
+          g.fillStyle = '#030304';
+          g.beginPath();
+          g.arc(sx + radius * 0.20, pa.y + radius * 0.08, radius * 0.72, 0, Math.PI * 2);
+          g.fill();
+        }
       } else if (pa.kind === 'spark') {
         const speed = Math.max(1, Math.hypot(pa.vx, pa.vy));
         const len = Math.min(18, 3 + speed * 0.035) * (0.5 + alpha * 0.5);
