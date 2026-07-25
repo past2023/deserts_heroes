@@ -645,9 +645,9 @@
     const sw = enemyShip01Image.naturalWidth || enemyShip01Image.width;
     const sh = enemyShip01Image.naturalHeight || enemyShip01Image.height;
     const dw = Math.round(sw * scale), dh = Math.round(sh * scale);
-    const vibX = Math.sin(time * 19.0) * 1.2 + Math.sin(time * 31.0) * 0.55;
-    const vibY = Math.cos(time * 17.0) * 0.9 + Math.sin(time * 29.0) * 0.45;
-    const sx = Math.round(520 - camX * 0.012 - dw / 2 + vibX);
+    const vibX = Math.sin(time * 58.0) * 0.42 + Math.sin(time * 91.0) * 0.22;
+    const vibY = Math.cos(time * 47.0) * 1.15 + Math.sin(time * 83.0) * 0.55;
+    const sx = Math.round(520 - camX * 0.004 - dw / 2 + vibX);
     const startY = 386;
     const endY = -dh - 90;
     const sy = Math.round(startY + (endY - startY) * rise + Math.sin(time * 0.35) * 3 + vibY);
@@ -661,19 +661,19 @@
     const reactorXs = [0.30, 0.47, 0.64];
     for (let r = 0; r < reactorXs.length; r++) {
       const rx = sx + dw * reactorXs[r] + Math.sin(time * 13 + r) * 2;
-      const ry = sy + dh * (0.78 + (r === 1 ? 0.03 : 0));
+      const ry = sy + dh * (0.90 + (r === 1 ? 0.035 : 0));
       const flick = 0.78 + Math.sin(time * (9 + r * 2.7)) * 0.16 + Math.sin(time * 31 + r) * 0.06;
-      const glow = g.createRadialGradient(rx, ry, 5, rx, ry, 72 * flick);
+      const glow = g.createRadialGradient(rx, ry, 7, rx, ry, 106 * flick);
       glow.addColorStop(0, 'rgba(255,245,190,0.70)');
       glow.addColorStop(0.20, 'rgba(255,146,48,0.42)');
       glow.addColorStop(0.58, 'rgba(255,78,24,0.16)');
       glow.addColorStop(1, 'rgba(255,78,24,0)');
       g.globalAlpha = 0.75 * flick;
       g.fillStyle = glow;
-      g.beginPath(); g.arc(rx, ry, 72 * flick, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(rx, ry, 106 * flick, 0, Math.PI * 2); g.fill();
       g.globalAlpha = 0.92 * flick;
       g.fillStyle = '#fff0a8';
-      g.fillRect(Math.round(rx - 8), Math.round(ry - 2), 16, 4);
+      g.fillRect(Math.round(rx - 14), Math.round(ry - 4), 28, 8);
     }
     // Old-ship smoke puffs venting from damaged hull seams.
     g.globalCompositeOperation = 'source-over';

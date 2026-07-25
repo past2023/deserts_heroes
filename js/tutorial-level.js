@@ -365,16 +365,26 @@
         const sw = (lt.w || 28) * MID_SCALE;
         const sh = (lt.h || 20) * MID_SCALE;
         const left = screenX - sw/2, top = screenY - sh/2;
-        // Exact rectangular screen face: the fill follows the monitor pixel bounds.
-        g.globalAlpha=0.30*intensity; g.fillStyle=lt.color; g.fillRect(Math.round(left), Math.round(top), Math.max(1,Math.round(sw)), Math.max(1,Math.round(sh)));
-        // Small inner pixel scanlines, clipped to the same face bounds.
-        g.globalAlpha=0.16*intensity; g.fillStyle='#ffffff';
-        for(let yy=top+2; yy<top+sh-1; yy+=4) g.fillRect(Math.round(left+2), Math.round(yy), Math.max(1,Math.round(sw-4)), 1);
+        const tvFlick = Math.max(0.08, 0.62 + Math.sin(time*38 + lt.x)*0.28 + Math.sin(time*91 + lt.y)*0.16);
+        const dropout = (Math.sin(time*17.3 + lt.x*0.07) > 0.88) ? 0.18 : 1;
+        const tvI = intensity * tvFlick * dropout;
+        const jitterX = Math.round(Math.sin(time*77 + lt.y) * 1.5);
+        // Exact rectangular malfunctioning CRT face.
+        g.globalAlpha=0.38*tvI; g.fillStyle=lt.color; g.fillRect(Math.round(left+jitterX), Math.round(top), Math.max(1,Math.round(sw)), Math.max(1,Math.round(sh)));
+        g.globalAlpha=0.28*tvI; g.fillStyle='#ffffff';
+        for(let yy=top+1; yy<top+sh-1; yy+=3) {
+          const lineShift = Math.round(Math.sin(time*65 + yy + lt.x)*2);
+          g.fillRect(Math.round(left+2+lineShift), Math.round(yy), Math.max(1,Math.round(sw-4-lineShift)), 1);
+        }
+        if(Math.sin(time*53 + lt.x)>0.74){
+          g.globalAlpha=0.35*tvI; g.fillStyle='#dfffff';
+          g.fillRect(Math.round(left+1), Math.round(top+Math.abs(Math.sin(time*31))*Math.max(1,sh-3)), Math.max(1,Math.round(sw-2)), 2);
+        }
         // Rectangular halo, then a soft radial spill around the monitor.
-        g.globalAlpha=0.20*intensity; g.fillStyle=lt.color; g.fillRect(Math.round(left-2), Math.round(top-2), Math.max(1,Math.round(sw+4)), Math.max(1,Math.round(sh+4)));
-        const grad=g.createRadialGradient(screenX,screenY,2,screenX,screenY,lt.r);
-        grad.addColorStop(0,lt.color); grad.addColorStop(0.45,lt.color+'88'); grad.addColorStop(1,'rgba(0,0,0,0)');
-        g.globalAlpha=0.42*intensity; g.fillStyle=grad; g.beginPath(); g.arc(screenX,screenY,lt.r,0,Math.PI*2); g.fill();
+        g.globalAlpha=0.26*tvI; g.fillStyle=lt.color; g.fillRect(Math.round(left-2), Math.round(top-2), Math.max(1,Math.round(sw+4)), Math.max(1,Math.round(sh+4)));
+        const grad=g.createRadialGradient(screenX,screenY,2,screenX,screenY,lt.r*(1+tvFlick*0.25));
+        grad.addColorStop(0,lt.color); grad.addColorStop(0.45,lt.color+'aa'); grad.addColorStop(1,'rgba(0,0,0,0)');
+        g.globalAlpha=0.46*tvI; g.fillStyle=grad; g.beginPath(); g.arc(screenX,screenY,lt.r*(1+tvFlick*0.18),0,Math.PI*2); g.fill();
       } else if(lt.type==='fire'){
         g.globalCompositeOperation='lighter';
         const fireFlick=Math.sin(time*lt.pulse)*3+Math.random()*2;
@@ -482,7 +492,27 @@
         g.globalAlpha=0.06 + Math.sin(time*2.2 + worldX)*0.015;
         g.fillStyle='#68efff';
         g.fillRect(sx+drawW*0.45, MID_BASE_Y+30, Math.max(3,drawW*0.08), drawH*0.22);
+        // Foreground pilar02 malfunction: tiny electric crawls on cables.
+        g.globalAlpha=0.22 + Math.sin(time*18 + worldX)*0.08;
+        g.strokeStyle='#7af4ff'; g.lineWidth=1.1;
+        for(let e=0;e<3;e++){
+          const ex=sx+drawW*(0.38+e*0.13)+Math.sin(time*21+e)*4;
+          let ey=MID_BASE_Y+drawH*(0.22+e*0.18);
+          g.beginPath(); g.moveTo(ex,ey);
+          for(let k=0;k<4;k++){ const nx=ex+(Math.random()-0.5)*18; ey += 10+Math.random()*16; g.lineTo(nx,ey); }
+          g.stroke();
+        }
         g.globalCompositeOperation='source-over';
+        // Dark smoke drifting around the foreground pillar.
+        for(let sidx=0;sidx<5;sidx++){
+          const drift=(time*(12+sidx*2)+sidx*31)%130;
+          const puff=1-drift/130;
+          g.globalAlpha=0.10*puff;
+          g.fillStyle=sidx%2?'#2b2d30':'#45413a';
+          g.beginPath();
+          g.arc(sx+drawW*(0.30+(sidx%3)*0.18)-drift*0.12, MID_BASE_Y+drawH*(0.20+sidx*0.10)-drift*0.20, 8+(1-puff)*18, 0, Math.PI*2);
+          g.fill();
+        }
         g.globalAlpha=1;
       }
     }
@@ -496,6 +526,19 @@
     if(!window.G || !G.particles) return;
     const camCenter = (G.camX || 0) + 480;
     const moduleIdx = Math.max(0, Math.min(MODULE_COUNT-1, Math.floor(camCenter / MODULE_W)));
+    // Small electrical malfunctions can happen everywhere in the annex.
+    if(Math.random()<dt*7){
+      const x = (G.camX || 0) + Math.random() * 960;
+      const y = 90 + Math.random() * 370;
+      G.particles.push({
+        kind:'spark', x:x, y:y,
+        vx:(Math.random()-0.5)*90, vy:(Math.random()-0.5)*70,
+        t:0, life:0.18+Math.random()*0.28,
+        color:Math.random()<0.5?'#68efff':'#ffffff',
+        size:1+Math.random()*2.8, grav:0, drag:0.72
+      });
+    }
+    // Heavier blue data-rain remains module-specific for pacing.
     if(!sparkRainModules[moduleIdx]) return;
     const rainRate = moduleIdx === 6 ? 24 : 16;
     if(Math.random()<dt*rainRate){
