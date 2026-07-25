@@ -332,48 +332,60 @@
   }
 
   const decorDrones = [
-    { module:1, x:610, y:245, phase:0.2, scale:0.34 },
-    { module:3, x:930, y:245, phase:1.8, scale:0.36 },
-    { module:5, x:640, y:220, phase:3.4, scale:0.32 },
-    { module:6, x:880, y:245, phase:5.0, scale:0.34 },
+    { module:1, x:610, y:280, phase:0.2, scale:0.56 },
+    { module:3, x:930, y:278, phase:1.8, scale:0.56 },
+    { module:5, x:640, y:250, phase:3.4, scale:0.54 },
+    { module:6, x:880, y:278, phase:5.0, scale:0.56 },
   ];
   function drawDecorDrones(g,camX,time,VW){
     if(!imageReady(soldier06DecorImage)) return;
     g.save(); g.imageSmoothingEnabled=false;
     for(const d of decorDrones){
-      const cycle=(time+d.phase)%6.2;
-      const exploding=cycle>4.85;
-      const wx=d.module*MODULE_W + d.x + Math.sin(time*1.15+d.phase)*34;
+      // Same visual scale as the normal Soldier06 observer, but scripted as a
+      // decorative broken unit: patrol, violent malfunction, explosion, reboot.
+      const cycle=(time+d.phase)%7.4;
+      const malfunction=cycle>3.75 && cycle<=5.1;
+      const exploding=cycle>5.1 && cycle<=6.45;
+      const reboot=cycle>6.45;
+      const patrol=Math.sin(time*1.05+d.phase)*46;
+      const wx=d.module*MODULE_W + d.x + patrol;
       const sx=Math.round(wx-camX);
-      if(sx<-120 || sx>VW+120) continue;
-      const sy=Math.round(MID_BASE_Y + d.y + Math.sin(time*2.1+d.phase)*8);
+      if(sx<-150 || sx>VW+150) continue;
+      const sy=Math.round(MID_BASE_Y + d.y + Math.sin(time*1.8+d.phase)*5);
       const sw=soldier06DecorImage.naturalWidth*d.scale, sh=soldier06DecorImage.naturalHeight*d.scale;
-      if(!exploding){
-        const glitch=Math.sin(time*41+d.phase)>0.82 ? Math.sin(time*90)*3 : 0;
-        g.globalAlpha=0.62;
+      if(!exploding && !reboot){
+        const glitch=malfunction ? Math.sin(time*120+d.phase)*5 : (Math.sin(time*41+d.phase)>0.88 ? Math.sin(time*90)*2 : 0);
+        g.globalAlpha=malfunction ? 0.95 : 0.86;
+        if(malfunction && Math.sin(time*32)>0.72){ g.globalAlpha=0.45; }
         g.drawImage(soldier06DecorImage, sx-sw/2+glitch, sy-sh/2, sw, sh);
         g.globalCompositeOperation='lighter';
-        g.globalAlpha=0.35+Math.sin(time*9+d.phase)*0.12;
-        g.fillStyle='#68efff';
-        g.beginPath(); g.arc(sx+sw*0.08, sy-sh*0.16, 7, 0, Math.PI*2); g.fill();
-        if(Math.sin(time*17+d.phase)>0.65){
-          g.strokeStyle='#7af4ff'; g.lineWidth=1;
-          g.beginPath(); g.moveTo(sx,sy-sh*0.1); g.lineTo(sx+18,sy-sh*0.16+Math.sin(time*31)*7); g.stroke();
+        g.globalAlpha=(malfunction?0.75:0.44)+Math.sin(time*11+d.phase)*0.12;
+        g.fillStyle=malfunction?'#ffffff':'#68efff';
+        g.beginPath(); g.arc(sx+sw*0.08, sy-sh*0.16, malfunction?10:7, 0, Math.PI*2); g.fill();
+        g.strokeStyle=malfunction?'#ffffff':'#7af4ff'; g.lineWidth=malfunction?1.5:1;
+        const arcs=malfunction?5:1;
+        for(let a=0;a<arcs;a++){
+          if(!malfunction && Math.sin(time*17+d.phase)<=0.65) continue;
+          g.beginPath();
+          g.moveTo(sx+(Math.random()-0.5)*18, sy-sh*(0.12+Math.random()*0.18));
+          g.lineTo(sx+18+Math.random()*32, sy-sh*0.16+Math.sin(time*31+a)*12);
+          g.stroke();
         }
         g.globalCompositeOperation='source-over';
-      } else {
-        const p=Math.min(1,(cycle-4.85)/1.35);
+      } else if(exploding) {
+        const p=Math.min(1,(cycle-5.1)/1.35);
         g.globalCompositeOperation='lighter';
-        g.globalAlpha=(1-p)*0.75;
-        for(let i=0;i<16;i++){
-          const a=i*0.78+time*3;
-          const r=8+p*(18+i*2.4);
-          g.fillStyle=i%2?'#68efff':'#ffffff';
+        g.globalAlpha=(1-p)*0.88;
+        for(let i=0;i<24;i++){
+          const a=i*0.62+time*3.7;
+          const r=10+p*(22+i*2.8);
+          g.fillStyle=i%3?'#68efff':(i%2?'#ffffff':'#ff9a2a');
           g.fillRect(Math.round(sx+Math.cos(a)*r), Math.round(sy+Math.sin(a)*r), 2+(i%3), 2+(i%2));
         }
-        g.globalAlpha=(1-p)*0.28;
-        g.fillStyle='#ff7a22';
-        g.beginPath(); g.arc(sx,sy,18+p*28,0,Math.PI*2); g.fill();
+        g.globalAlpha=(1-p)*0.40;
+        g.fillStyle='#ff7a22'; g.beginPath(); g.arc(sx,sy,20+p*34,0,Math.PI*2); g.fill();
+        g.globalAlpha=(1-p)*0.26;
+        g.fillStyle='#68efff'; g.beginPath(); g.arc(sx,sy,36+p*54,0,Math.PI*2); g.fill();
         g.globalCompositeOperation='source-over';
       }
     }

@@ -83,8 +83,13 @@
     { x: 5640, baseY: 382, y: 382, w: 145, amp: 20, speed: 0.7, phase: 5.4, fragile: true },
     { x: 6080, baseY: 305, y: 305, w: 160, amp: 22, speed: 0.66, phase: 2.5 },
 
-    // Playable deck on the high decorative BigShip03 wreck/hulk near the mission start.
-    { x: 720, baseY: 176, y: 176, w: 430, amp: 0, speed: 0, phase: 0 },
+    // Invisible playable surfaces extracted from assets/vehicles/ships/bigship03_refe.png
+    // after drawing BigShip03 at scale 0.96 with its bottom on Level.GROUND.
+    { x: 719, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
+    { x: 499, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
+    { x: 932, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
+    { x: 754, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
+    { x: 462, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
     // Extended exploration route: alternating low, medium and high paths.
     { x: 7180, baseY: 390, y: 390, w: 170, amp: 14, speed: 0.55, phase: 0.8 },
     { x: 7520, baseY: 300, y: 300, w: 140, amp: 20, speed: 0.72, phase: 2.2, fragile: true },
@@ -651,7 +656,7 @@
     const sw = enemyShip01Image.naturalWidth || enemyShip01Image.width;
     const sh = enemyShip01Image.naturalHeight || enemyShip01Image.height;
     const dw = Math.round(sw * scale), dh = Math.round(sh * scale);
-    const vibX = Math.sin(time * 62.0) * 0.28 + Math.sin(time * 103.0) * 0.14;
+    const vibX = Math.sin(time * 66.0) * 0.14 + Math.sin(time * 113.0) * 0.07;
     const vibY = Math.cos(time * 47.0) * 1.15 + Math.sin(time * 83.0) * 0.55;
     const sx = Math.round(520 - dw / 2 + vibX);
     const startY = 386;
@@ -733,22 +738,22 @@
     if (!imageReady(bigShip03Image)) return;
     const worldX = 930;
     const screenX = Math.round(worldX - camX);
-    const scale = 0.48;
+    const scale = 0.96;
     const iw = bigShip03Image.naturalWidth || bigShip03Image.width;
     const ih = bigShip03Image.naturalHeight || bigShip03Image.height;
     const dw = Math.round(iw * scale), dh = Math.round(ih * scale);
     const sx = screenX - Math.round(dw / 2);
-    const sy = 0;
+    const sy = GROUND - dh;
     if (sx + dw < -120 || sx > VW + 120) return;
     g.save();
     g.imageSmoothingEnabled = false;
     g.globalAlpha = 0.94;
     g.drawImage(bigShip03Image, sx, sy, dw, dh);
-    // Subtle platform readability: glint along the playable deck area.
+    // Subtle platform readability: glint along the main lower ship deck.
     g.globalCompositeOperation = 'lighter';
-    g.globalAlpha = 0.10 + Math.sin(((window.G&&G.time)||0) * 2.4) * 0.03;
+    g.globalAlpha = 0.08 + Math.sin(((window.G&&G.time)||0) * 2.4) * 0.025;
     g.fillStyle = '#68efff';
-    g.fillRect(Math.round(screenX - 215), 174, 430, 2);
+    g.fillRect(Math.round(screenX - 468), 348, 854, 2);
     g.restore();
   }
 

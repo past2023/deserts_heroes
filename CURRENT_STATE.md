@@ -147,14 +147,14 @@ Animated data-driven campaign map with:
 
 **Light FX:** Lamps, fires, robot eyes and electric sparks are positioned per module after checking mid PNG pixel art. Floating fire FX removed; only art-backed flames remain. Computer-screen FX now use fast malfunctioning CRT-style flicker, jitter, scanlines and dropouts.
 
-**Extra tutorial atmosphere:** Decorative Soldier06 drones drift left/right and periodically malfunction/explode; `pilar02.png` emits smoke and electric crawls. Small electric sparks can occur throughout the annex, while heavier cyan/blue data-rain stays limited to modules 0, 2, 4, 6.
+**Extra tutorial atmosphere:** Decorative Soldier06 drones render at normal observer scale, drift left/right and periodically malfunction/explode; `pilar02.png` emits smoke and electric crawls. Small electric sparks can occur throughout the annex, while heavier cyan/blue data-rain stays limited to modules 0, 2, 4, 6.
 
 ---
 
 ## 8. Level 1 (`js/level.js`)
 
 Main arcade level with:
-- Terrain, sky, mountains, dunes parallax layers plus `bigship03.png` high ship platform decoration
+- Terrain, sky, mountains, dunes parallax layers plus 2x `bigship03.png` ship decoration with reference-extracted invisible platforms
 - 6 enemy types, POW rescues, weapon pickups
 - Portal trigger, boss fight at end
 - Mission intro with supplied PNG rocket-board fly-in and rising enemy ship vista
