@@ -21,11 +21,11 @@ Campaign map choices currently available:
 - Optional 1990s TV filter
 - Four rapid day/night changes with a detailed nearest-neighbor cratered pixel moon
 - Modular sky, cloud, mountain, dune and terrain rendering
-- Animated lava gaps with molten currents, surface ribbons, bubbles, sparks, heat glow and allied-tank damage
+- Animated lava gaps with vertical flame-launcher-style lava tongues, molten currents, surface ribbons, bubbles, sparks, heat glow and allied-tank damage
 - Native sand platforms between mountains and dunes, plus an early-daytime 2x `bigship03.png` ship-platform section in the palm/cactus gameplay layer with invisible platforms extracted from `bigship03_refe.png`, enemies/pickups on upper decks, reactor glows and black smoke
 - Static nearest-plane antenna bunkers
 - Pixel-quantized iris and portal transitions
-- Loading overlays use pixelated animated alien/pixel glyph strings and retro segmented pixel bars instead of English-only status labels
+- Loading overlays use a simple retro pixel loading bar without visible glyph text instead of English-only status labels
 - Level 1 opening vista draws `enemy_ship01` rising vertically from the dune layer with no horizontal parallax, tight motor vibration, three lower reactor glows, smoke puffs and heavy falling sand; the BigShip03 platform section appears soon afterward in daylight
 
 ## Gameplay

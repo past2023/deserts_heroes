@@ -219,7 +219,7 @@ Main arcade level with:
 - Tutorial floating fire FX were removed/repositioned to real flame art only.
 - `tutorial_foreground01.png` was removed from runtime drawing; `pilar02.png` is used as optional center-level foreground accent.
 - Ally Tank 02 laser origin was moved to the center of the drill tip.
-- Loading screens use pixelated animated alien glyph text and retro segmented pixel bars instead of English-only status labels.
+- Loading screens use a simple retro pixel loading bar without visible glyph text instead of English-only status labels.
 
 ### Known Bugs
 - No level2-level6 content beyond galactic map nodes

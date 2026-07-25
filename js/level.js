@@ -948,62 +948,110 @@
       g.fillStyle = lava; g.fillRect(0, GROUND + 18, VW, VH - GROUND - 18); g.restore();
     }
 
-    // Open lava cuts use a bright animated surface—never a flat black strip.
+    // Open lava cuts: vertical flame-lava columns inspired by the flame launcher,
+    // layered with molten surface sheets, heat haze, bubbles and ember sparks.
     for (const gap of lavaGaps) {
       const gx = gap.x - camX;
       if (gx + gap.w < 0 || gx > VW) continue;
       const visibleX = Math.max(0, gx), visibleRight = Math.min(VW, gx + gap.w);
-      const magma = g.createLinearGradient(0, GROUND - 3, 0, VH);
-      magma.addColorStop(0, '#fff29a');
-      magma.addColorStop(0.08, '#ffc52f');
-      magma.addColorStop(0.32, '#ff641c');
-      magma.addColorStop(0.7, '#b92318');
-      magma.addColorStop(1, '#4b1017');
-      g.fillStyle = magma;
-      g.fillRect(gx, GROUND - 3, gap.w, VH - GROUND + 3);
+      const gapW = Math.max(1, gap.w);
 
-      // Two irregular molten currents travel at different speeds.
+      // Deep magma body with hot core and darker bottom.
+      const magma = g.createLinearGradient(0, GROUND - 8, 0, VH);
+      magma.addColorStop(0, '#fff6b0');
+      magma.addColorStop(0.07, '#ffcf3f');
+      magma.addColorStop(0.26, '#ff5e1e');
+      magma.addColorStop(0.62, '#b91d17');
+      magma.addColorStop(1, '#26070d');
+      g.fillStyle = magma;
+      g.fillRect(gx, GROUND - 6, gap.w, VH - GROUND + 8);
+
       g.save();
       g.beginPath();
-      g.moveTo(gx, GROUND + 8);
-      for (let x = gx; x <= gx + gap.w; x += 8) {
-        const wave = Math.sin(x * 0.055 + hazardTime * 3.4) * 4 +
-          Math.sin(x * 0.12 - hazardTime * 2.1) * 2;
+      g.rect(visibleX, GROUND - 26, Math.max(0, visibleRight - visibleX), VH - GROUND + 30);
+      g.clip();
+      g.globalCompositeOperation = 'lighter';
+
+      // Flame-launcher style vertical tongues climbing from inside the pit.
+      const columns = Math.max(5, Math.floor(gap.w / 38));
+      for (let i = 0; i < columns; i++) {
+        const lane = (i + 0.5) / columns;
+        const baseX = gx + lane * gapW + Math.sin(hazardTime * 1.7 + i * 2.1) * 8;
+        const phase = (hazardTime * (0.55 + (i % 5) * 0.08) + i * 0.137) % 1;
+        const flameH = 38 + (1 - phase) * 92 + Math.sin(hazardTime * 5.5 + i) * 10;
+        const flameW = 10 + (i % 4) * 5 + Math.sin(hazardTime * 4 + i) * 3;
+        const topY = GROUND + 38 - flameH;
+        const grad = g.createLinearGradient(baseX, GROUND + 54, baseX, topY);
+        grad.addColorStop(0, 'rgba(155,18,12,0)');
+        grad.addColorStop(0.18, 'rgba(255,76,20,0.34)');
+        grad.addColorStop(0.58, 'rgba(255,160,34,0.64)');
+        grad.addColorStop(0.86, 'rgba(255,244,165,0.72)');
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        g.globalAlpha = 0.55 + (1 - phase) * 0.35;
+        g.fillStyle = grad;
+        g.beginPath();
+        g.moveTo(baseX - flameW, GROUND + 58);
+        for (let k = 0; k < 5; k++) {
+          const yy = GROUND + 48 - k * flameH / 5;
+          const xx = baseX + Math.sin(hazardTime * 6 + i * 1.7 + k) * (5 + k * 2);
+          g.lineTo(xx - flameW * (1 - k / 7), yy);
+        }
+        g.lineTo(baseX + Math.sin(hazardTime * 9 + i) * 5, topY);
+        for (let k = 4; k >= 0; k--) {
+          const yy = GROUND + 48 - k * flameH / 5;
+          const xx = baseX + Math.sin(hazardTime * 6 + i * 1.7 + k) * (5 + k * 2);
+          g.lineTo(xx + flameW * (1 - k / 7), yy);
+        }
+        g.closePath();
+        g.fill();
+      }
+
+      // Animated molten surface: broken bright wave with hot white islands.
+      g.globalAlpha = 0.95;
+      g.fillStyle = '#ff8b1f';
+      g.beginPath();
+      g.moveTo(gx, GROUND + 5);
+      for (let x = gx; x <= gx + gap.w; x += 7) {
+        const wave = Math.sin(x * 0.055 + hazardTime * 5.2) * 4 +
+          Math.sin(x * 0.14 - hazardTime * 3.1) * 2;
         g.lineTo(x, GROUND + 7 + wave);
       }
-      g.lineTo(gx + gap.w, GROUND + 24);
-      g.lineTo(gx, GROUND + 24);
+      g.lineTo(gx + gap.w, GROUND + 28);
+      g.lineTo(gx, GROUND + 28);
       g.closePath();
-      g.fillStyle = '#ff8b1f';
       g.fill();
-      g.restore();
-
-      // White-yellow surface ribbons are broken into pixel-art segments.
-      for (let x = gx + 8; x < gx + gap.w - 6; x += 27) {
-        const y = GROUND + 2 + Math.sin(x * 0.08 + hazardTime * 4.6) * 3;
-        const length = 9 + ((Math.abs(Math.sin(x + hazardTime)) * 13) | 0);
-        g.fillStyle = '#fff3a0'; g.fillRect(Math.round(x), Math.round(y), length, 3);
-        g.fillStyle = '#ffc62e'; g.fillRect(Math.round(x + 3), Math.round(y + 3), Math.max(4, length - 6), 2);
+      for (let x = gx + 8; x < gx + gap.w - 6; x += 21) {
+        const y = GROUND + 1 + Math.sin(x * 0.09 + hazardTime * 6.5) * 4;
+        const length = 8 + ((Math.abs(Math.sin(x * 0.23 + hazardTime * 2.7)) * 20) | 0);
+        g.globalAlpha = 0.55 + Math.sin(hazardTime * 8 + x) * 0.2;
+        g.fillStyle = '#fff7b8'; g.fillRect(Math.round(x), Math.round(y), length, 2);
+        g.fillStyle = '#ffd248'; g.fillRect(Math.round(x + 2), Math.round(y + 3), Math.max(4, length - 5), 2);
       }
 
-      // Rising bubbles, popping sparks and heat glow make each gap feel alive.
-      g.save();
-      g.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < Math.max(3, Math.floor(gap.w / 70)); i++) {
-        const phase = (hazardTime * (0.28 + i * 0.035) + i * 0.37) % 1;
-        const bx = gx + 18 + ((i * 83 + gap.x * 0.13) % Math.max(25, gap.w - 36));
-        const by = GROUND + 38 - phase * 44;
-        const radius = 2 + (i % 3);
+      // Bubbles, embers and hot gas.
+      const bubbleCount = Math.max(7, Math.floor(gap.w / 38));
+      for (let i = 0; i < bubbleCount; i++) {
+        const phase = (hazardTime * (0.38 + i * 0.027) + i * 0.31) % 1;
+        const bx = gx + 16 + ((i * 73 + gap.x * 0.17) % Math.max(25, gap.w - 32));
+        const by = GROUND + 66 - phase * 78;
+        const radius = 2 + (i % 4);
         g.globalAlpha = (1 - phase) * 0.75;
-        g.fillStyle = i % 2 ? '#fff070' : '#ff7a20';
+        g.fillStyle = i % 3 ? '#ffef70' : '#ffffff';
         g.fillRect(Math.round(bx - radius), Math.round(by - radius), radius * 2, radius * 2);
+        if (i % 3 === 0) {
+          g.globalAlpha = (1 - phase) * 0.35;
+          g.fillStyle = '#ff4d24';
+          g.fillRect(Math.round(bx + 6), Math.round(by + 2), 8, 2);
+        }
       }
-      const surfaceGlow = g.createLinearGradient(0, GROUND - 22, 0, GROUND + 34);
+
+      // Heat glow/haze rising above the surface.
+      const surfaceGlow = g.createLinearGradient(0, GROUND - 50, 0, GROUND + 42);
       surfaceGlow.addColorStop(0, 'rgba(255,120,25,0)');
-      surfaceGlow.addColorStop(0.55, 'rgba(255,110,20,0.18)');
+      surfaceGlow.addColorStop(0.45, 'rgba(255,140,32,0.28)');
       surfaceGlow.addColorStop(1, 'rgba(255,45,15,0)');
       g.globalAlpha = 1; g.fillStyle = surfaceGlow;
-      g.fillRect(visibleX, GROUND - 22, Math.max(0, visibleRight - visibleX), 56);
+      g.fillRect(visibleX, GROUND - 50, Math.max(0, visibleRight - visibleX), 92);
       g.restore();
 
       // Small rock lips connect terrain edges without drawing across the lava.
