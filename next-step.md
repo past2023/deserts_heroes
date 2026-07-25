@@ -411,4 +411,4 @@ Aim for professional indie quality, not prototype quality.
 
 ## Documentation synchronization
 
-Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-23).
+Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-25). Latest changes include the carousel character select, reference-image tutorial platforms, revised tutorial FX/foreground pillars, drill-tip Ally Tank 02 laser origin, and alien-glyph loading text.

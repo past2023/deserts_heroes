@@ -1,9 +1,9 @@
 // ============================================================
-// TUTORIAL LEVEL — Frontier Training Annex v4
+// TUTORIAL LEVEL — Frontier Training Annex v5
 // Updated for 8 modules (01,02,03,04,06,07,08,05) + pilar seams
-// Platforms extracted from tutorial_midXX_refe.png reference lines.
+// Platforms extracted from white-on-black tutorial_midXX_refe.png guides.
 // Pilar01.png hides seams at each module border.
-// Old foreground tutorial_foreground01.png only at start and middle.
+// Pilar02.png is an optional center-level extreme-foreground accent.
 // ============================================================
 (function () {
   const MODULE_W = 1376;
@@ -18,8 +18,8 @@
   function imageReady(img){ return img && img.naturalWidth>0 && img.complete!==false; }
 
   const tutorialBack = new Image(); tutorialBack.decoding='async'; tutorialBack.src='assets/tutorial/tutorial_back01.png';
-  const tutorialFore = new Image(); tutorialFore.decoding='async'; tutorialFore.src='assets/tutorial/tutorial_foreground01.png';
   const pilarImage = new Image(); pilarImage.decoding='async'; pilarImage.src='assets/tutorial/pilar01.png';
+  const pilar02Image = new Image(); pilar02Image.decoding='async'; pilar02Image.src='assets/tutorial/pilar02.png';
 
   // 8 modular mids
   const midSources = [
@@ -57,9 +57,8 @@
     tutorialMids.push(img);
   }
 
-  if (!imageReady(pilarImage)) {
-    pilarImage.onerror = function(){ this.src = 'upload/pilar01.png'; };
-  }
+  pilarImage.onerror = function(){ if(!this._fallbackTried){ this._fallbackTried=true; this.src = 'upload/pilar01.png'; } };
+  pilar02Image.onerror = function(){ if(!this._fallbackTried){ this._fallbackTried=true; this.src = 'upload/pilar02.png'; } };
 
   // Platforms extracted from tutorial_midXX_refe.png (black background + white guide rectangles).
   // Module-to-refe mapping: 0=mid01_refe, 1=mid02_refe, 2=mid03_refe, 3=mid04_refe,
@@ -196,56 +195,75 @@
   const SURFBOARD_X = W - 180;
   const END_LIGHT = { x: W - 260, y: 200, r: 28, triggered:false };
 
-  // Light FX placed at positions matching actual pixel art in mid PNGs
+  // Light FX placed at positions matching actual pixel art in mid PNGs.
   // Module order: 0=mid01b, 1=mid02b, 2=mid03b, 3=mid04b,
-  // 4=mid06b, 5=mid07b, 6=mid08b, 7=mid05b
+  // 4=mid06b, 5=mid07b, 6=mid08b, 7=mid05b.
+  // Fires are only used where the art has an actual flame; wall glows are lamps.
   const lights=[
     // Module 0 — mid01b (satellite dish lab)
-    { module:0, x:560, y:105, type:'lamp', color:'#ff9a2a', r:32, pulse:1.1, intensity:0.9 },
-    { module:0, x:1000, y:145, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
-    { module:0, x:1200, y:135, type:'lamp', color:'#ff9a2a', r:30, pulse:1.2, intensity:0.85 },
-    { module:0, x:70, y:420, type:'screen', color:'#4af1ff', r:26, pulse:3.2, intensity:0.55 },
-    { module:0, x:1250, y:420, type:'screen', color:'#58f0ff', r:22, pulse:2.8, intensity:0.5 },
+    { module:0, x:70, y:392, type:'lamp', color:'#ffb44a', r:18, pulse:1.7, intensity:0.68 },
+    { module:0, x:72, y:420, type:'screen', color:'#4af1ff', r:24, pulse:3.2, intensity:0.58 },
+    { module:0, x:284, y:620, type:'screen', color:'#58f0ff', r:20, pulse:2.7, intensity:0.42 },
+    { module:0, x:560, y:106, type:'lamp', color:'#ff9a2a', r:30, pulse:1.1, intensity:0.82 },
+    { module:0, x:1020, y:144, type:'lamp', color:'#ffb44a', r:26, pulse:1.4, intensity:0.74 },
+    { module:0, x:1116, y:116, type:'screen', color:'#42f2ff', r:22, pulse:2.4, intensity:0.58 },
+    { module:0, x:1236, y:395, type:'lamp', color:'#ffaa3a', r:22, pulse:1.3, intensity:0.64 },
+    { module:0, x:1250, y:418, type:'screen', color:'#58f0ff', r:20, pulse:2.8, intensity:0.52 },
+    { module:0, x:910, y:532, type:'fire', color:'#ff6a18', r:34, pulse:11, intensity:0.82 },
 
     // Module 1 — mid02b (broken circular)
-    { module:1, x:1000, y:145, type:'lamp', color:'#ff9a2a', r:28, pulse:1.2, intensity:0.85 },
-    { module:1, x:70, y:420, type:'screen', color:'#4aff88', r:32, pulse:2.5, intensity:0.6 },
-    { module:1, x:410, y:490, type:'screen', color:'#5afcff', r:44, pulse:1.8, intensity:0.65 },
-    { module:1, x:90, y:300, type:'lamp', color:'#ffaa3a', r:24, pulse:1.6, intensity:0.7 },
+    { module:1, x:72, y:395, type:'lamp', color:'#ffaa3a', r:20, pulse:1.6, intensity:0.62 },
+    { module:1, x:72, y:420, type:'screen', color:'#4aff88', r:28, pulse:2.5, intensity:0.58 },
+    { module:1, x:232, y:126, type:'screen', color:'#6fffee', r:20, pulse:2.0, intensity:0.44 },
+    { module:1, x:410, y:490, type:'screen', color:'#5afcff', r:38, pulse:1.8, intensity:0.64 },
+    { module:1, x:1020, y:144, type:'lamp', color:'#ff9a2a', r:26, pulse:1.2, intensity:0.74 },
+    { module:1, x:1238, y:392, type:'lamp', color:'#ffaa3a', r:22, pulse:1.5, intensity:0.62 },
+    { module:1, x:1242, y:419, type:'screen', color:'#58f0ff', r:20, pulse:2.8, intensity:0.50 },
 
     // Module 2 — mid03b (suspended ship)
-    { module:2, x:240, y:130, type:'lamp', color:'#ff9a2a', r:30, pulse:1.3, intensity:0.8 },
-    { module:2, x:1000, y:145, type:'lamp', color:'#ffb44a', r:28, pulse:1.4, intensity:0.8 },
-    { module:2, x:75, y:390, type:'lamp', color:'#ffaa3a', r:22, pulse:1.7, intensity:0.6 },
-    { module:2, x:660, y:460, type:'screen', color:'#4af1ff', r:28, pulse:2.2, intensity:0.6 },
+    { module:2, x:72, y:392, type:'lamp', color:'#ffaa3a', r:20, pulse:1.7, intensity:0.62 },
+    { module:2, x:236, y:130, type:'lamp', color:'#ff9a2a', r:28, pulse:1.3, intensity:0.78 },
+    { module:2, x:660, y:460, type:'screen', color:'#4af1ff', r:26, pulse:2.2, intensity:0.60 },
+    { module:2, x:902, y:532, type:'fire', color:'#ff6a18', r:36, pulse:10, intensity:0.86 },
+    { module:2, x:1020, y:144, type:'lamp', color:'#ffb44a', r:26, pulse:1.4, intensity:0.74 },
+    { module:2, x:1116, y:116, type:'screen', color:'#42f2ff', r:22, pulse:2.4, intensity:0.58 },
+    { module:2, x:1240, y:395, type:'lamp', color:'#ffaa3a', r:22, pulse:1.5, intensity:0.62 },
 
     // Module 3 — mid04b (desert view upper + big robots)
-    { module:3, x:590, y:380, type:'lamp', color:'#ff9a2a', r:30, pulse:1.5, intensity:0.85 },
-    { module:3, x:740, y:410, type:'lamp', color:'#ffaa3a', r:22, pulse:1.8, intensity:0.6 },
-    { module:3, x:320, y:420, type:'robotEye', color:'#ff3a2a', r:8, pulse:2.4 },
-    { module:3, x:315, y:425, type:'electric', color:'#5affff', r:32, pulse:18 },
-    { module:3, x:540, y:380, type:'robotEye', color:'#ff5a1a', r:7, pulse:1.9 },
-    { module:3, x:535, y:385, type:'electric', color:'#7af4ff', r:36, pulse:14 },
+    { module:3, x:72, y:396, type:'lamp', color:'#ffaa3a', r:20, pulse:1.7, intensity:0.62 },
+    { module:3, x:572, y:378, type:'robotEye', color:'#ff4a22', r:8, pulse:2.4, intensity:0.95 },
+    { module:3, x:574, y:384, type:'electric', color:'#5affff', r:30, pulse:18, intensity:0.75 },
+    { module:3, x:742, y:410, type:'lamp', color:'#ffaa3a', r:22, pulse:1.8, intensity:0.58 },
+    { module:3, x:1192, y:372, type:'lamp', color:'#ffb44a', r:18, pulse:1.6, intensity:0.50 },
 
-    // Module 4 — mid06b (elevator lab) - screens/lamps only; stray fire glows removed
-    { module:4, x:700, y:42, type:'lamp', color:'#ffb44a', r:26, pulse:1.3, intensity:0.8 },
-    { module:4, x:1070, y:196, type:'screen', color:'#4af1ff', r:24, pulse:2.4, intensity:0.55 },
-    { module:4, x:70, y:418, type:'screen', color:'#4aff88', r:26, pulse:2.8, intensity:0.5 },
-    { module:4, x:1245, y:418, type:'screen', color:'#5afcff', r:24, pulse:2.5, intensity:0.5 },
+    // Module 4 — mid06b (elevator lab)
+    { module:4, x:72, y:395, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.60 },
+    { module:4, x:72, y:420, type:'screen', color:'#4aff88', r:24, pulse:2.8, intensity:0.50 },
+    { module:4, x:260, y:126, type:'lamp', color:'#ff9a2a', r:20, pulse:1.2, intensity:0.60 },
+    { module:4, x:700, y:42, type:'lamp', color:'#ffb44a', r:24, pulse:1.3, intensity:0.72 },
+    { module:4, x:832, y:528, type:'fire', color:'#ff7a22', r:32, pulse:10, intensity:0.82 },
+    { module:4, x:842, y:466, type:'screen', color:'#72e7ff', r:26, pulse:2.1, intensity:0.52 },
+    { module:4, x:1076, y:196, type:'screen', color:'#4af1ff', r:24, pulse:2.4, intensity:0.58 },
+    { module:4, x:1244, y:392, type:'lamp', color:'#ffaa3a', r:20, pulse:1.5, intensity:0.58 },
+    { module:4, x:1245, y:418, type:'screen', color:'#5afcff', r:22, pulse:2.5, intensity:0.50 },
 
     // Module 5 — mid07b (sand hangar - no fire in art)
-    { module:5, x:160, y:260, type:'lamp', color:'#ffaa3a', r:20, pulse:1.6, intensity:0.6 },
-    { module:5, x:1000, y:280, type:'lamp', color:'#ffaa3a', r:18, pulse:1.5, intensity:0.55 },
-    { module:5, x:70, y:420, type:'screen', color:'#5afcff', r:22, pulse:2.5, intensity:0.5 },
+    { module:5, x:160, y:260, type:'lamp', color:'#ffaa3a', r:20, pulse:1.6, intensity:0.55 },
+    { module:5, x:1000, y:280, type:'lamp', color:'#ffaa3a', r:18, pulse:1.5, intensity:0.52 },
+    { module:5, x:1028, y:450, type:'screen', color:'#5afcff', r:24, pulse:2.5, intensity:0.54 },
+    { module:5, x:1060, y:528, type:'screen', color:'#5afcff', r:26, pulse:2.2, intensity:0.58 },
+    { module:5, x:1238, y:394, type:'lamp', color:'#ff4d38', r:18, pulse:2.4, intensity:0.48 },
 
-    // Module 6 — mid08b (second elevator/satellite) - single real fire at right side
-    { module:6, x:825, y:468, type:'lamp', color:'#ffb44a', r:22, pulse:1.3, intensity:0.6 },
-    { module:6, x:975, y:498, type:'lamp', color:'#ff9a2a', r:22, pulse:1.4, intensity:0.65 },
-    { module:6, x:70, y:420, type:'screen', color:'#4af1ff', r:20, pulse:2.6, intensity:0.45 },
-    { module:6, x:1160, y:510, type:'fire', color:'#ff7a22', r:24, pulse:11, intensity:0.6 },
+    // Module 6 — mid08b (second elevator/satellite)
+    { module:6, x:72, y:396, type:'lamp', color:'#ffaa3a', r:18, pulse:1.6, intensity:0.58 },
+    { module:6, x:535, y:616, type:'fire', color:'#ff7a22', r:30, pulse:11, intensity:0.78 },
+    { module:6, x:825, y:530, type:'lamp', color:'#ffb44a', r:22, pulse:1.3, intensity:0.58 },
+    { module:6, x:1076, y:196, type:'screen', color:'#4af1ff', r:24, pulse:2.6, intensity:0.56 },
+    { module:6, x:1242, y:394, type:'lamp', color:'#ff4d38', r:18, pulse:2.2, intensity:0.50 },
 
-    // Module 7 — mid05b (desert exit final - no floating fire FX)
-    { module:7, x:350, y:390, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.6 },
+    // Module 7 — mid05b (desert exit final)
+    { module:7, x:350, y:390, type:'lamp', color:'#ffaa3a', r:20, pulse:1.4, intensity:0.50 },
+    { module:7, x:785, y:150, type:'screen', color:'#7befff', r:38, pulse:2.1, intensity:0.38 },
   ];
 
   function resetPlatforms(){ for(const p of platforms){ p.dead=false; p.triggered=false; p.breakT=0; p.y=p.baseY; } }
@@ -415,28 +433,47 @@
         g.globalCompositeOperation='source-over'; g.globalAlpha=1;
       }
     }
-    g.restore();
 
-    g.save(); g.imageSmoothingEnabled=false;
-    if(imageReady(tutorialFore)){
-      const foreScale=1.0, foreTileW=724*foreScale, foreTileH=768*foreScale;
-      const foreY=VH - foreTileH + 140;
-      let sx = Math.round(0 - camX*1.18);
-      if(sx>-foreTileW && sx<VW+foreTileW) g.drawImage(tutorialFore, sx, Math.round(foreY), foreTileW, foreTileH);
-      sx = Math.round(150 - camX*1.18);
-      if(sx>-foreTileW && sx<VW+foreTileW){ g.globalAlpha=0.85; g.drawImage(tutorialFore, sx, Math.round(foreY), foreTileW*0.85, foreTileH*0.85); g.globalAlpha=1; }
-      const secondX = 4*MODULE_W + 200;
-      const sx2 = Math.round(secondX - camX*1.18);
-      if(sx2>-foreTileW && sx2<VW+foreTileW){ g.globalAlpha=0.92; g.drawImage(tutorialFore, sx2, Math.round(foreY), foreTileW, foreTileH); g.globalAlpha=1; }
+    // Optional center-level extreme foreground accents. pilar02.png can live in
+    // assets/tutorial/ or upload/; if it is absent the tutorial simply skips it.
+    if(imageReady(pilar02Image)){
+      const naturalW = pilar02Image.naturalWidth || pilar02Image.width || 226;
+      const naturalH = pilar02Image.naturalHeight || pilar02Image.height || 768;
+      const scale = 1.0;
+      const drawW = naturalW*scale, drawH = naturalH*scale;
+      const placements = [
+        3*MODULE_W + 650,
+        4*MODULE_W + 700,
+        5*MODULE_W + 620,
+      ];
+      for(const worldX of placements){
+        const sway = Math.sin(time*0.9 + worldX*0.002)*4;
+        const sx = Math.round(worldX - camX*1.10 - drawW/2 + sway);
+        if(sx<-drawW-80 || sx>VW+80) continue;
+        g.globalAlpha = 0.92;
+        g.drawImage(pilar02Image, sx, Math.round(MID_BASE_Y), drawW, drawH);
+        g.globalCompositeOperation='lighter';
+        g.globalAlpha=0.06 + Math.sin(time*2.2 + worldX)*0.015;
+        g.fillStyle='#68efff';
+        g.fillRect(sx+drawW*0.45, MID_BASE_Y+30, Math.max(3,drawW*0.08), drawH*0.22);
+        g.globalCompositeOperation='source-over';
+        g.globalAlpha=1;
+      }
     }
     g.restore();
   }
 
   function nightAmount(){ return 0.78; }
   function isLavaGap(){ return false; }
+  const sparkRainModules = { 0:true, 2:true, 4:true, 6:true };
   function updateHazards(dt){
-    if(window.G && G.particles && Math.random()<dt*18){
-      const x = (window.G ? G.camX : 0) + Math.random() * 960;
+    if(!window.G || !G.particles) return;
+    const camCenter = (G.camX || 0) + 480;
+    const moduleIdx = Math.max(0, Math.min(MODULE_COUNT-1, Math.floor(camCenter / MODULE_W)));
+    if(!sparkRainModules[moduleIdx]) return;
+    const rainRate = moduleIdx === 6 ? 24 : 16;
+    if(Math.random()<dt*rainRate){
+      const x = (G.camX || 0) + Math.random() * 960;
       G.particles.push({
         kind:'spark', x:x, y:-10,
         vx:(Math.random()-0.5)*12, vy:80+Math.random()*160,

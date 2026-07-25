@@ -1,12 +1,14 @@
 # Tutorial — Frontier Training Annex — Implementation Complete
-Date: 2026-07-23
-Status: Playable
+Date: 2026-07-25
+Status: Playable / visually polished
 
 ## Assets integrated
 
 - **Back:** `assets/tutorial/tutorial_back01.png` 2400x448, tiled at parallax 0.12 behind lab
-- **Mid modular:** `tutorial_mid01b-05b.png` each 1376x768 @ 0.78 scale, world-locked at x = moduleIndex*1376, y = GROUND - 599 + 92
-- **Front:** `tutorial_foreground01.png` 724x768 extreme foreground, tiled with parallax 1.18 at bottom
+- **Mid modular:** `tutorial_mid01b`, `02b`, `03b`, `04b`, `06b`, `07b`, `08b`, `05b`, each 1376x768 @ 1.0 scale, world-locked at x = moduleIndex*1376, y = MID_BASE_Y (-150)
+- **Extreme foreground seams:** `pilar01.png` at module boundaries
+- **Extreme foreground accents:** optional `pilar02.png` in center modules (assets path with upload fallback)
+- **Removed front layer:** `tutorial_foreground01.png` is no longer drawn at runtime
 - **Procedural layer 0:** blue neon pulse — dark gradient #071425→#102f52 + radial glow 380px pulsing sin(1.15 time) + faint cyan scanlines
 - **Ally Tank 02:** `assets/vehicles/ally_tank02/` — full/chassis/wheels/gunturret/drill point, 400x274, drawAllyTank02 with bob, wheel spin via tread, turret recoil, drill spin 0.35 rad/frame, exhaust smoke particles, occupied glow
 - **Observer Drone (soldier06):** `assets/enemies/soldier06/` — modular head/torso/legs/laser_camera + full, hover bob sin(1.8), patrol ±160px, laser burst with red flash additive, cyan eye glow, death explosion with cyan debris
@@ -17,37 +19,34 @@ Status: Playable
 0: drawProceduralNeon() — base gradient + lighter radial + scanlines
 1: drawTiled(back01, parallax 0.12, y=12)
 2: for each mid: screenX = worldX - camX (parallax 1.0), draw scaled, then lights FX
-3: drawGround + platforms + drawTiled(fore, parallax 1.18, y=VH-768+140)
+3: drawGround + platforms + drawExtremeForeground(pilar01 seams + optional pilar02 center accents)
 ```
 
 ## Lights FX (internal engine, no external deps)
 
-- **Lamps:** 20 orange positions extracted from artwork (x,y, radius 20-34, pulse 1.1-2.0). Drawn with lighter radial gradient #ff9a2a + white core 3px, intensity = base + sin(pulse)*0.22
-- **Screens:** cyan #4af1ff / green #4aff88 positions, additive rect + radial glow 22-44px, scanline jitter sin(time*12)
-- **Fire:** 6 fire spots, flame tongue drawn via two triangles #ffe28a + #ff6a18, outer glow radial, ember particles pushed to G.particles (kind ember, vx -60..60, vy -130..-60)
-- **Ground wash:** additive ellipses on ground beneath lamps 58x10 alpha 0.12
+Light FX were rechecked against the actual module PNG pixels:
 
-Red soft indicator: platforms draw red line alpha 0.18 + sin(time) *0.06 at y+12 to hint walkable
+- **Lamps:** orange/yellow radial glows placed on visible bulbs and wall lights.
+- **Screens:** cyan/green additive computer panels placed on visible monitor art.
+- **Fire:** only art-backed flames receive fire FX; floating fire FX were removed. Current fire FX are in modules 0, 2, 4, and 6 where the artwork shows flame sources.
+- **Robot/electric:** robot eye and electric spark FX remain in module 3 where the art supports them.
+- **Particle rain:** cyan/blue falling data sparks run only on modules 0, 2, 4, and 6 instead of every tutorial section.
 
-## Platform layout (soft red areas -> walkable)
+Fire uses two-triangle flame tongues plus radial glow and occasional ember particles. Screen/lamp FX use `lighter` composite and conservative intensity so the mid art is not washed out.
 
-15 platforms across 5 modules, amp 6-13, speed 0.5-0.8, 4 fragile (breakT 1.45s, red bar). Coordinates approximate catwalks in supplied PNGs.
+## Platform layout
 
-```
-mid01: 320/382 w170, 720/340 w380 upper right, 80/308 w170 fragile
-mid02: 1440/360 w180, 1680/300 w260, 2080/335 w320, 1950/412 w145 fragile
-mid03: 2830/335 w240, 3220/382 w190 fragile, 3630/350 w260, 3920/410 w135
-mid04: 4280/395 w195, 4680/340 w240, 5080/388 w190 fragile, 5400/350 w180
-mid05: 5620/400 w170, 5950/340 w220, 6320/380 w180 fragile
-```
+Invisible platforms are now extracted from white-on-black reference rectangles in `assets/tutorial/tutorial_midXX_refe.png`. Each connected white rectangle becomes one `addP(modIdx, lx, ly, lw)` call and its top edge is the walkable Y.
+
+Current counts: mid01=10, mid02=5, mid03=11, mid04=10, mid06=8, mid07=7, mid08=8, mid05=3.
 
 ## Gameplay loop (fun + educational)
 
-- W = 6880 + 800 exit = 7680
-- Spawns: soldier@850, pow@1320, observer@1920, soldier@2280, grenadier@2620, observer@3150, knife@3600, soldier@4100, observer@4450, bazooka@4880, exam soldier+grenadier @5400/5660
-- Props: barrel01@1050, barrel02@2650, crate@3680, barrel@4920, crate@5480 (teaches chain explosion)
-- High pickups: mg@600, grenades@1850, homing@2420, heart@3350, jetpack@4550, heart@5900 + extra homing@2300 jet@3100
-- Slug: ally_tank02 @3050
+- W = 8 * 1376 = 11008
+- Spawns include soldiers, POW, observer drones, knife, grenadiers and bazooka troops across the full 8-module annex
+- Props and pickups are distributed across early, middle and late tutorial modules
+- High pickups teach optional routes: mg, grenades, homing, hearts, and jet pack
+- Slug: ally_tank02 @2850
 
 Tutorial has normal combat: all weapons work, tank crushes infantry, double jump, coyote, drop-through.
 
@@ -92,14 +91,14 @@ File:// also works due to no ES modules.
 
 - Neon pulse uses lighter composite to avoid washing mid art
 - Fire uses two-triangle flame + outer radial + ember particle spawn
-- Tank drill glows orange when occupied, spins 0.35 rad/frame
+- Tank drill glows orange when occupied; Ally Tank 02 laser originates from the visible drill tip
 - Observer laser camera red flash via lighter + shadowBlur before shot
-- Extreme foreground tiled gives depth feeling of looking out of trench
+- `pilar01.png` seam pillars and optional `pilar02.png` center accents give depth without the removed `tutorial_foreground01.png` layer
 
 ## Future improvements (not blocking)
 
 - Auto-detect red walkable areas via image processing to generate platforms.json instead of hardcoded
-- Add second foreground variant for variety
+- Replace generated/fallback `pilar02.png` with final authored art if a bespoke file is supplied
 - Add tutorial-specific boss (drill tank malfunction)
 - Save tutorial progress (per-objective) in localStorage
 

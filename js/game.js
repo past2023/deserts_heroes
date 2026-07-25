@@ -1272,11 +1272,7 @@
       grad.addColorStop(1, fillColor);
       g.fillStyle = grad;
       g.fillRect(x + 2, y + 2, fillW, h - 4);
-      const scan = ((time * 90 + delay * 37) % (w + 42)) - 42;
       g.globalCompositeOperation = 'lighter';
-      g.globalAlpha = 0.55;
-      g.fillStyle = '#ffffff';
-      g.fillRect(x + 2 + Math.min(fillW, Math.max(0, scan)), y + 2, Math.min(10, fillW), h - 4);
       g.globalAlpha = 0.22 + Math.sin(time * 7 + delay) * 0.08;
       g.fillStyle = fillColor;
       g.fillRect(x + 2, y - 2, fillW, 2);
@@ -1390,18 +1386,13 @@
     };
     const accent = accentColors[ch.id] || accentColors.juan_p;
 
-    g.font = 'bold 20px "Courier New", monospace';
-    g.textAlign = 'left';
-    g.fillStyle = 'rgba(160,210,235,0.48)';
-    g.fillText('CONCEPT A', 22, 28);
-
-    const topY = 42;
+    const topY = 34;
     drawCarouselPortrait(prev, 58, topY + 40, 210, 228, accent, false, true);
     drawCarouselPortrait(next, 692, topY + 40, 210, 228, accent, false, true);
     drawCarouselPortrait(ch, 335, topY, 290, 300, accent, true, false);
 
     // Bottom dossier panel, matching the reference composition.
-    const infoX = 44, infoY = 348, infoW = 872, infoH = 158;
+    const infoX = 44, infoY = 342, infoW = 872, infoH = 170;
     drawPixelPanel(infoX, infoY, infoW, infoH, '#45eaff', 1);
     g.save();
     g.fillStyle = '#ff9a38';
@@ -1414,18 +1405,18 @@
     const roleStr = tr(ch.roleKey).toUpperCase();
     const bioStr = tr(ch.bioKey);
     g.textAlign = 'left';
-    g.font = 'bold 24px "Courier New", monospace';
+    g.font = 'bold 23px "Courier New", monospace';
     g.fillStyle = 'rgba(0,0,0,0.65)'; g.fillText('Name: ' + nameStr, infoX + 36 + 2, infoY + 42 + 2);
     g.fillStyle = '#ffe8b8'; g.fillText('Name: ', infoX + 36, infoY + 42);
     g.fillStyle = accent.name; g.fillText(nameStr, infoX + 122, infoY + 42);
-    g.font = 'bold 21px "Courier New", monospace';
+    g.font = 'bold 20px "Courier New", monospace';
     g.fillStyle = '#ffd28a'; g.fillText('Class: ', infoX + 36, infoY + 72);
     g.fillStyle = accent.badge; g.fillText(roleStr, infoX + 124, infoY + 72);
-    g.font = 'bold 18px "Courier New", monospace';
+    g.font = 'bold 17px "Courier New", monospace';
     g.fillStyle = '#ffe8b8'; g.fillText('Description:', infoX + 36, infoY + 94);
     g.fillStyle = '#f8f4df';
     let bioLine = bioStr;
-    while (bioLine.length > 8 && g.measureText(bioLine).width > 680) bioLine = bioLine.slice(0, -2);
+    while (bioLine.length > 8 && g.measureText(bioLine).width > 640) bioLine = bioLine.slice(0, -2);
     if (bioLine !== bioStr) bioLine += '…';
     g.fillText(bioLine, infoX + 174, infoY + 94);
 
@@ -1444,7 +1435,7 @@
       { label: 'ARMOR', val: ch.maxArmor / 2 * 50, max: 50, color: '#ffb347' },
       { label: 'AMMO', val: ch.ammoMultiplier * 50, max: 50, color: '#ff6558' },
     ];
-    const statY = infoY + 115;
+    const statY = infoY + 118;
     const cols = [infoX + 42, infoX + 430];
     for (let i = 0; i < stats.length; i++) {
       const st = stats[i];
@@ -1455,10 +1446,10 @@
       g.textAlign = 'left';
       g.fillStyle = '#fff3c7';
       g.fillText(st.label, x, y + 16);
-      drawStatBar(x + 116, y, 162, 16, st.val, st.max, st.color, G.time, i * 0.9);
+      drawStatBar(x + 110, y, 154, 15, st.val, st.max, st.color, G.time, i * 0.9);
       g.font = 'bold 19px "Courier New", monospace';
       g.fillStyle = st.color;
-      g.fillText(String(Math.round(st.val)), x + 292, y + 16);
+      g.fillText(String(Math.round(st.val)), x + 278, y + 16);
     }
 
     const ctlY = VH - 16;
@@ -1724,7 +1715,7 @@
       drawWorld();
       drawScreenFX();
       ExtremeForeground.draw(g);
-      // Tutorial extreme foreground must be frontmost (spec: tutorial_foreground01.png)
+      // Tutorial extreme foreground pillars render frontmost over the shared foreground layer.
       if (Level && Level.drawExtremeForeground) Level.drawExtremeForeground(g, G.camX, VW, VH);
       if (!G.paused) Dialogue.draw(g, VW, VH, G.characterId);
       if (!G.intro || !G.intro.active) drawHUD();

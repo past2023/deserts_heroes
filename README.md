@@ -36,8 +36,9 @@ Standard Gamepad API controllers are detected automatically in gameplay, menus, 
 
 ## Gameplay
 
-* **Three playable explorers**: after choosing Arcade or Survival, select from a redesigned character-select screen with a glass-morphism card (centered 880×470), identity section (name, class badge with diamond bullet, bio), portrait frame, and 4 color-coded stat bars (Speed=cyan, Jump=neon-green, Armor=orange, Ammo=red) on a deep-space nebula animated background.
+* **Three playable explorers**: after choosing Arcade or Survival, select from an animated carousel character-select screen inspired by the supplied concept art: center pilot panel, previous/next side panels, bottom dossier with name/class/description, pulsing pixel stat bars, and a layered star/meteor background.
 * **Mission entrance**: the selected explorer arrives in a short in-engine cinematic on a twin-rocket flying surfboard, jumps to the ground, and starts the mission while the board accelerates away.
+* **Language-neutral loading screens**: mission, tutorial, map, and rift loading overlays use animated alien/pixel glyphs instead of English status text.
 * **Two modes**: *Arcade Mission* (single extended mission ~26,000px with final boss) and *Survival* (endless waves in an arena, separate high score). Mode selected from menu with Up/Down.
 * **Enemies**: rifle soldiers, grenadiers, melee attackers, elite bazooka troops, sandbag turrets, helicopters, and tanks.
 * **Mini-boss**: Gunship helicopter with HP bar, bullet spreads, and bombing runs.
@@ -104,4 +105,4 @@ docs/external-assets-fx-projectiles-ui-and-intro.md — surfboard, projectiles, 
 
 ## Documentation synchronization
 
-Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-23).
+Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-25).

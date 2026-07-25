@@ -1,7 +1,7 @@
 # Desert's Heroes — Current Game State
 **Date:** 2026-07-25  
-**Branch:** `arena/019f957c-deserts-heroes` (merged to `main`)  
-**PR:** #7
+**Branch:** `arena/019f97f2-deserts-heroes`  
+**PR:** #8
 
 ---
 
@@ -100,12 +100,11 @@ Animated data-driven campaign map with:
 | `help` | Controls help screen |
 
 ### Character Select Screen
-- Single centered 880×470 card with glass-morphism background
-- Identity section (left 55%): Name (28pt white), Class badge (14pt, diamond bullet), Bio (12pt italic grey)
-- Portrait frame below bio
-- Stats section (right 40%): 4 color-coded progress bars (SPEED=cyan, JUMP=green, ARMOR=orange, AMMO=red)
-- Navigation arrows with pulsing accent glow
-- Deep space nebula + twinkling stars background
+- Carousel layout based on `upload/player_select_screen_design_ideas01.png`
+- Large selected pilot panel centered, previous/next pilots in smaller side panels
+- Bottom dossier panel contains Name, Class, Description and two-column stats
+- Animated layered star/meteor background with subtle scanlines
+- Animated stat bars pulse/fill without the old moving white scanner block
 - Controls: ← → to switch, Enter to confirm, Esc to return
 
 ### Characters (`js/characters.js`)
@@ -133,20 +132,22 @@ Animated data-driven campaign map with:
 
 | Mod | Mid Art | Reference File | Platforms |
 |-----|---------|----------------|-----------|
-| 0 | `mid01b.png` | `mid01_refe.png` | 11 |
+| 0 | `mid01b.png` | `mid01_refe.png` | 10 |
 | 1 | `mid02b.png` | `mid02_refe.png` | 5 |
 | 2 | `mid03b.png` | `mid03_refe.png` | 11 |
-| 3 | `mid04b.png` | `mid04_refe.png` | 11 |
-| 4 | `mid06b.png` | `mid06_refe.png` | 9 |
-| 5 | `mid07b.png` | `mid07_refe.png` | 5 |
-| 6 | `mid08b.png` | `mid08_refe.png` | 10 |
-| 7 | `mid05b.png` | `mid05_refe.png` | 2 |
+| 3 | `mid04b.png` | `mid04_refe.png` | 10 |
+| 4 | `mid06b.png` | `mid06_refe.png` | 8 |
+| 5 | `mid07b.png` | `mid07_refe.png` | 7 |
+| 6 | `mid08b.png` | `mid08_refe.png` | 8 |
+| 7 | `mid05b.png` | `mid05_refe.png` | 3 |
 
-**Platforms:** Invisible platforms defined via `addP(modIdx, lx, ly, lw)` — extracted from refe PNGs with green lines on black.
+**Platforms:** Invisible platforms defined via `addP(modIdx, lx, ly, lw)` — extracted from white-on-black reference rectangles. Each rectangle top edge is walkable Y.
 
-**Light FX:** Lamps, screens, fires, robot eyes, electric sparks positioned per module.
+**Extreme foreground:** `pilar01.png` hides module seams. `tutorial_foreground01.png` is no longer drawn. Optional/generated `pilar02.png` appears as a center-level foreground accent if present.
 
-**Falling particles:** Ambient cyan/blue data-sparks drift down.
+**Light FX:** Lamps, screens, fires, robot eyes, electric sparks positioned per module after checking mid PNG pixel art. Floating fire FX removed; only art-backed flames remain.
+
+**Falling particles:** Cyan/blue data-sparks rain only in selected modules (0, 2, 4, 6), so other modules stay visually calmer.
 
 ---
 
@@ -213,16 +214,14 @@ Main arcade level with:
 
 ## 11. Known Issues / Next Steps
 
-### 🔲 Platform Detection (HIGH PRIORITY)
-The `_refe.png` files with neon green lines on black were uploaded but the indexed PNG format makes it hard to auto-detect. **Next user should upload simple JPG or PNG with white rectangles on pure black** (1376×768) — one rectangle per platform, positioned at walkable height.
-
-### Lights FX
-- Module 5 (mid07b): Fire was removed (art has no fire) ✅
-- Module 6 (mid08b): Fire moved to x=1160 ✅
-- Other light positions still need verification against actual art
+### Recently Fixed
+- Tutorial platforms now match the white-on-black reference rectangles from `assets/tutorial/*_refe.png`.
+- Tutorial floating fire FX were removed/repositioned to real flame art only.
+- `tutorial_foreground01.png` was removed from runtime drawing; `pilar02.png` is used as optional center-level foreground accent.
+- Ally Tank 02 laser origin was moved to the center of the drill tip.
+- Loading screens use animated alien glyph text instead of English-only status labels.
 
 ### Known Bugs
-- Tutorial invisible platforms still not perfectly matching art (manual addP coordinates approximate)
 - No level2-level6 content beyond galactic map nodes
 - Survival mode balanced but untested extensively
 

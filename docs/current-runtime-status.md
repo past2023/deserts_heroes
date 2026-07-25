@@ -1,6 +1,6 @@
 # Current runtime status
 
-Updated: 2026-07-23
+Updated: 2026-07-25
 
 This document is the current source of truth when older production handoff notes describe an earlier prototype state.
 
@@ -25,10 +25,11 @@ Campaign map choices currently available:
 - Native sand platforms between mountains and dunes
 - Static nearest-plane antenna bunkers
 - Pixel-quantized iris and portal transitions
+- Loading overlays use animated alien/pixel glyph strings instead of English-only status labels
 
 ## Gameplay
 
-- Three selectable heroes
+- Three selectable heroes with an animated carousel selection screen, side pilot panels, bottom dossier, and pulsing pixel stat bars
 - Double jump and ten-second jet pack
 - Arcade and Survival modes
 - 26,000-pixel Level 1 with calm exploration spaces and enemy territories
@@ -57,6 +58,12 @@ The map uses supplied tutorial/planet PNGs, asteroid clusters and satellite art.
 ## Pickups
 
 Authored PNG pickups replace generated crates for heavy machine gun, spread, rocket/missile variants, flame shot, grenades, guided missiles, jet pack and extra life. Icons float and receive alpha-silhouette glow. Four persistent heart pickups are positioned on optional high-platform routes.
+
+## Tutorial runtime
+
+`tutorial.html` contains the 8-module Frontier Training Annex. Invisible platforms are generated from white-on-black reference rectangles, `pilar01.png` hides module seams, and `pilar02.png` is used as an optional center-level extreme-foreground accent. The old `tutorial_foreground01.png` layer is no longer drawn. Tutorial light FX were rechecked against the mid PNG art: lamps/screens are placed on visible art, fire FX only appear on illustrated flames, and data-spark rain is limited to selected modules for pacing.
+
+Ally Tank 02 uses the drill variant art and fires its main cyan laser from the visible drill tip.
 
 ## Background depth props
 
