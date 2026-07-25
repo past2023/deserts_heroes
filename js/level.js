@@ -84,12 +84,12 @@
     { x: 6080, baseY: 305, y: 305, w: 160, amp: 22, speed: 0.66, phase: 2.5 },
 
     // Invisible playable surfaces extracted from assets/vehicles/ships/bigship03_refe.png
-    // after drawing BigShip03 at scale 0.96 with its bottom on Level.GROUND.
-    { x: 719, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
-    { x: 499, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
-    { x: 932, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
-    { x: 754, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
-    { x: 462, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
+    // after drawing BigShip03 later in the level at scale 0.96 with its bottom on Level.GROUND.
+    { x: 2389, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
+    { x: 2169, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
+    { x: 2602, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
+    { x: 2424, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
+    { x: 2132, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
     // Extended exploration route: alternating low, medium and high paths.
     { x: 7180, baseY: 390, y: 390, w: 170, amp: 14, speed: 0.55, phase: 0.8 },
     { x: 7520, baseY: 300, y: 300, w: 140, amp: 20, speed: 0.72, phase: 2.2, fragile: true },
@@ -161,7 +161,12 @@
     { x: 1840, type: 'turret' },
     { x: 1950, type: 'grenadier' },
     { x: 2150, type: 'pow' },
+    // BigShip03 platform encounter: enemies stand on the reference-extracted decks.
+    { x: 2190, y: 166, type: 'soldier' },
+    { x: 2355, y: 348, type: 'grenadier' },
     { x: 2380, type: 'heli' },
+    { x: 2635, y: 257, type: 'bazooka' },
+    { x: 2860, y: 167, type: 'soldier' },
     { x: 2480, type: 'bazooka' },
     { x: 2620, type: 'soldier' },
     { x: 2700, type: 'soldier' },
@@ -363,6 +368,9 @@
 
   // Persistent life rewards on optional high-platform routes.
   const highPickups = [
+    { x:2320, y:138, type:'mg' },
+    { x:2500, y:232, type:'grenades' },
+    { x:2790, y:140, type:'homing' },
     { x:8368, y:250, type:'heart' },
     { x:12652, y:198, type:'heart' },
     { x:15732, y:193, type:'heart' },
@@ -736,7 +744,7 @@
 
   function drawBigShip03Decor(g, camX, VW) {
     if (!imageReady(bigShip03Image)) return;
-    const worldX = 930;
+    const worldX = 2600;
     const screenX = Math.round(worldX - camX);
     const scale = 0.96;
     const iw = bigShip03Image.naturalWidth || bigShip03Image.width;
@@ -754,6 +762,31 @@
     g.globalAlpha = 0.08 + Math.sin(((window.G&&G.time)||0) * 2.4) * 0.025;
     g.fillStyle = '#68efff';
     g.fillRect(Math.round(screenX - 468), 348, 854, 2);
+    const t = (window.G&&G.time)||0;
+    // Decorative reactor lamps and failing vents on the ship hull.
+    const reactors = [
+      { x:0.22, y:0.74, r:42 }, { x:0.43, y:0.80, r:54 }, { x:0.67, y:0.76, r:46 }
+    ];
+    for(const r of reactors){
+      const rx=sx+dw*r.x, ry=sy+dh*r.y;
+      const flick=0.75+Math.sin(t*8+r.x*10)*0.18+Math.sin(t*29+r.y*6)*0.07;
+      const grad=g.createRadialGradient(rx,ry,3,rx,ry,r.r*flick);
+      grad.addColorStop(0,'rgba(255,245,190,0.55)');
+      grad.addColorStop(0.28,'rgba(255,138,50,0.32)');
+      grad.addColorStop(1,'rgba(255,80,20,0)');
+      g.globalAlpha=0.65*flick; g.fillStyle=grad; g.beginPath(); g.arc(rx,ry,r.r*flick,0,Math.PI*2); g.fill();
+    }
+    g.globalCompositeOperation='source-over';
+    for(let i=0;i<12;i++){
+      const drift=(t*(10+i*0.8)+i*21)%120;
+      const puff=1-drift/120;
+      g.globalAlpha=0.11*puff;
+      g.fillStyle=i%2?'#2c2c2f':'#48433a';
+      g.beginPath();
+      g.arc(sx+dw*(0.18+(i%5)*0.16)-drift*0.10, sy+dh*(0.38+(i%4)*0.11)-drift*0.22, 8+(1-puff)*17, 0, Math.PI*2);
+      g.fill();
+    }
+    g.globalAlpha=1;
     g.restore();
   }
 

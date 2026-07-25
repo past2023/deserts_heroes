@@ -342,18 +342,20 @@
     g.save(); g.imageSmoothingEnabled=false;
     for(const d of decorDrones){
       // Same visual scale as the normal Soldier06 observer, but scripted as a
-      // decorative broken unit: patrol, violent malfunction, explosion, reboot.
-      const cycle=(time+d.phase)%7.4;
-      const malfunction=cycle>3.75 && cycle<=5.1;
-      const exploding=cycle>5.1 && cycle<=6.45;
-      const reboot=cycle>6.45;
+      // decorative broken unit: patrol, violent malfunction, then one final destruction.
+      if(d.destroyed) continue;
       const patrol=Math.sin(time*1.05+d.phase)*46;
       const wx=d.module*MODULE_W + d.x + patrol;
       const sx=Math.round(wx-camX);
       if(sx<-150 || sx>VW+150) continue;
+      if(d.startTime===undefined) d.startTime=time;
+      const cycle=time-d.startTime;
+      const malfunction=cycle>3.75 && cycle<=5.1;
+      const exploding=cycle>5.1 && cycle<=6.45;
+      if(cycle>6.45){ d.destroyed=true; continue; }
       const sy=Math.round(MID_BASE_Y + d.y + Math.sin(time*1.8+d.phase)*5);
       const sw=soldier06DecorImage.naturalWidth*d.scale, sh=soldier06DecorImage.naturalHeight*d.scale;
-      if(!exploding && !reboot){
+      if(!exploding){
         const glitch=malfunction ? Math.sin(time*120+d.phase)*5 : (Math.sin(time*41+d.phase)>0.88 ? Math.sin(time*90)*2 : 0);
         g.globalAlpha=malfunction ? 0.95 : 0.86;
         if(malfunction && Math.sin(time*32)>0.72){ g.globalAlpha=0.45; }
@@ -374,17 +376,37 @@
         g.globalCompositeOperation='source-over';
       } else if(exploding) {
         const p=Math.min(1,(cycle-5.1)/1.35);
+        // Normal Soldier06-style destruction: body fragments fly apart with cyan debris.
+        g.save();
+        g.globalAlpha=(1-p)*0.92;
+        const parts=[
+          {sx:0,sy:0,sw:62,sh:70,dx:-28,dy:-34,spin:-1.0},
+          {sx:62,sy:0,sw:63,sh:70,dx:28,dy:-38,spin:1.1},
+          {sx:0,sy:70,sw:62,sh:70,dx:-34,dy:10,spin:-0.8},
+          {sx:62,sy:70,sw:63,sh:70,dx:34,dy:8,spin:0.9},
+          {sx:0,sy:140,sw:62,sh:69,dx:-22,dy:42,spin:-1.3},
+          {sx:62,sy:140,sw:63,sh:69,dx:24,dy:44,spin:1.2},
+        ];
+        for(const part of parts){
+          g.save();
+          g.translate(sx + part.dx*p*1.9, sy + part.dy*p*1.6 - Math.sin(p*Math.PI)*28);
+          g.rotate(part.spin*p);
+          g.drawImage(soldier06DecorImage, part.sx, part.sy, part.sw, part.sh,
+            -part.sw*d.scale/2, -part.sh*d.scale/2, part.sw*d.scale, part.sh*d.scale);
+          g.restore();
+        }
+        g.restore();
         g.globalCompositeOperation='lighter';
         g.globalAlpha=(1-p)*0.88;
-        for(let i=0;i<24;i++){
+        for(let i=0;i<28;i++){
           const a=i*0.62+time*3.7;
-          const r=10+p*(22+i*2.8);
+          const r=10+p*(22+i*3.0);
           g.fillStyle=i%3?'#68efff':(i%2?'#ffffff':'#ff9a2a');
           g.fillRect(Math.round(sx+Math.cos(a)*r), Math.round(sy+Math.sin(a)*r), 2+(i%3), 2+(i%2));
         }
-        g.globalAlpha=(1-p)*0.40;
+        g.globalAlpha=(1-p)*0.34;
         g.fillStyle='#ff7a22'; g.beginPath(); g.arc(sx,sy,20+p*34,0,Math.PI*2); g.fill();
-        g.globalAlpha=(1-p)*0.26;
+        g.globalAlpha=(1-p)*0.30;
         g.fillStyle='#68efff'; g.beginPath(); g.arc(sx,sy,36+p*54,0,Math.PI*2); g.fill();
         g.globalCompositeOperation='source-over';
       }
