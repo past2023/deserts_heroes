@@ -22,10 +22,13 @@
 
   function hiddenLoot() {
     const roll = Math.random();
-    if (roll < 0.35) return null;             // score/cache fragment
-    if (roll < 0.38) return 'jetpack';        // rare mobility reward
-    if (roll < 0.44) return 'homing';         // rare launcher upgrade
-    if (roll < 0.69) return 'grenades';
+    // Level 1 now puts most guaranteed rewards on platforms.  Ground props keep
+    // some surprises, but are less item-dense so climbing is the best loot path.
+    const levelOneGroundBias = (window.G && G.mode === 'arcade') ? 0.24 : 0;
+    if (roll < 0.35 + levelOneGroundBias) return null;             // score/cache fragment
+    if (roll < 0.38 + levelOneGroundBias) return 'jetpack';        // rare mobility reward
+    if (roll < 0.44 + levelOneGroundBias) return 'homing';         // rare launcher upgrade
+    if (roll < 0.69 + levelOneGroundBias * 0.55) return 'grenades';
     const weapons = ['mg', 'spread', 'rocket', 'flame'];
     return weapons[Math.floor(Math.random() * weapons.length)];
   }

@@ -15,6 +15,7 @@
     guided:       { color: '#67efff', hot: '#ffffff', edge: '#547dff', length: 38, width: 17, rays: 4 },
     enemyRifle:   { color: '#ff6a3d', hot: '#fff0c2', edge: '#c82038', length: 25, width: 10, rays: 3 },
     enemyTurret:  { color: '#ff55c8', hot: '#ffffff', edge: '#8c36ff', length: 32, width: 11, rays: 3 },
+    soldier06Laser:{ color: '#ff334d', hot: '#ffffff', edge: '#ff9a2a', length: 44, width: 14, rays: 5 },
     enemyHeli:    { color: '#9dff5e', hot: '#efffc9', edge: '#23bfa1', length: 30, width: 13, rays: 4 },
     enemyGunship: { color: '#58dcff', hot: '#ffffff', edge: '#3d64ff', length: 38, width: 16, rays: 5 },
     enemyBoss:    { color: '#bd70ff', hot: '#ffffff', edge: '#ef3d8f', length: 39, width: 15, rays: 5 },
@@ -24,6 +25,7 @@
   const ENEMY_BOLTS = {
     enemyRifle:   { color: '#ff5f38', hot: '#fff1b8', tail: '#8e1028', length: 18, radius: 3 },
     enemyTurret:  { color: '#ff55d5', hot: '#ffffff', tail: '#6d36ff', length: 28, radius: 3.5 },
+    soldier06Laser:{ color: '#ff334d', hot: '#ffffff', tail: '#ff9a2a', length: 42, radius: 5.5 },
     enemyHeli:    { color: '#9cff57', hot: '#f2ffd2', tail: '#17aa9b', length: 22, radius: 4 },
     enemyGunship: { color: '#50ddff', hot: '#ffffff', tail: '#315dff', length: 14, radius: 6 },
     enemyBoss:    { color: '#c16dff', hot: '#ffffff', tail: '#e72f88', length: 31, radius: 5 }
@@ -37,6 +39,7 @@
     tankLaser:    { color: '#72f4ff', edge: '#315dff', rays: 10 },
     enemyRifle:   { color: '#ff6540', edge: '#a9102f', rays: 8 },
     enemyTurret:  { color: '#ff55d5', edge: '#7138ff', rays: 10 },
+    soldier06Laser:{ color: '#ff334d', edge: '#ff9a2a', rays: 13 },
     enemyHeli:    { color: '#a1ff61', edge: '#18aa98', rays: 10 },
     enemyGunship: { color: '#58dfff', edge: '#365cff', rays: 12 },
     enemyBoss:    { color: '#c477ff', edge: '#ee398c', rays: 14 },
@@ -438,13 +441,16 @@
       g.lineTo(-cfg.radius * 0.4, cfg.radius * pulse);
       g.closePath();
       g.fill();
-      if (b.style === 'enemyTurret' || b.style === 'enemyBoss') {
-        g.globalAlpha = 0.72;
+      if (b.style === 'enemyTurret' || b.style === 'enemyBoss' || b.style === 'soldier06Laser') {
+        g.globalAlpha = b.style === 'soldier06Laser' ? 0.86 : 0.72;
         g.strokeStyle = cfg.color;
-        g.lineWidth = 1;
+        g.lineWidth = b.style === 'soldier06Laser' ? 1.5 : 1;
         g.beginPath();
         g.moveTo(-cfg.length * 0.65, -cfg.radius * 2.2); g.lineTo(2, -cfg.radius * 1.25);
         g.moveTo(-cfg.length * 0.65, cfg.radius * 2.2); g.lineTo(2, cfg.radius * 1.25);
+        if (b.style === 'soldier06Laser') {
+          g.moveTo(-cfg.length * 0.85, 0); g.lineTo(cfg.radius * 1.8, 0);
+        }
         g.stroke();
       }
     }

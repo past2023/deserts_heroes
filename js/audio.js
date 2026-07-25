@@ -208,7 +208,7 @@
       const c = ensure();
       if (lastHitAt >= 0 && c.currentTime - lastHitAt < 0.032) return;
       lastHitAt = c.currentTime;
-      const energy = style === 'spread' || (style && style.indexOf('enemy') === 0);
+      const energy = style === 'spread' || style === 'soldier06Laser' || (style && style.indexOf('enemy') === 0);
       tone(energy ? 920 : 640, 0.035, 'triangle', energy ? 0.055 : 0.04,
         energy ? 1450 : 320);
       noise(0.028, energy ? 0.07 : 0.05, energy ? 6200 : 4200, 1200);

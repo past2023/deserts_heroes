@@ -41,6 +41,7 @@
     screenFlash: 0,
     screenFlashColor: '#ffffff',
     combo: { n: 0, t: 0 },
+    enemyTauntCd: 0,
     player: null,
     enemies: [], pBullets: [], eBullets: [], grenades: [],
     particles: [], flashes: [], corpses: [], wrecks: [], pows: [],
@@ -273,6 +274,7 @@
     G.screenFlash = 0;
     G.screenFlashColor = '#ffffff';
     G.combo = { n: 0, t: 0 };
+    G.enemyTauntCd = 0;
     G.enemies = []; G.pBullets = []; G.eBullets = []; G.grenades = [];
     G.particles = []; G.flashes = []; G.corpses = []; G.wrecks = []; G.pows = [];
     G.pickups = []; G.scorePops = [];
@@ -319,7 +321,7 @@
         EntityCollectibles.spawnPickup(pickup.x, pickup.type, pickup.y);
       // extra tutorial pickups for learning
       EntityCollectibles.spawnPickup(2300, 'homing');
-      EntityCollectibles.spawnPickup(3100, 'jet_pack');
+      EntityCollectibles.spawnPickup(3100, 'jetpack');
       SFX.setIntensity(0);
       // tutorial light ambient sound via particles
       G.tutorial.hintT = 3.5;
@@ -733,6 +735,7 @@
     }
 
     if (G.hurtFlash > 0) G.hurtFlash -= dt;
+    if (G.enemyTauntCd > 0) G.enemyTauntCd = Math.max(0, G.enemyTauntCd - dt);
     if (G.screenFlash > 0) G.screenFlash = Math.max(0, G.screenFlash - dt * 1.9);
     if (G.combo.t > 0) G.combo.t -= dt;
     if (G.bossCardT > 0) G.bossCardT = Math.max(0, G.bossCardT - dt);

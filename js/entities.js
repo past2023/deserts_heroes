@@ -465,6 +465,19 @@
     G.shake = Math.max(G.shake, 1.5);
   }
 
+  function enemyTauntPlayerHit() {
+    if (!window.Dialogue || !G || (G.mode !== 'arcade' && G.mode !== 'tutorial')) return;
+    G.enemyTauntCd = Math.max(0, G.enemyTauntCd || 0);
+    if (G.enemyTauntCd > 0 || (Dialogue.isBusy && Dialogue.isBusy())) return;
+    const keys = [
+      'dialogue.enemy.tauntHit1', 'dialogue.enemy.tauntHit2',
+      'dialogue.enemy.tauntHit3', 'dialogue.enemy.tauntHit4'
+    ];
+    const index = Math.floor(Math.random() * keys.length);
+    Dialogue.say('enemy', keys[index], G.mode === 'tutorial' ? 2.8 : 3.2);
+    G.enemyTauntCd = G.mode === 'tutorial' ? 8.0 : 7.0;
+  }
+
   function killPlayer() {
     const p = G.player;
     // god mode (debug): nessun danno, solo feedback visivo discreto
@@ -474,11 +487,13 @@
       const s = p.inSlug;
       if (s.hitCd <= 0) {
         damageSlug(s, 1);
+        enemyTauntPlayerHit();
         s.hitCd = 0.8;
       }
       return;
     }
     if (p.dead || p.inv > 0) return;
+    enemyTauntPlayerHit();
     if (p.armor > 1) {
       p.armor--;
       p.inv = 0.9;
@@ -1552,11 +1567,12 @@
             const sx = e.x + e.facing * 18, sy = e.y + 8;
             const ang = Math.atan2((p.y - 28) - sy, p.x - sx) + rnd(-0.08, 0.08);
             G.eBullets.push({
-              x: sx, y: sy, vx: Math.cos(ang) * 420, vy: Math.sin(ang) * 420, life: 1.8,
-              style: 'enemyTurret', phase: rnd(0, Math.PI * 2), trailT: 0,
+              x: sx, y: sy, vx: Math.cos(ang) * 560, vy: Math.sin(ang) * 560, life: 2.2,
+              style: 'soldier06Laser', phase: rnd(0, Math.PI * 2), trailT: 0,
+              radius: 5, antiArmor: true, slugDamage: 2,
             });
             SFX.enemyShot('enemyTurret');
-            CombatFX.spawnImpact(G.flashes, sx, sy, 'enemyTurret', 1.0);
+            CombatFX.spawnImpact(G.flashes, sx, sy, 'soldier06Laser', 1.18);
             // laser camera flash
             G.particles.push({
               kind: 'flash', x: sx, y: sy, vx: 0, vy: 0, t: 0, life: 0.08,
@@ -1609,12 +1625,13 @@
   // below (streaks, soft smoke, additive glows and expanding rings).
   function hitSparks(x, y, dir, style) {
     const energyColor = style === 'spread' || style === 'tankLaser' ? '#72f4ff' :
+      style === 'soldier06Laser' ? '#ff4658' :
       style === 'enemyTurret' ? '#ff55d5' :
       style === 'enemyHeli' ? '#9cff57' :
       style === 'enemyGunship' ? '#50ddff' :
       style === 'enemyBoss' ? '#c16dff' : '#ffd76a';
-    const energy = style === 'spread' || style === 'tankLaser' || style === 'enemyTurret' ||
-      style === 'enemyHeli' || style === 'enemyGunship' || style === 'enemyBoss';
+    const energy = style === 'spread' || style === 'tankLaser' || style === 'soldier06Laser' ||
+      style === 'enemyTurret' || style === 'enemyHeli' || style === 'enemyGunship' || style === 'enemyBoss';
     SFX.hitConfirm(style);
     CombatFX.spawnImpact(G.flashes, x, y, style || 'pistol', energy ? 1.2 : 0.86);
     G.particles.push({ kind: 'glow', x: x, y: y, vx: 0, vy: 0,
@@ -2472,11 +2489,12 @@
       b.trailT = (b.trailT || 0) - dt;
       if (b.trailT <= 0) {
         const style = b.style || 'enemyRifle';
-        const color = style === 'enemyTurret' ? '#ff55d5' :
+        const color = style === 'soldier06Laser' ? '#ff4658' :
+          style === 'enemyTurret' ? '#ff55d5' :
           style === 'enemyHeli' ? '#9cff57' :
           style === 'enemyGunship' ? '#50ddff' :
           style === 'enemyBoss' ? '#c16dff' : '#ff6038';
-        const energy = style === 'enemyGunship' || style === 'enemyBoss';
+        const energy = style === 'enemyGunship' || style === 'enemyBoss' || style === 'soldier06Laser';
         G.particles.push({
           kind: energy ? 'glow' : 'spark',
           x: b.x - b.vx * 0.018, y: b.y - b.vy * 0.018,
@@ -2488,12 +2506,19 @@
         b.trailT = energy ? 0.045 : 0.07;
       }
       if (b.life <= 0 || b.y >= Level.GROUND + 2) { b.dead = true; continue; }
-      // gli SLUG bloccano i proiettili leggeri (solo gli esplosivi li danneggiano)
+      // SLUG armor blocks light rounds; Soldier06 camera-laser is tank-piercing
+      // and now hurts vehicles instead of harmlessly vanishing on contact.
+      const br = b.radius || 3;
       for (const s of G.slugs) {
         if (s.hp <= 0) continue;
         const hb = slugHitbox(s);
-        if (overlap(b.x - 3, b.y - 3, 6, 6, hb.x, hb.y, hb.w, hb.h)) {
+        if (overlap(b.x - br, b.y - br, br * 2, br * 2, hb.x, hb.y, hb.w, hb.h)) {
           hitSparks(b.x, b.y, b.vx >= 0 ? 1 : -1, b.style);
+          if (b.antiArmor) {
+            damageSlug(s, b.slugDamage || 1);
+            enemyTauntPlayerHit();
+            G.shake = Math.max(G.shake, 4);
+          }
           b.dead = true;
           break;
         }
@@ -2501,7 +2526,7 @@
       if (b.dead) continue;
       if (!p.dead && !p.inSlug && p.inv <= 0) {
         const hb = playerHitbox(p);
-        if (overlap(b.x - 3, b.y - 3, 6, 6, hb.x, hb.y, hb.w, hb.h)) {
+        if (overlap(b.x - br, b.y - br, br * 2, br * 2, hb.x, hb.y, hb.w, hb.h)) {
           killPlayer();
           b.dead = true;
         }

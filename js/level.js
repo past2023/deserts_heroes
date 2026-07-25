@@ -63,6 +63,11 @@
   bigShip03Image.decoding = 'async';
   bigShip03Image.src = 'assets/vehicles/ships/bigship03.png';
   const PORTAL_X = 20750;
+  // The first BigShip03 platform encounter is intentionally a little farther
+  // from the starting skirmish so the player has more desert runway before the
+  // large ship-platform climb begins.
+  const BIG_SHIP03_X = 4040;
+  const BIG_SHIP03_SHIFT = BIG_SHIP03_X - 3800;
 
   const GROUND_MODULE_W = 512;
   const GROUND_MODULE_H = 128;
@@ -85,11 +90,11 @@
 
     // Invisible playable surfaces extracted from assets/vehicles/ships/bigship03_refe.png
     // after drawing BigShip03 later in the level at scale 0.96 with its bottom on Level.GROUND.
-    { x: 3589, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
-    { x: 3369, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
-    { x: 3802, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
-    { x: 3624, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
-    { x: 3332, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
+    { x: 3589 + BIG_SHIP03_SHIFT, baseY: 26, y: 26, w: 524, amp: 0, speed: 0, phase: 0 },
+    { x: 3369 + BIG_SHIP03_SHIFT, baseY: 166, y: 166, w: 335, amp: 0, speed: 0, phase: 0 },
+    { x: 3802 + BIG_SHIP03_SHIFT, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
+    { x: 3624 + BIG_SHIP03_SHIFT, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
+    { x: 3332 + BIG_SHIP03_SHIFT, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
     // Extended exploration route: alternating low, medium and high paths.
     { x: 7180, baseY: 390, y: 390, w: 170, amp: 14, speed: 0.55, phase: 0.8 },
     { x: 7520, baseY: 300, y: 300, w: 140, amp: 20, speed: 0.72, phase: 2.2, fragile: true },
@@ -172,9 +177,9 @@
     // Guaranteed shoulder-launcher upgrade: 10 guided missiles.
     { x: 3230, type: 'pickup', pickup: 'homing' },
     // BigShip03 ship-platform encounter: normal enemies only on the first three upper decks.
-    { x: 3405, y: 166, type: 'soldier' },
-    { x: 3645, y: 26, type: 'bazooka' },
-    { x: 3865, y: 167, type: 'grenadier' },
+    { x: 3405 + BIG_SHIP03_SHIFT, y: 166, type: 'soldier' },
+    { x: 3645 + BIG_SHIP03_SHIFT, y: 26, type: 'bazooka' },
+    { x: 3865 + BIG_SHIP03_SHIFT, y: 167, type: 'grenadier' },
     { x: 4480, type: 'pickup', pickup: 'jetpack' },
     { x: 4550, type: 'knife' },
     { x: 4610, type: 'knife' },
@@ -354,13 +359,42 @@
 
   // Persistent life rewards on optional high-platform routes.
   const highPickups = [
-    { x:3440, y:140, type:'mg' },
-    { x:3680, y:2, type:'homing' },
-    { x:4000, y:142, type:'grenades' },
+    // Opening BigShip03 deck caches (shifted with the ship art/platforms).
+    { x:3440 + BIG_SHIP03_SHIFT, y:140, type:'mg' },
+    { x:3680 + BIG_SHIP03_SHIFT, y:2, type:'homing' },
+    { x:4000 + BIG_SHIP03_SHIFT, y:142, type:'grenades' },
+    { x:4145 + BIG_SHIP03_SHIFT, y:322, type:'heart' },
+
+    // Main path platforms now carry most of the visible rewards; ground props
+    // are less loot-heavy so climbing feels valuable.
+    { x:1220, y:360, type:'grenades' },
+    { x:2080, y:318, type:'spread' },
+    { x:3488, y:374, type:'heart' },
+    { x:4215, y:288, type:'rocket' },
+    { x:5700, y:350, type:'grenades' },
+    { x:6135, y:274, type:'homing' },
+
+    { x:7238, y:360, type:'mg' },
+    { x:7568, y:268, type:'grenades' },
     { x:8368, y:250, type:'heart' },
+    { x:9205, y:298, type:'flame' },
+    { x:9668, y:230, type:'homing' },
+
+    { x:11135, y:330, type:'grenades' },
+    { x:11582, y:220, type:'heart' },
     { x:12652, y:198, type:'heart' },
+    { x:13662, y:218, type:'homing' },
+    { x:14395, y:248, type:'grenades' },
     { x:15732, y:193, type:'heart' },
-    { x:21450, y:220, type:'heart' },
+    { x:16472, y:278, type:'rocket' },
+
+    { x:18495, y:318, type:'grenades' },
+    { x:19090, y:208, type:'heart' },
+    { x:20292, y:315, type:'homing' },
+    { x:20900, y:208, type:'heart' },
+    { x:22398, y:262, type:'flame' },
+    { x:23895, y:318, type:'grenades' },
+    { x:24490, y:208, type:'heart' },
   ];
 
   // ---------------- scenografia (seeded, deterministica) ----------------
@@ -731,7 +765,7 @@
   function drawBigShip03Decor(g, camX, VW) {
     if (!imageReady(bigShip03Image)) return;
     if(window.G && G.state !== 'play') return;
-    const worldX = 3800;
+    const worldX = BIG_SHIP03_X;
     const screenX = Math.round(worldX - camX);
     const scale = 0.96;
     const iw = bigShip03Image.naturalWidth || bigShip03Image.width;
@@ -955,6 +989,9 @@
       if (gx + gap.w < 0 || gx > VW) continue;
       const visibleX = Math.max(0, gx), visibleRight = Math.min(VW, gx + gap.w);
       const gapW = Math.max(1, gap.w);
+      // Slow magma clock: lava should feel heavy and molten, not like water.
+      // It reuses the flame-launcher color language but stretches the motion.
+      const lavaTime = hazardTime * 0.32 + gap.x * 0.0009;
 
       // Deep magma body with hot core and darker bottom.
       const magma = g.createLinearGradient(0, GROUND - 8, 0, VH);
@@ -976,11 +1013,11 @@
       const columns = Math.max(5, Math.floor(gap.w / 38));
       for (let i = 0; i < columns; i++) {
         const lane = (i + 0.5) / columns;
-        const baseX = gx + lane * gapW + Math.sin(hazardTime * 1.7 + i * 2.1) * 8;
-        const phase = (hazardTime * (0.55 + (i % 5) * 0.08) + i * 0.137) % 1;
-        const flameH = 38 + (1 - phase) * 92 + Math.sin(hazardTime * 5.5 + i) * 10;
-        const flameW = 10 + (i % 4) * 5 + Math.sin(hazardTime * 4 + i) * 3;
-        const topY = GROUND + 38 - flameH;
+        const baseX = gx + lane * gapW + Math.sin(lavaTime * 1.35 + i * 2.1) * 10;
+        const phase = (lavaTime * (0.34 + (i % 5) * 0.045) + i * 0.137) % 1;
+        const flameH = 34 + (1 - phase) * 82 + Math.sin(lavaTime * 2.6 + i) * 9;
+        const flameW = 12 + (i % 4) * 6 + Math.sin(lavaTime * 2.1 + i) * 4;
+        const topY = GROUND + 40 - flameH;
         const grad = g.createLinearGradient(baseX, GROUND + 54, baseX, topY);
         grad.addColorStop(0, 'rgba(155,18,12,0)');
         grad.addColorStop(0.18, 'rgba(255,76,20,0.34)');
@@ -993,15 +1030,37 @@
         g.moveTo(baseX - flameW, GROUND + 58);
         for (let k = 0; k < 5; k++) {
           const yy = GROUND + 48 - k * flameH / 5;
-          const xx = baseX + Math.sin(hazardTime * 6 + i * 1.7 + k) * (5 + k * 2);
+          const xx = baseX + Math.sin(lavaTime * 3.1 + i * 1.7 + k) * (5 + k * 2);
           g.lineTo(xx - flameW * (1 - k / 7), yy);
         }
-        g.lineTo(baseX + Math.sin(hazardTime * 9 + i) * 5, topY);
+        g.lineTo(baseX + Math.sin(lavaTime * 4.0 + i) * 5, topY);
         for (let k = 4; k >= 0; k--) {
           const yy = GROUND + 48 - k * flameH / 5;
-          const xx = baseX + Math.sin(hazardTime * 6 + i * 1.7 + k) * (5 + k * 2);
+          const xx = baseX + Math.sin(lavaTime * 3.1 + i * 1.7 + k) * (5 + k * 2);
           g.lineTo(xx + flameW * (1 - k / 7), yy);
         }
+        g.closePath();
+        g.fill();
+      }
+
+      // Heavy flame-launcher-style lava ribbons: broad, slow, translucent
+      // tongues that drift upward under the bright crust.
+      for (let r = 0; r < Math.max(3, Math.floor(gap.w / 72)); r++) {
+        const lane = (r + 0.5) / Math.max(3, Math.floor(gap.w / 72));
+        const ribbonX = gx + lane * gapW + Math.sin(lavaTime * 0.9 + r * 3.7) * 18;
+        const ribbonTop = GROUND + 18 - (36 + Math.sin(lavaTime * 1.15 + r) * 14);
+        const ribbonW = 18 + (r % 3) * 9;
+        const ribbon = g.createLinearGradient(ribbonX, GROUND + 70, ribbonX, ribbonTop);
+        ribbon.addColorStop(0, 'rgba(210,28,18,0)');
+        ribbon.addColorStop(0.30, 'rgba(255,72,22,0.24)');
+        ribbon.addColorStop(0.66, 'rgba(255,172,42,0.40)');
+        ribbon.addColorStop(1, 'rgba(255,248,175,0.08)');
+        g.globalAlpha = 0.45 + Math.sin(lavaTime * 1.4 + r) * 0.08;
+        g.fillStyle = ribbon;
+        g.beginPath();
+        g.moveTo(ribbonX - ribbonW, GROUND + 72);
+        g.bezierCurveTo(ribbonX - ribbonW * 1.3, GROUND + 34, ribbonX - ribbonW * 0.3, GROUND + 6, ribbonX, ribbonTop);
+        g.bezierCurveTo(ribbonX + ribbonW * 0.7, GROUND + 8, ribbonX + ribbonW * 1.4, GROUND + 36, ribbonX + ribbonW, GROUND + 72);
         g.closePath();
         g.fill();
       }
@@ -1012,8 +1071,8 @@
       g.beginPath();
       g.moveTo(gx, GROUND + 5);
       for (let x = gx; x <= gx + gap.w; x += 7) {
-        const wave = Math.sin(x * 0.055 + hazardTime * 5.2) * 4 +
-          Math.sin(x * 0.14 - hazardTime * 3.1) * 2;
+        const wave = Math.sin(x * 0.045 + lavaTime * 1.35) * 4 +
+          Math.sin(x * 0.105 - lavaTime * 0.95) * 2;
         g.lineTo(x, GROUND + 7 + wave);
       }
       g.lineTo(gx + gap.w, GROUND + 28);
@@ -1021,9 +1080,9 @@
       g.closePath();
       g.fill();
       for (let x = gx + 8; x < gx + gap.w - 6; x += 21) {
-        const y = GROUND + 1 + Math.sin(x * 0.09 + hazardTime * 6.5) * 4;
-        const length = 8 + ((Math.abs(Math.sin(x * 0.23 + hazardTime * 2.7)) * 20) | 0);
-        g.globalAlpha = 0.55 + Math.sin(hazardTime * 8 + x) * 0.2;
+        const y = GROUND + 1 + Math.sin(x * 0.07 + lavaTime * 1.7) * 4;
+        const length = 8 + ((Math.abs(Math.sin(x * 0.18 + lavaTime * 0.85)) * 20) | 0);
+        g.globalAlpha = 0.55 + Math.sin(lavaTime * 2.2 + x) * 0.2;
         g.fillStyle = '#fff7b8'; g.fillRect(Math.round(x), Math.round(y), length, 2);
         g.fillStyle = '#ffd248'; g.fillRect(Math.round(x + 2), Math.round(y + 3), Math.max(4, length - 5), 2);
       }
@@ -1031,7 +1090,7 @@
       // Bubbles, embers and hot gas.
       const bubbleCount = Math.max(7, Math.floor(gap.w / 38));
       for (let i = 0; i < bubbleCount; i++) {
-        const phase = (hazardTime * (0.38 + i * 0.027) + i * 0.31) % 1;
+        const phase = (lavaTime * (0.22 + i * 0.016) + i * 0.31) % 1;
         const bx = gx + 16 + ((i * 73 + gap.x * 0.17) % Math.max(25, gap.w - 32));
         const by = GROUND + 66 - phase * 78;
         const radius = 2 + (i % 4);
