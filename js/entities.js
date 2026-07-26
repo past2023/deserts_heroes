@@ -745,41 +745,41 @@
     if (s.criticalSmokeT > 0) return;
     const facing = s.facing || 1;
     const isDrill = s.type === 'ally_tank02';
-    // Ally tank 01 critical smoke made 3x smaller (scaled down power and particle size).
+    // Ally tank 01 critical smoke made 2x larger and more dense.
     const sources = isDrill ? [
       { ox:-58, oy:-132, power:1.24 }, { ox:-46, oy:-122, power:1.08 },
       { ox:-68, oy:-60, power:0.86 }, { ox:34, oy:-92, power:0.74 }
     ] : [
-      { ox:-65, oy:-105, power:0.6 }, { ox:-35, oy:-92, power:0.5 },
-      { ox:-78, oy:-64, power:0.42 }, { ox:52, oy:-78, power:0.4 }
+      { ox:-65, oy:-105, power:1.2 }, { ox:-35, oy:-92, power:1.0 },
+      { ox:-78, oy:-64, power:0.85 }, { ox:52, oy:-78, power:0.8 }
     ];
-    const bursts = isDrill ? 3 : 2;
+    const bursts = isDrill ? 3 : 3;
     for (let b = 0; b < bursts; b++) {
       const src = sources[(Math.random() * sources.length) | 0];
-      const baseX = s.x + facing * src.ox + rnd(-5, 5);
-      const baseY = s.y + src.oy + rnd(-4, 5);
-      const count = isDrill ? (Math.random() < 0.35 ? 2 : 1) : 1;
+      const baseX = s.x + facing * src.ox + rnd(-7, 7);
+      const baseY = s.y + src.oy + rnd(-6, 6);
+      const count = isDrill ? (Math.random() < 0.35 ? 2 : 1) : 2;
       for (let i = 0; i < count; i++) {
         const hot = Math.random() < 0.18;
         G.particles.push({
           kind: 'smoke', dark: true,
-          x: baseX + rnd(-6, 6), y: baseY + rnd(-5, 5),
-          vx: -facing * rnd(14, 45) + rnd(-18, 18), vy: rnd(-75, -28),
-          t: 0, life: rnd(0.8, 1.8) * src.power,
+          x: baseX + rnd(-8, 8), y: baseY + rnd(-7, 7),
+          vx: -facing * rnd(18, 50) + rnd(-22, 22), vy: rnd(-90, -32),
+          t: 0, life: rnd(1.0, 2.2) * src.power,
           color: hot ? '#1c1210' : Math.random() < 0.45 ? '#040405' : '#0f0f14',
-          size: rnd(6, 12) * src.power, grav: rnd(-60, -25), drag: 0.58,
+          size: rnd(12, 22) * src.power, grav: rnd(-75, -28), drag: 0.56,
         });
       }
-      if (Math.random() < (isDrill ? 0.26 : 0.35)) {
+      if (Math.random() < 0.35) {
         G.particles.push({
-          kind: 'ember', x: baseX + rnd(-5, 5), y: baseY + rnd(-2, 8),
-          vx: -facing * rnd(8, 30) + rnd(-25, 25), vy: rnd(-80, -28), t: 0,
-          life: rnd(0.18, 0.42), color: Math.random() < 0.5 ? '#ff7a24' : '#ffd34a',
-          size: rnd(2, 4), grav: 180,
+          kind: 'ember', x: baseX + rnd(-6, 6), y: baseY + rnd(-2, 10),
+          vx: -facing * rnd(8, 28) + rnd(-22, 22), vy: rnd(-70, -25), t: 0,
+          life: rnd(0.18, 0.45), color: Math.random() < 0.5 ? '#ff7a24' : '#ffd34a',
+          size: rnd(2, 4.5), grav: 180,
         });
       }
     }
-    s.criticalSmokeT = rnd(0.08, 0.16);
+    s.criticalSmokeT = rnd(0.06, 0.12);
   }
 
   function destroySlug(s) {
@@ -1231,14 +1231,14 @@
         kind: 'coin', x: x + rnd(-spread * 0.28, spread * 0.28), y: y + rnd(-18, 12),
         vx: side * (finalBoss ? 5.2 : 10.2) + rnd(-95, 95),
         vy: baseVy + rnd(-190, 105), t: 0, life: rnd(finalBoss ? 3.1 : 2.15, finalBoss ? 4.0 : 2.85),
-        color: Math.random() < 0.22 ? '#fff4a8' : Math.random() < 0.58 ? '#ffd24a' : '#ff9f22',
+        color: Math.random() < 0.22 ? '#c8f6ff' : Math.random() < 0.58 ? '#31a6ff' : '#15588a',
         size: rnd(finalBoss ? 14 : 10, finalBoss ? 24 : 17), grav: 1040,
         rot: rnd(0, Math.PI * 2), spin: rnd(-18, 18), phase: rnd(0, Math.PI * 2),
         landed: false,
       });
     }
     G.scorePops.push({
-      x: x, y: y - (finalBoss ? 170 : 90), label: finalBoss ? 'COIN JACKPOT!' : 'COIN BONUS!', t: 0,
+      x: x, y: y - (finalBoss ? 170 : 90), label: finalBoss ? 'DIAMOND JACKPOT!' : 'DIAMOND BONUS!', t: 0,
     });
   }
 

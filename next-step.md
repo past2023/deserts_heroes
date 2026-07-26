@@ -418,7 +418,8 @@ Runtime systems have advanced beyond some historical specifications in this file
 ## Current implementation sync — 2026-07-25
 
 Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
-- Ally Tank 01 critical smoke scaled down 3x to a compact, realistic size.
-- BigShip03 ship-platform right-end engine bank reactors, flame animation, and dense oily black crash-smoke placed correctly.
-- Portal level enemies scaled up 2x for easier hits, and weapon pool normalized to standard level1 weapons (`mg`, `spread`, `rocket`, `flame`, `grenades`, `homing`).
+- Ally Tank 01 critical smoke made 2x larger and denser.
+- BigShip03 right-end engine bank reactors positioned correctly (first bottom reactor shifted right, second bottom reactor shifted higher and right).
+- Yellow coins changed to 2D pixel-art blue diamonds across particle awards and HUD score icon.
+- Portal level weapon system updated to normal weapon firing (including upward aim) and enemy hitboxes scaled up 2x.
 - Big boss tank chat portrait (`assets/vehicles/boss_tank01/boss_tank01_portrait.png`).

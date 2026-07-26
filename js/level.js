@@ -790,8 +790,8 @@
 
     // Correct engine/reactor outlets on the right end of bigship03.png (extracted from image structure: large right engine bank at x ~ 0.88 to 0.98, y ~ 0.58 to 0.78).
     const rightReactors = [
-      { x:0.91, y:0.62, s:1.2, phase:0.0 },
-      { x:0.93, y:0.75, s:1.1, phase:1.5 },
+      { x:0.93, y:0.58, s:1.2, phase:0.0 },
+      { x:0.95, y:0.71, s:1.1, phase:1.5 },
     ];
     g.globalCompositeOperation = 'lighter';
     for (let i = 0; i < rightReactors.length; i++) {

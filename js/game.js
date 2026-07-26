@@ -951,10 +951,10 @@
 
   function drawScoreIcon(x, y) {
     g.save(); g.translate(Math.round(x), Math.round(y));
-    g.fillStyle = '#8a5a20'; g.fillRect(3, 0, 10, 16); g.fillRect(0, 3, 16, 10);
-    g.fillStyle = '#ffd15a'; g.fillRect(3, 2, 10, 12); g.fillRect(2, 4, 12, 8);
-    g.fillStyle = '#fff0a0'; g.fillRect(5, 4, 3, 5);
-    g.fillStyle = '#b97925'; g.fillRect(9, 7, 3, 5);
+    g.fillStyle = '#15588a'; g.fillRect(2, 0, 12, 16); g.fillRect(0, 3, 16, 10);
+    g.fillStyle = '#31a6ff'; g.fillRect(3, 2, 10, 12); g.fillRect(2, 5, 12, 6);
+    g.fillStyle = '#9ee8ff'; g.fillRect(4, 3, 3, 5); g.fillRect(9, 6, 3, 4);
+    g.fillStyle = '#0b355a'; g.fillRect(10, 10, 3, 3);
     g.restore();
   }
 
