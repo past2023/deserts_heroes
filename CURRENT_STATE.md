@@ -239,9 +239,4 @@ Main arcade level with:
 
 ## Current implementation sync — 2026-07-25
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
-- Ally Tank 01 critical smoke made 2x larger and denser.
-- BigShip03 right-end engine bank reactors positioned correctly (first bottom reactor shifted right, second bottom reactor shifted higher and right).
-- Yellow coins changed to 2D pixel-art blue diamonds across particle awards and HUD score icon.
-- Portal level weapon system updated to normal weapon firing (including upward aim) and enemy hitboxes scaled up 2x.
-- Big boss tank chat portrait (`assets/vehicles/boss_tank01/boss_tank01_portrait.png`).
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes: Ally Tank 01 critical smoke 2x larger and denser, BigShip03 right-end reactors correctly positioned, yellow coins replaced by 2D pixel-art blue diamonds (particles and HUD score icon), portal level updated with normal weapon shooting/upward aim and 2x larger enemy hitboxes, and big boss tank chat portrait.
