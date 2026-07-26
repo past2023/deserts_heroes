@@ -14,6 +14,7 @@ Desert's Heroes is a 2D side-scrolling pixel-art run-and-gun game (960×540 canv
 - `js/galactic-map.js` — Mission selection map
 - `js/music-tracks.js` — Authored MP3 soundtrack bridge
 - `js/audio.js` — Procedural WebAudio fallback
+- `js/pixel-font.js` — Canvas-based alien pixel font for loading screens
 
 **HTML pages:** `index.html`(shell) → `intro.html` → `level1.html`(menu+game) → `tutorial.html` / `galactic-map.html` / `portal-level.html`
 
@@ -82,11 +83,15 @@ Register new tracks in `js/music-tracks.js` `files` object, then call `MusicTrac
 
 ---
 
-## Current implementation sync — 2026-07-25
+## Current implementation sync — 2026-07-26
 
 Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
-- Ally Tank 01 critical smoke made 2x larger and denser.
-- BigShip03 right-end engine bank reactors positioned correctly (first bottom reactor shifted right, second bottom reactor shifted higher and right).
-- Yellow coins changed to 2D pixel-art blue diamonds across particle awards and HUD score icon.
-- Portal level weapon system updated to normal weapon firing (including upward aim) and enemy hitboxes scaled up 2x.
-- Big boss tank chat portrait (`assets/vehicles/boss_tank01/boss_tank01_portrait.png`).
+- Press Start 2P font system across all HTML/JS (28 canvas sites, 10 files, Courier New fallback).
+- Portal beacon FX (radial gradient + rotating arc) replacing ellipse rings in Level 1 and portal level.
+- Settings submenu binding help text repositioned for Press Start 2P readability.
+- Intro tank slide: 42 ground particles, drawSandWind() wind streaks, heat wave distortion FX.
+- Center-screen info text boxes removed (wave banner, jetpack notice, boss warning/taunt).
+- Tutorial FX positions corrected per PNG pixel scanning: all fires y+8, Module 3 electric-only, Module 5 lamps repositioned.
+- Space fighter enemy type (enemies_ship01/02.png) in portal level (16 enemies total).
+- Blue diamond pixel-art coins replacing gold coins.
+- Pixel alien loading font (pixel-font.js) with canvas-based 5x5 bitmap glyphs.

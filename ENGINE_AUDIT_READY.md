@@ -1,6 +1,6 @@
 # Desert's Heroes — Engine Audit & Next Phase Readiness
-**Date:** 2026-07-23 — Saint Petersburg
-**Repository:** https://github.com/past2023/Desert_s_Heroes
+**Date:** 2026-07-26 — Saint Petersburg  
+**Repository:** https://github.com/past2023/deserts_heroes  
 **Auditor Role:** Technical Director / Lead Gameplay / Architect / QA / Performance
 
 > Prepared after cloning, reading all `js/*.js` (10,268 lines), `docs/*.md`, campaign flow, and asset manifests.
@@ -251,6 +251,6 @@ Let's build the Training Annex.
 
 ---
 
-## Current implementation sync — 2026-07-25
+## Current implementation sync — 2026-07-26
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, more realistic oily black critical smog for both ally tanks, left-end reactor flame/smog and additional crash-smoke damage on BigShip03 with incorrect right-side glow lights removed, and pixel-art casino coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed, including smaller mid-fight boss coin drops and a brighter final boss jackpot.
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes Press Start 2P font system, portal beacon FX, settings submenu layout fix, enhanced intro tank slide (particles/wind/heat wave), center-screen info text without boxes, corrected tutorial FX positions per PNG pixel scanning, space fighter enemy type in portal level, blue diamond pixel-art coins, and pixel alien loading font.

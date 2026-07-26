@@ -1,5 +1,5 @@
 # Desert's Heroes — Current Game State
-**Date:** 2026-07-25  
+**Date:** 2026-07-26  
 **Branch:** `arena/019f9a46-deserts-heroes`  
 **PR:** #9
 
@@ -11,6 +11,7 @@ Desert's Heroes is a 2D side-scrolling pixel-art run-and-gun game with a sci-fi 
 It features: a cinematic intro, a galactic mission map, a tutorial level, a full arcade level, a survival mode, and a portal level.
 
 **Rendering:** Canvas 2D, 960×540, pixel-art (`image-rendering: pixelated`).  
+**Font:** Press Start 2P (`assets/fonts/PressStart2P-Regular.ttf`) with Courier New fallback, 0.65x scaled canvas sizes.  
 **Audio:** Procedural WebAudio (SFX + music) + optional authored MP3 soundtrack.  
 **Localization:** i18n system (en, es, fr, ru).
 
@@ -68,7 +69,7 @@ index.html → intro.html → level1.html (menu)
    - Slide 1: Desert (sky/mountains/dunes) + ship flyover + sand wind
    - Slide 2: Space (stars/planet/asteroids) + ship + logo title
    - Slide 3: Desert flyover (supersonic streaks, ship)
-   - Slide 4: Battlefield (tank, smoke columns, fire)
+   - Slide 4: Battlefield (tank, fire sources, smoke columns, sand wind streaks, heat wave distortion, 42 ground particles)
 
 **Key art assets:** `assets/intro/slide1_*.png`, `slide2_*.png`, `slide3_*.png`, `slide4_*.png`, `intro_ship*.png`
 
@@ -158,7 +159,8 @@ Main arcade level with:
 - Level 1 platform routes carry more visible rewards while ground prop loot is reduced
 - Lava gaps use a fresh non-parallax molten animation: slow surface waves, fire plumes, embers, smoke, bubbles and clean unboxed cutaway edges
 - 6 enemy types, POW rescues, weapon pickups
-- Portal trigger, boss fight at end
+- Portal gate uses beacon light FX (radial gradient glow + rotating arc stroke + white core) replacing old ellipse rings
+- Boss fight at end
 - Mission intro with supplied PNG rocket-board fly-in and a fixed-world opening UFO that only rises vertically with no horizontal self/parallax drift
 
 ---
@@ -184,6 +186,7 @@ Main arcade level with:
 | heli | 10 | Attack helicopter |
 | gunship | 36 | Miniboss gunship |
 | tank | 14 | Armored vehicle |
+| space_fighter | 6 | Hover/chase/fan-fire space enemy (portal level, `enemies_ship01/02.png`) |
 
 ### Boss
 - Armored fortress, 70 HP
@@ -223,6 +226,12 @@ Main arcade level with:
 - Ally Tank 02 laser origin was moved to the center of the drill tip.
 - Loading screens use a simple retro pixel loading bar without visible glyph text instead of English-only status labels.
 - Tutorial/Level 1 pickups were shifted toward upper platform exploration, enemy hit-taunt dialogue was added, Soldier06 laser shots now damage ally tanks, Level 1 lava was rebuilt without parallax drift or black boxed cutaway lines, the opening UFO is fixed in world space and only rises vertically, and destroyed helicopters/tanks/gunships/boss trigger pixel-art coin-jackpot award animation with casino-style SFX, including mid-fight boss drops and a brighter final jackpot.
+- **Press Start 2P font** installed across all HTML pages and 28 canvas `g.font` sites (10 JS files). Canvas sizes scaled 0.65x. `@font-face` + `document.fonts.load()` preload. Courier New preserved as fallback.
+- **Portal beacon FX** — Level 1 and portal-level exit portals now use the tutorial beacon light effect (radial gradient glow + rotating arc stroke + white core) replacing old ellipse ring FX.
+- **Settings submenu** — binding help text `'[Tab=2  Bksp=clear]'` moved right (x=820) and column gap widened to prevent overlap with Press Start 2P.
+- **Intro tank slide** — sand particles increased 24→42, `drawSandWind()` wind streaks added, heat wave distortion FX added.
+- **Center-screen info text** — removed `hudPanel()` background boxes from wave banner, jetpack notice, boss warning, and boss taunt. Text now renders with shadow only.
+- **Tutorial FX positions** — all fire entries moved y+8 across modules 0,1,2,4,6. Module 3 electric FX only (robotEye removed, moved lower y:400). Module 5 lamps repositioned (red higher y:410, yellow lower y:510, added yellow above red y:385, right lamp up y:380).
 
 ### Known Bugs
 - No level2-level6 content beyond galactic map nodes
@@ -237,11 +246,15 @@ Main arcade level with:
 
 ---
 
-## Current implementation sync — 2026-07-25
+## Current implementation sync — 2026-07-26
 
 Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
-- Ally Tank 01 critical smoke made 2x larger and denser.
-- BigShip03 right-end engine bank reactors positioned correctly (first bottom reactor shifted right, second bottom reactor shifted higher and right).
-- Yellow coins changed to 2D pixel-art blue diamonds across particle awards and HUD score icon.
-- Portal level weapon system updated to normal weapon firing (including upward aim) and enemy hitboxes scaled up 2x.
-- Big boss tank chat portrait (`assets/vehicles/boss_tank01/boss_tank01_portrait.png`).
+- Press Start 2P font system across all HTML/JS (28 canvas sites, 10 files, Courier New fallback).
+- Portal beacon FX (radial gradient + rotating arc) replacing ellipse rings in Level 1 and portal level.
+- Settings submenu binding help text repositioned for Press Start 2P readability.
+- Intro tank slide: 42 ground particles, drawSandWind() wind streaks, heat wave distortion FX.
+- Center-screen info text boxes removed (wave banner, jetpack notice, boss warning/taunt).
+- Tutorial FX positions corrected per PNG pixel scanning: all fires y+8, Module 3 electric-only, Module 5 lamps repositioned.
+- Space fighter enemy type (enemies_ship01/02.png) in portal level (16 enemies total).
+- Blue diamond pixel-art coins replacing gold coins.
+- Pixel alien loading font (pixel-font.js) with canvas-based 5x5 bitmap glyphs.

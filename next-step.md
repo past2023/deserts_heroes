@@ -415,11 +415,6 @@ Runtime systems have advanced beyond some historical specifications in this file
 
 ---
 
-## Current implementation sync — 2026-07-25
+## Current implementation sync — 2026-07-26
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
-- Ally Tank 01 critical smoke made 2x larger and denser.
-- BigShip03 right-end engine bank reactors positioned correctly (first bottom reactor shifted right, second bottom reactor shifted higher and right).
-- Yellow coins changed to 2D pixel-art blue diamonds across particle awards and HUD score icon.
-- Portal level weapon system updated to normal weapon firing (including upward aim) and enemy hitboxes scaled up 2x.
-- Big boss tank chat portrait (`assets/vehicles/boss_tank01/boss_tank01_portrait.png`).
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes Press Start 2P font system, portal beacon FX, settings submenu layout fix, enhanced intro tank slide (particles/wind/heat wave), center-screen info text without boxes, corrected tutorial FX positions per PNG pixel scanning, space fighter enemy type in portal level, blue diamond pixel-art coins, and pixel alien loading font.

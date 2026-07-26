@@ -1,6 +1,6 @@
 # Current runtime status
 
-Updated: 2026-07-25
+Updated: 2026-07-26
 
 This document is the current source of truth when older production handoff notes describe an earlier prototype state.
 
@@ -26,6 +26,9 @@ Campaign map choices currently available:
 - Static nearest-plane antenna bunkers
 - Pixel-quantized iris and portal transitions
 - Loading overlays use a simple retro pixel loading bar without visible glyph text instead of English-only status labels
+- All game text uses Press Start 2P font (`assets/fonts/PressStart2P-Regular.ttf`) with Courier New fallback; canvas sizes scaled 0.65x; `@font-face` + `document.fonts.load()` preload in all HTML files
+- Level 1 and portal-level exit portals use beacon light FX (radial gradient glow + rotating arc stroke + white core) replacing old ellipse ring FX
+- Center-screen gameplay info text (wave banner, jetpack notice, boss warning/taunt) renders without background box panels
 - Level 1 opening vista draws `enemy_ship01` rising vertically from the dune layer as a fixed-world object with no horizontal self/parallax drift, with tight motor vibration, three lower reactor glows, smoke puffs and heavy falling sand; the BigShip03 platform section appears farther from the opening skirmish in daylight
 
 ## Gameplay
@@ -82,6 +85,6 @@ The game preserves 960×540 Canvas 2D, fixed 60 Hz simulation, direct browser co
 
 ---
 
-## Current implementation sync — 2026-07-25
+## Current implementation sync — 2026-07-26
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes upper-platform reward placement in Tutorial and Level 1, stronger tank-piercing Soldier06 lasers with enemy taunts, fixed-world vertical-only opening UFO rise, delayed BigShip03 ship-platform rewards, non-parallax lava with fire/smoke/bubbles and clean cutaway edges, more realistic oily black critical smog for both ally tanks, left-end reactor flame/smog and additional crash-smoke damage on BigShip03 with incorrect right-side glow lights removed, and pixel-art casino coin award bursts when helicopters, enemy vehicles, gunships, or the fortress boss are destroyed, including smaller mid-fight boss coin drops and a brighter final boss jackpot.
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes Press Start 2P font system, portal beacon FX, settings submenu layout fix, enhanced intro tank slide (particles/wind/heat wave), center-screen info text without boxes, corrected tutorial FX positions per PNG pixel scanning, space fighter enemy type in portal level, blue diamond pixel-art coins, and pixel alien loading font.
