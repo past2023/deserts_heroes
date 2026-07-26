@@ -53,6 +53,7 @@
       'hud.grenade': 'GRENADE x {count}',
       'hud.wave': 'WAVE {number}',
       'hud.getReady': 'GET READY...',
+      'hud.milestone': 'MILESTONE {value}!',
       'hud.god': 'GOD',
       'mission.label': 'MISSION {number}',
       'mission.name': 'FRONTIER BREAK',

@@ -11,6 +11,20 @@
   const logoImage = new Image();
   logoImage.decoding = 'async';
   logoImage.src = 'assets/ui/logodesertheroe.png';
+  const survPlatImage = new Image();
+  survPlatImage.decoding = 'async';
+  survPlatImage.src = 'assets/platforms/floating_platform.png';
+
+  // Survival chat portraits — random enemy sprites + player face sheet.
+  const chatEnemyPortraits = [];
+  ['soldier01','soldier02','soldier03','soldier04','soldier05'].forEach(function(s) {
+    const img = new Image(); img.decoding = 'async';
+    img.src = 'assets/enemies/' + s + '/full.png';
+    chatEnemyPortraits.push(img);
+  });
+  const chatPlayerFaces = new Image();
+  chatPlayerFaces.decoding = 'async';
+  chatPlayerFaces.src = 'assets/ui/dialogue/face_expresion01.png';
 
   const ARENA_X = 350; // camera fissa della modalità survival
   const savedCharacter = localStorage.getItem('dh_character');
@@ -65,6 +79,23 @@
     waveSpawnT: 0,
     waveBreakT: 0,
     waveBanner: 0,
+    survStreak: 0,
+    survStreakT: 0,
+    survMilestones: {},
+    survWaveClearT: 0,
+    survEdgeGlow: 0,
+    // Score FX
+    survScorePulse: 0,
+    survPrevScore: 0,
+    // Chat system
+    survChatMsg: '',
+    survChatT: 0,
+    survChatSide: 'enemy',
+    survChatPortrait: 0,
+    // Day-night cycle
+    survDayNight: 0,
+    // Timed platforms
+    survPlatforms: [],
   };
   Sprites.setActiveCharacter(initialCharacter);
   MusicTracks.play('overture');
@@ -305,6 +336,18 @@
       G.waveSpawnT = 0;
       G.waveBreakT = 1.6;
       G.waveBanner = 0;
+      G.survStreak = 0;
+      G.survStreakT = 0;
+      G.survMilestones = {};
+      G.survWaveClearT = 0;
+      G.survEdgeGlow = 0;
+      G.survScorePulse = 0;
+      G.survPrevScore = 0;
+      G.survChatMsg = '';
+      G.survChatT = 0;
+      G.survChatSide = 'enemy';
+      G.survDayNight = 0;
+      G.survPlatforms = [];
       Entities.spawnProp(ARENA_X + 170, 'barrel01');
       Entities.spawnProp(ARENA_X + VW - 170, 'barrel02');
       SFX.setIntensity(1);
@@ -568,6 +611,88 @@
 
   function updateSurvival(dt) {
     if (G.waveBanner > 0) G.waveBanner -= dt;
+    if (G.survWaveClearT > 0) G.survWaveClearT -= dt;
+
+    // Score pulse animation — detect score change.
+    if (G.score !== G.survPrevScore) {
+      G.survScorePulse = 0.45;
+      G.survPrevScore = G.score;
+    }
+    if (G.survScorePulse > 0) G.survScorePulse = Math.max(0, G.survScorePulse - dt);
+
+    // Streak timer decay — resets streak multiplier.
+    if (G.survStreakT > 0) {
+      G.survStreakT -= dt;
+      if (G.survStreakT <= 0) {
+        G.survStreak = 0;
+      }
+    }
+
+    // Edge glow pulses with wave intensity.
+    G.survEdgeGlow = Math.min(1, G.wave / 20) * (0.35 + 0.15 * Math.sin(G.time * 2.5));
+
+    // Day/night cycle — slow oscillation (~90 second period).
+    G.survDayNight = (Math.sin(G.time * 0.035) + 1) / 2;
+
+    // Chat system — fun taunts and hints every ~6-10 seconds.
+    if (G.survChatT > 0) {
+      G.survChatT -= dt;
+    } else if (G.wave > 0) {
+      const enemyTaunts = [
+        "You call that shooting?",
+        "My grandma aims better!",
+        "Come closer, coward!",
+        "Is that all you got?",
+        "I've seen better moves from a rock!",
+        "Need a tutorial?",
+        "Run, little human!",
+        "You're out of your league!",
+        "Even the sand fights back harder!",
+        "I'm barely trying!",
+      ];
+      const allyHints = [
+        "Aim for the head!",
+        "Watch your six!",
+        "Pick up that weapon!",
+        "Use the barrels!",
+        "Stay mobile!",
+        "Nice shot, keep going!",
+        "Watch out, heavy incoming!",
+        "You got this!",
+        "Pro tip: shoot the big ones first!",
+        "Don't forget your grenades!",
+      ];
+      const isEnemy = Math.random() < 0.55;
+      const pool = isEnemy ? enemyTaunts : allyHints;
+      G.survChatMsg = pool[Math.floor(Math.random() * pool.length)];
+      G.survChatSide = isEnemy ? 'enemy' : 'ally';
+      G.survChatPortrait = Math.floor(Math.random() * chatEnemyPortraits.length);
+      G.survChatT = 6 + Math.random() * 4;
+    }
+
+    // Timed platforms — spawn every ~20 seconds.
+    for (let i = G.survPlatforms.length - 1; i >= 0; i--) {
+      const pl = G.survPlatforms[i];
+      pl.timer -= dt;
+      if (pl.timer <= 0) {
+        // Shrink and remove.
+        G.survPlatforms.splice(i, 1);
+        continue;
+      }
+      // Flash when about to expire.
+      pl.flash = pl.timer < 3;
+    }
+    // Spawn timed platforms periodically.
+    if (G.wave > 0 && G.wave % 2 === 0 && G.survPlatforms.length < 2 && G.waveBreakT <= 0) {
+      if (Math.random() < dt * 0.12) {
+        const px = ARENA_X + 120 + Math.random() * (VW - 240);
+        const pw = 90 + Math.random() * 60;
+        G.survPlatforms.push({
+          x: px, y: 300 + Math.random() * 80, w: pw,
+          timer: 10 + Math.random() * 8, flash: false,
+        });
+      }
+    }
 
     if (G.waveBreakT > 0) {
       G.waveBreakT -= dt;
@@ -591,6 +716,7 @@
         const bonus = 300 + G.wave * 100;
         Entities.addScore(bonus, G.player.x, G.player.y - 80);
         SFX.waveClear();
+        G.survWaveClearT = 1.0;
         G.player.grenades = Math.min(99, G.player.grenades + 3);
         const cx = G.camX + 200 + Math.random() * (VW - 400);
         if (G.wave % 2 === 0) {
@@ -600,6 +726,37 @@
         if (G.wave % 4 === 0) Entities.spawnPow(cx);
       }
       G.waveBreakT = 2.5;
+    }
+
+    // Score milestones.
+    const thresholds = [5000, 10000, 25000, 50000, 100000];
+    for (const t of thresholds) {
+      if (G.score >= t && !G.survMilestones[t]) {
+        G.survMilestones[t] = true;
+        // Screen flash + particle burst at player position.
+        G.screenFlash = 0.35;
+        G.screenFlashColor = '#ff8800';
+        G.hitStop = Math.max(G.hitStop, 0.12);
+        const px = G.player.x, py = G.player.y - 40;
+        for (let i = 0; i < 30; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const spd = 180 + Math.random() * 320;
+          G.particles.push({
+            kind: 'spark', x: px + (Math.random() - 0.5) * 40, y: py + (Math.random() - 0.5) * 40,
+            vx: Math.cos(a) * spd, vy: Math.sin(a) * spd - 100,
+            life: 0.6 + Math.random() * 0.6, maxLife: 1.2,
+            size: 2 + Math.random() * 3,
+            color: ['#ff0', '#f80', '#fff', '#0ff'][Math.floor(Math.random() * 4)],
+          });
+        }
+        G.scorePops.push({
+          x: px, y: py - 50,
+          labelKey: 'hud.milestone',
+          labelVars: { value: t >= 1000 ? (t / 1000) + 'K' : String(t) },
+          t: 0,
+        });
+        SFX.bigExplosion();
+      }
     }
   }
 
@@ -822,6 +979,18 @@
       // tutorial story light version: keep track but no arcade milestones
     }
     Level.updatePlatforms(dt, G.player);
+    // Survival timed platforms — player collision.
+    if (G.mode === 'survival' && G.player && !G.player.dead) {
+      const p = G.player;
+      for (const pl of G.survPlatforms) {
+        if (p.vy >= 0 && p.x > pl.x - pl.w / 2 && p.x < pl.x + pl.w / 2 &&
+            Math.abs(p.y - pl.y) < 8) {
+          p.y = pl.y;
+          p.vy = 0;
+          p.onGround = true;
+        }
+      }
+    }
     Level.updateHazards(dt);
     Entities.updatePlayer(dt);
     if (Level.playerTouchesLaser(G.player)) Entities.killPlayer();
@@ -1135,17 +1304,154 @@
         G.boss.hp < G.boss.maxHp * 0.35 ? '#ff2f58' : '#f05a3f');
     }
 
-    // indicatore ondata (survival)
+    // indicatore ondata (survival) — enhanced with edge glow, streak, wave clear ring
     if (G.mode === 'survival') {
-      if (G.wave > 0) text(tr('hud.wave', { number: G.wave }), VW / 2, 30, 22, '#ffae42', 'center');
+      // Screen-edge glow intensifies with wave count.
+      if (G.survEdgeGlow > 0) {
+        const eg = G.survEdgeGlow;
+        g.save();
+        g.globalAlpha = eg;
+        const edgeW = 22;
+        const grad = g.createLinearGradient(0, 0, edgeW, 0);
+        grad.addColorStop(0, '#ff4400'); grad.addColorStop(1, 'transparent');
+        g.fillStyle = grad; g.fillRect(0, 0, edgeW, VH);
+        const grad2 = g.createLinearGradient(VW, 0, VW - edgeW, 0);
+        grad2.addColorStop(0, '#ff4400'); grad2.addColorStop(1, 'transparent');
+        g.fillStyle = grad2; g.fillRect(VW - edgeW, 0, edgeW, VH);
+        g.restore();
+      }
+
+      // Wave clear ring animation.
+      if (G.survWaveClearT > 0) {
+        const t = 1 - G.survWaveClearT;
+        g.save();
+        g.globalAlpha = (1 - t) * 0.6;
+        g.strokeStyle = '#ff0';
+        g.lineWidth = 3 * (1 - t);
+        g.beginPath();
+        g.arc(VW / 2, VH / 2, t * 520, 0, Math.PI * 2);
+        g.stroke();
+        g.globalAlpha = (1 - t) * 0.3;
+        g.fillStyle = '#ff8800';
+        g.fill();
+        g.restore();
+      }
+
+      // Kill streak display — bolder, with subtle glow.
+      if (G.survStreak >= 3) {
+        const alpha = Math.min(1, G.survStreakT / 1.5);
+        g.save();
+        g.globalAlpha = alpha;
+        const streakColor = G.survStreak >= 20 ? '#0ff' : G.survStreak >= 16 ? '#f0f' :
+          G.survStreak >= 12 ? '#f44' : G.survStreak >= 8 ? '#f80' : '#ff0';
+        g.shadowColor = streakColor;
+        g.shadowBlur = 6;
+        const streakLabel = G.survStreak >= 20 ? 'LEGENDARY' : G.survStreak >= 16 ? 'GODLIKE' :
+          G.survStreak >= 12 ? 'RAMPAGE' : G.survStreak >= 8 ? 'UNSTOPPABLE' : 'KILL STREAK';
+        text(streakLabel + ' x' + G.survStreak, VW / 2, 94, 16, streakColor, 'center');
+        g.restore();
+      }
+
+      // BIG score — no box, just icon + large number with pulse glow.
+      const pulseAmt = G.survScorePulse > 0 ? G.survScorePulse * 2.5 : 0;
+      g.save();
+      if (G.survScorePulse > 0) {
+        g.shadowColor = '#ff0';
+        g.shadowBlur = 10 + pulseAmt * 22;
+      }
+      drawScoreIcon(VW / 2 - 110, 6);
+      text(String(G.score).padStart(7, '0'), VW / 2, 36, 30,
+        pulseAmt > 0 ? '#fff' : '#ffe28a', 'center');
+      g.restore();
+      // Wave number below score
+      if (G.wave > 0) {
+        text(tr('hud.wave', { number: G.wave }), VW / 2, 60, 18, '#ffae42', 'center');
+      }
+
+      // WAVE BANNER — big dramatic center screen entrance.
       if (G.waveBanner > 0) {
         const a = G.waveBanner > 0.4 ? 1 : G.waveBanner / 0.4;
+        const scale = G.waveBanner > 1.8 ? 1 + (G.waveBanner - 1.8) * 4 : 1;
         g.save();
         g.globalAlpha = a;
-        text(tr('hud.wave', { number: G.wave }), VW / 2, VH / 2 - 60, 46, '#ffae42', 'center');
+        g.shadowColor = '#ff6600';
+        g.shadowBlur = 8;
+        text(tr('hud.wave', { number: G.wave }), VW / 2, VH / 2 - 60, Math.round(46 * Math.min(scale, 1.3)), '#ffae42', 'center');
         g.restore();
       } else if (G.waveBreakT > 0 && G.wave > 0) {
         text(tr('hud.getReady'), VW / 2, VH / 2 - 60, 24, '#fff', 'center');
+      }
+
+      // Chat messages — enemy taunts or ally hints with portraits (dialogue-style).
+      if (G.survChatMsg) {
+        g.save();
+        const isEnemy = G.survChatSide === 'enemy';
+        const accent = isEnemy ? '#ff5c50' : '#68efff';
+        const chatAge = 10 - G.survChatT;
+        const fadeIn = Math.min(1, chatAge * 3);
+        const fadeOut = G.survChatT < 1.5 ? G.survChatT / 1.5 : 1;
+        g.globalAlpha = Math.max(0, Math.min(1, fadeIn * fadeOut));
+
+        const bx = 6, by = 6, bw = 320, bh = 50;
+        // Panel background
+        g.fillStyle = 'rgba(2,7,16,0.88)';
+        g.fillRect(bx, by, bw, bh);
+        g.fillStyle = accent;
+        g.fillRect(bx, by, 5, bh);
+        g.strokeStyle = 'rgba(130,220,240,0.58)';
+        g.lineWidth = 2;
+        g.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+
+        // Portrait box
+        const px = bx + 9, py = by + 5, pw = 40, ph = 40;
+        g.save();
+        g.beginPath(); g.rect(px, py, pw, ph); g.clip();
+        g.fillStyle = 'rgba(2,12,22,0.95)';
+        g.fillRect(px, py, pw, ph);
+        const glitch = Math.sin(G.time * 29) > 0.9 ? 1.5 : 0;
+        if (isEnemy) {
+          // Random enemy portrait
+          if (G.survChatPortrait == null) G.survChatPortrait = Math.floor(Math.random() * chatEnemyPortraits.length);
+          const img = chatEnemyPortraits[G.survChatPortrait];
+          if (img && img.naturalWidth) {
+            const iw = img.naturalWidth, ih = img.naturalHeight;
+            const scale = Math.max(pw / iw, ph / ih);
+            const dw = iw * scale, dh = ih * scale;
+            g.drawImage(img, px + (pw - dw) / 2 + glitch, py + (ph - dh) / 2, dw, dh);
+          }
+        } else {
+          // Player face from spritesheet
+          const rows = { juan_p: 0, sergio_h: 1, elena_k: 2 };
+          const row = rows[G.characterId] || 0;
+          if (chatPlayerFaces.naturalWidth) {
+            const cellW = 256, cellH = chatPlayerFaces.naturalHeight / 3;
+            g.drawImage(chatPlayerFaces, 0, row * cellH, cellW, cellH, px + glitch, py, pw, ph);
+          }
+        }
+        // Scanline + edge glow effect
+        g.globalCompositeOperation = 'lighter';
+        g.globalAlpha = 0.16; g.fillStyle = '#00eaff'; g.fillRect(px + glitch, py, 2, ph);
+        g.fillStyle = '#ff3158'; g.fillRect(px + pw - 3 - glitch, py, 2, ph);
+        g.globalCompositeOperation = 'source-over';
+        g.globalAlpha = 0.20; g.fillStyle = '#07121c';
+        for (let sy = py + 2; sy < py + ph; sy += 4) g.fillRect(px, sy, pw, 1);
+        g.restore();
+
+        // Speaker name
+        const nameKey = isEnemy ? 'dialogue.enemyName' : 'dialogue.heroName';
+        g.font = 'bold ' + Math.round(7 * 0.65) + 'px "Press Start 2P","Courier New",monospace';
+        g.textAlign = 'left';
+        g.fillStyle = '#fff0a8';
+        g.fillText(tr(nameKey), bx + 56, by + 16);
+
+        // Chat text
+        g.font = 'bold ' + Math.round(10 * 0.65) + 'px "Press Start 2P","Courier New",monospace';
+        g.fillStyle = 'rgba(0,0,0,0.9)';
+        g.fillText(G.survChatMsg, bx + 58, by + 36);
+        g.fillStyle = '#ffffff';
+        g.fillText(G.survChatMsg, bx + 56, by + 34);
+
+        g.restore();
       }
     }
 
@@ -1696,7 +2002,35 @@
     g.save();
     g.translate(0, shakeY);
     Level.drawGround(g, cam, VW, VH);
+    // Day/night cycle overlay — affects world entities but not HUD.
+    if (G.mode === 'survival' && G.survDayNight > 0.01) {
+      g.save();
+      g.globalAlpha = G.survDayNight * 0.38;
+      g.fillStyle = '#080e30';
+      g.fillRect(0, 0, VW, VH);
+      g.restore();
+    }
     Entities.drawWarnings(g, cam);
+    // Survival timed platforms — world-space rendering with PNG.
+    if (G.mode === 'survival' && G.survPlatforms) {
+      for (const pl of G.survPlatforms) {
+        const sx = pl.x - cam;
+        const alpha = pl.flash ? (Math.sin(G.time * 12) > 0 ? 0.9 : 0.3) : 0.85;
+        g.save();
+        g.globalAlpha = alpha;
+        if (survPlatImage.complete && survPlatImage.naturalWidth > 0) {
+          g.imageSmoothingEnabled = false;
+          g.drawImage(survPlatImage, Math.round(sx - pl.w / 2), Math.round(pl.y), pl.w, 11);
+        } else {
+          g.fillStyle = '#6a5a3c'; g.fillRect(sx - pl.w / 2, pl.y, pl.w, 12);
+          g.fillStyle = '#c38a4a'; g.fillRect(sx - pl.w / 2, pl.y, pl.w, 3);
+        }
+        const secs = Math.ceil(pl.timer);
+        const countColor = secs <= 3 ? '#ff2222' : secs <= 6 ? '#ffaa00' : '#ffee44';
+        text(String(secs), sx, pl.y - 8, 14, countColor, 'center');
+        g.restore();
+      }
+    }
     Entities.drawProps(g, cam);
     Entities.drawPows(g, cam);
     Entities.drawPickups(g, cam);

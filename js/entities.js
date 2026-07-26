@@ -337,6 +337,10 @@
         SFX.knife();
         comboKill(150, e.x, e.y - 60);
         G.hitStop = Math.max(G.hitStop, 0.05);
+        if (G.mode === 'survival') {
+          G.survStreak = (G.survStreakT > 0 ? G.survStreak : 0) + 1;
+          G.survStreakT = 3.0;
+        }
         return true;
       }
     }
@@ -912,6 +916,10 @@
             killEnemy(e, s.facing);
             comboKill(ENEMY_PTS[e.type] || 100, e.x, e.y - 60);
             G.hitStop = Math.max(G.hitStop, 0.04);
+            if (G.mode === 'survival') {
+              G.survStreak = (G.survStreakT > 0 ? G.survStreak : 0) + 1;
+              G.survStreakT = 3.0;
+            }
           }
         }
       }
@@ -1213,7 +1221,40 @@
     c.n = c.t > 0 ? c.n + 1 : 1;
     c.t = 2.2;
     const mult = 1 + Math.min(2, (c.n - 1) * 0.15);
-    EntityScore.add(Math.round(pts * mult / 10) * 10, x, y);
+    let finalPts = Math.round(pts * mult / 10) * 10;
+
+    // Survival streak: bigger multiplier, streak text popups.
+    if (G.mode === 'survival' && G.survStreak >= 3) {
+      const sMult = 1 + Math.min(4, (G.survStreak - 2) * 0.35);
+      finalPts = Math.round(finalPts * sMult / 10) * 10;
+      const streakLabels = {
+        5: { label: 'KILL STREAK!', color: '#ff0' },
+        8: { label: 'UNSTOPPABLE!', color: '#f80' },
+        12: { label: 'RAMPAGE!', color: '#f44' },
+        16: { label: 'GODLIKE!', color: '#f0f' },
+        20: { label: 'LEGENDARY!', color: '#0ff' },
+      };
+      let milestone = null;
+      for (const [k, v] of Object.entries(streakLabels)) {
+        if (G.survStreak === Number(k)) milestone = v;
+      }
+      if (milestone) {
+        G.scorePops.push({
+          x: x, y: y - 36, label: milestone.label, t: 0, big: true, color: milestone.color,
+        });
+        G.screenFlash = Math.max(G.screenFlash || 0, 0.2);
+        G.screenFlashColor = '#ffffff';
+        G.hitStop = Math.max(G.hitStop, 0.08);
+        SFX.bigExplosion();
+      } else if (G.survStreak >= 3) {
+        G.scorePops.push({
+          x: x, y: y - 24, label: 'x' + G.survStreak, t: 0,
+          big: G.survStreak >= 8, color: '#ff8',
+        });
+      }
+    }
+
+    EntityScore.add(finalPts, x, y);
     if (c.n >= 2) {
       SFX.combo(c.n);
       G.scorePops.push({
@@ -1312,6 +1353,10 @@
       killEnemy(e, dir || 1);
       comboKill(ENEMY_PTS[e.type] || 100, e.x, e.y - 60);
       G.hitStop = Math.max(G.hitStop, isInfantry(e.type) ? 0.04 : 0.07);
+      if (G.mode === 'survival') {
+        G.survStreak = (G.survStreakT > 0 ? G.survStreak : 0) + 1;
+        G.survStreakT = 3.0;
+      }
     } else if (e.type === 'heli' || e.type === 'tank' || e.type === 'gunship') {
       SFX.bossHit();
     }
