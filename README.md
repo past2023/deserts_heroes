@@ -5,7 +5,7 @@ There are no dependencies or build step. Level art, sound effects and music are 
 
 ## How to run
 
-Open `index.html` to launch the persistent game shell. It hosts the cinematic, menu, galactic map, desert mission, and time-rift level while keeping one soundtrack player alive across HTML-page transitions—important for Safari. Press any key or tap/click to enable browser audio and skip the film. Open `level1.html` directly only for gameplay testing; the complete campaign should start from `index.html`.
+Open `index.html` to launch the persistent game shell. It hosts the cinematic, menu, galactic map, desert mission, time-rift level, and train level while keeping one soundtrack player alive across HTML-page transitions—important for Safari. Press any key or tap/click to enable browser audio and skip the film. Open `level1.html` directly only for gameplay testing; the complete campaign should start from `index.html`.
 
 The shell supports both `file://` and a local/web server. For reliable Safari behavior and deployment testing, use a server such as `python3 -m http.server 8000` and open `http://localhost:8000/`.
 
@@ -39,7 +39,7 @@ Standard Gamepad API controllers are detected automatically in gameplay, menus, 
 * **Three playable explorers**: after choosing Arcade or Survival, select from an animated carousel character-select screen inspired by the supplied concept art: compact center pilot panel, previous/next side panels, raised bottom dossier with wrapped name/class/description, pulsing pixel stat bars, and a layered star/meteor background.
 * **Mission entrance**: the selected explorer arrives in a short in-engine cinematic on the supplied PNG rocket surfboard with animated twin reactors while a huge enemy ship rises vertically from the dunes with motor vibration, reactor glow, smoke and falling sand; the rider jumps to the ground as the board accelerates away.
 * **Language-neutral loading screens**: mission, tutorial, map, and rift loading overlays use a simple retro pixel loading bar without visible glyph text instead of English status text.
-* **Two modes**: *Arcade Mission* (single extended mission ~26,000px with final boss) and *Survival* (endless waves in an arena, separate high score). Mode selected from menu with Up/Down.
+* **Two modes**: *Arcade Mission* (single extended mission ~26,000px with final boss), *Survival* (endless waves in an arena with kill streaks, score milestones, chat system, timed platforms, day/night cycle), and *Level 2: Iron Storm* (high-speed desert railway, 12,800px train rooftop combat). Mode selected from menu with Up/Down.
 * **Enemies**: rifle soldiers, grenadiers, melee attackers, elite bazooka troops, sandbag turrets, helicopters, and tanks.
 * **Mini-boss**: Gunship helicopter with HP bar, bullet spreads, and bombing runs.
 * **Final boss**: An original armored fortress with arc cannon, machine gun, and infantry reinforcements. It enrages below 35% HP.
@@ -69,6 +69,7 @@ Reach it from the main menu (third entry) or from the in-game pause menu (Esc �
 ```
 index.html             — standalone two-slide cinematic entry point
 level1.html            — complete Level 1 game and script loader
+level2.html            — Level 2: Iron Storm (train level) and script loader
 js/intro-cinematic.js  — parallax slides, film text, ship motion, skip/redirect
 js/content.js           — language-neutral title and gameplay metadata
 js/i18n.js              — all GUI text in English, Spanish, and French
@@ -81,6 +82,8 @@ js/settings.js          — settings overlay (audio, commands, gameplay)
 js/sprites.js           — PNG loading + generated pixel art + rectangle-based vehicles
 js/combat-fx.js         — procedural muzzle, tracer, flame, rocket, and enemy-fire renderer
 js/level.js             — terrain, platforms, parallax scenery, spawn table
+js/train-level.js       — Level 2 train level definition (window.TrainLevel)
+js/portal-level.js      — Portal level definition (window.PortalLevel)
 js/entities.js          — player, enemy AI, bosses, bullets, explosions, POW, pickups
 js/game.js              — fixed timestep loop (60 Hz), states, camera, HUD, menus
 assets/intro/README.md — exact cinematic layer and spaceship PNG sizes
@@ -105,10 +108,27 @@ docs/external-assets-fx-projectiles-ui-and-intro.md — surfboard, projectiles, 
 
 ## Documentation synchronization
 
-Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-26).
+Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-27).
 
 ---
 
-## Current implementation sync — 2026-07-26
+## Current implementation sync — 2026-07-27
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes Press Start 2P font system, portal beacon FX, settings submenu layout fix, enhanced intro tank slide (particles/wind/heat wave), center-screen info text without boxes, corrected tutorial FX positions per PNG pixel scanning, space fighter enemy type in portal level, blue diamond pixel-art coins, and pixel alien loading font.
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
+- **Coin-to-life system** (`js/entities.js`, `js/game.js`, `js/entity-score.js`, `js/entity-collectibles.js`): Animated coin sprite sheet (coins_ani01.png, 6 frames), `G.coins` counter, `G.COINS_PER_LIFE=50`, coin HUD progress bar, all heart pickups removed, coinLife SFX.
+- **Chat SFX** (`js/audio.js`, `js/dialogue.js`, `js/game.js`): `chatBeep` (4 repeating beeps), `enemyChatBeep` (3 gritty cycles), `coinLife` (ascending arpeggio). Beeps in story dialogue (one-shot on start), survival chat, and coin-to-life reward.
+- **Safari glow fix** (`js/entity-score.js`, `js/game.js`, `js/level.js`, `js/portal-level.js`, `js/train-level.js`, `js/intro-cinematic.js`): All shadowBlur values reduced ~60% for cross-browser consistency.
+- **Tutorial vertical camera disabled** (`js/tutorial-level.js`, `js/game.js`): `disableCamY:true` flag, camera resets to 0.
+- **Respawn ground level** (`js/entities.js`): `p.y=Level.GROUND, p.onGround=true` instead of `p.y=-40`.
+- **Tutorial→survival fix** (`js/game.js`): Redirects to `level1.html?autostart=1` when mode changes from tutorial.
+- **Dune02 lowered + night tint** (`js/level.js`, `js/train-level.js`): +55 offset, +60 fill.
+- **Level 2 train level** (`js/train-level.js`, `level2.html`): 0.95x scaled train segments, GROUND=375, 6 mast types, black smoke + electric sparks FX, speed lines, dust, parallax +70px lower, 24 enemy spawns, exit portal beacon FX.
+- Survival kill streak multipliers (up to x5.75), score milestones (5K/10K/25K/50K/100K), wave clear FX, arena edge glow, bigger score display, wave banner, chat system with enemy/ally portraits, timed platforms (floating_platform.png), day/night cycle.
+- Press Start 2P font system across all HTML/JS (28 canvas sites, 10 files, Courier New fallback).
+- Portal beacon FX (radial gradient + rotating arc) replacing ellipse rings in Level 1 and portal level.
+- Settings submenu binding help text repositioned for Press Start 2P readability.
+- Intro tank slide: 42 ground particles, drawSandWind() wind streaks, heat wave distortion FX.
+- Center-screen info text boxes removed (wave banner, jetpack notice, boss warning/taunt).
+- Tutorial FX positions corrected per PNG pixel scanning: all fires y+8, Module 3 electric-only, Module 5 lamps repositioned.
+- Space fighter enemy type (enemies_ship01/02.png) in portal level (16 enemies total).
+- Pixel alien loading font (pixel-font.js) with canvas-based 5x5 bitmap glyphs.

@@ -194,41 +194,41 @@
     { x:360, y:48, type:'mg' },
     { x:545, y:92, type:'grenades' },
     { x:825, y:92, type:'homing' },
-    { x:1185, y:92, type:'heart' },
+    { x:1185, y:92, type:'grenades' },
 
     { x:1490, y:138, type:'spread' },
     { x:1850, y:138, type:'grenades' },
     { x:2310, y:92, type:'homing' },
-    { x:2460, y:336, type:'heart' },
+    { x:2460, y:336, type:'homing' },
 
     { x:3140, y:46, type:'rocket' },
     { x:3340, y:92, type:'grenades' },
     { x:3760, y:92, type:'homing' },
-    { x:3755, y:286, type:'heart' },
+    { x:3755, y:286, type:'grenades' },
 
     { x:4305, y:94, type:'flame' },
     { x:4695, y:94, type:'grenades' },
     { x:4985, y:94, type:'homing' },
-    { x:5250, y:276, type:'heart' },
+    { x:5250, y:276, type:'homing' },
 
     { x:5595, y:96, type:'spread' },
     { x:5665, y:295, type:'jetpack' },
     { x:6005, y:255, type:'grenades' },
     { x:6430, y:123, type:'homing' },
-    { x:6605, y:104, type:'heart' },
+    { x:6605, y:104, type:'grenades' },
 
     { x:7040, y:92, type:'mg' },
-    { x:7128, y:286, type:'heart' },
+    { x:7128, y:286, type:'homing' },
     { x:7828, y:122, type:'grenades' },
     { x:7992, y:104, type:'homing' },
 
     { x:8360, y:88, type:'homing' },
-    { x:8505, y:292, type:'heart' },
+    { x:8505, y:292, type:'grenades' },
     { x:8748, y:254, type:'grenades' },
     { x:9200, y:120, type:'rocket' },
     { x:9338, y:104, type:'flame' },
 
-    { x:9690, y:302, type:'heart' },
+    { x:9690, y:302, type:'homing' },
     { x:9862, y:284, type:'homing' },
     { x:10510, y:249, type:'grenades' },
   ];
@@ -633,5 +633,6 @@
     updatePlatforms:updatePlatforms, drawBackground:drawBackground, drawGround:drawGround,
     drawExtremeForeground:drawExtremeForeground,
     BOSS_TRIGGER_X:999999, BOSS_X:999999, PORTAL_X:999999, MODULE_W:MODULE_W,
+    disableCamY:true,
   };
 })();

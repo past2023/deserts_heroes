@@ -30,7 +30,7 @@
         g.font = `bold ${Math.round(14 * s)}px "Press Start 2P", "Courier New", monospace`;
         g.fillStyle = popup.color || '#ff0';
         g.shadowColor = popup.color || '#ff0';
-        g.shadowBlur = 12;
+        g.shadowBlur = 4;
       } else {
         g.font = 'bold 9px "Press Start 2P", "Courier New", monospace';
       }

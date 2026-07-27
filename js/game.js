@@ -26,7 +26,7 @@
   chatPlayerFaces.decoding = 'async';
   chatPlayerFaces.src = 'assets/ui/dialogue/face_expresion01.png';
 
-  const ARENA_X = 350; // camera fissa della modalità survival
+  const ARENA_X = 350;
   const savedCharacter = localStorage.getItem('dh_character');
   const initialCharacter = Characters.isValid(savedCharacter) ? savedCharacter : 'juan_p';
 
@@ -43,10 +43,13 @@
     godMode: false,
     time: 0,
     score: 0,
+    coins: 0,
+    COINS_PER_LIFE: 50,
     hiA: parseInt(localStorage.getItem('ma_hiscore') || '0', 10),
     hiS: parseInt(localStorage.getItem('ma_hiscore_surv') || '0', 10),
     lives: 3,
     camX: 0,
+    camY: 0,
     camLockL: 0,
     camLockR: Level.W,
     shake: 0,
@@ -298,6 +301,7 @@
     G.state = 'play';
     G.paused = false;
     G.score = 0;
+    G.coins = 0;
     G.lives = 3;
     Level.resetPlatforms();
     G.shake = 0;
@@ -328,6 +332,7 @@
 
     if (effectiveMode === 'survival') {
       G.camX = ARENA_X;
+      G.camY = 0;
       G.camLockL = ARENA_X;
       G.camLockR = ARENA_X + VW;
       G.player = Entities.createPlayer(ARENA_X + VW / 2, selectedCharacter.id);
@@ -668,6 +673,8 @@
       G.survChatSide = isEnemy ? 'enemy' : 'ally';
       G.survChatPortrait = Math.floor(Math.random() * chatEnemyPortraits.length);
       G.survChatT = 6 + Math.random() * 4;
+      if (isEnemy) { if (SFX.enemyChatBeep) SFX.enemyChatBeep(); }
+      else { if (SFX.chatBeep) SFX.chatBeep(); }
     }
 
     // Timed platforms — spawn every ~20 seconds.
@@ -778,12 +785,25 @@
   // ---------- camera ----------
   function updateCamera(dt) {
     if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 30);
-    if (G.mode === 'survival') return; // camera fissa
+    if (G.mode === 'survival') { G.camY = 0; return; } // camera fissa
     let target = G.player.x - VW * 0.38;
     const minCam = G.bossTriggered ? Level.W - VW : 0;
     target = Math.max(minCam, Math.min(Level.W - VW, target));
     G.camX += (target - G.camX) * Math.min(1, dt * 6);
     G.camX = Math.max(minCam, Math.min(Level.W - VW, G.camX));
+
+    // Vertical camera — follows player upward to reveal ship rooftops.
+    let targetY = 0;
+    if (Level.disableCamY) {
+      G.camY = 0;
+    } else if (G.player.y < VH * 0.38) {
+      targetY = G.player.y - VH * 0.55;
+      targetY = Math.max(-260, Math.min(0, targetY));
+      G.camY += (targetY - G.camY) * Math.min(1, dt * 5);
+    } else {
+      targetY = Math.max(-260, Math.min(0, targetY));
+      G.camY += (targetY - G.camY) * Math.min(1, dt * 5);
+    }
   }
 
   const MENU_ITEMS = ['menu.arcade', 'menu.survival', 'menu.settings', 'menu.help'];
@@ -842,6 +862,11 @@
         if (G.pendingMode === 'arcade') {
           localStorage.setItem('dh_character', selected.id);
           window.location.href = 'galactic-map.html?mode=arcade&character=' +
+            encodeURIComponent(selected.id);
+        } else if (window.IS_TUTORIAL && G.pendingMode !== 'tutorial') {
+          localStorage.setItem('dh_character', selected.id);
+          window.location.href = 'level1.html?autostart=1&mode=' +
+            encodeURIComponent(G.pendingMode) + '&character=' +
             encodeURIComponent(selected.id);
         } else {
           startGame(G.pendingMode, selected.id);
@@ -910,7 +935,7 @@
     if (G.portalTransitionT <= 0 && G.mode === 'arcade' && G.player && !G.player.dead && !G.player.inSlug &&
         Math.abs(G.player.x - Level.PORTAL_X) < 38 && Input.up()) {
       const portalSave = {
-        returnX: Level.PORTAL_X + 95, score: G.score, lives: G.lives,
+        returnX: Level.PORTAL_X + 95, score: G.score, coins: G.coins, lives: G.lives,
         characterId: G.player.characterId, weapon: G.player.weapon, ammo: G.player.ammo,
         grenades: G.player.grenades, homingMissiles: G.player.homingMissiles,
         armor: G.player.armor
@@ -940,6 +965,7 @@
       try { saved = JSON.parse(sessionStorage.getItem('dh_portal_return') || 'null'); } catch (e) {}
       if (saved) {
         saved.score = (saved.score || 0) + G.score;
+        saved.coins = (saved.coins || 0) + G.coins;
         saved.grenades = (saved.grenades || 0) + G.player.grenades;
         saved.homingMissiles = (saved.homingMissiles || 0) + G.player.homingMissiles;
         if (G.player.weapon !== 'pistol') { saved.weapon = G.player.weapon; saved.ammo = G.player.ammo; }
@@ -1238,6 +1264,25 @@
       drawPixelHeart(right - 18 - i * 21, 69, true);
       g.globalAlpha = 0.84;
     }
+
+    // Coin progress bar: heart+coin icon, yellow fill bar, no numbers.
+    const coinProgress = G.coins / G.COINS_PER_LIFE;
+    const barX = railX + 17, barY = 89, barW = 90, barH = 5;
+    g.fillStyle = 'rgba(40,35,20,0.5)';
+    g.fillRect(barX, barY, barW, barH);
+    g.fillStyle = '#ffd700';
+    g.fillRect(barX, barY, Math.round(barW * coinProgress), barH);
+    // Mini heart icon
+    g.fillStyle = '#ff4d58';
+    g.fillRect(barX - 10, barY - 2, 3, 2); g.fillRect(barX - 5, barY - 2, 3, 2);
+    g.fillRect(barX - 11, barY, 10, 3); g.fillRect(barX - 9, barY + 3, 6, 2);
+    g.fillRect(barX - 7, barY + 5, 3, 1);
+    // Mini coin icon
+    g.fillStyle = '#ffd700';
+    g.fillRect(barX + barW + 4, barY - 1, 5, 7);
+    g.fillStyle = '#ffec80';
+    g.fillRect(barX + barW + 5, barY, 3, 5);
+
     g.restore();
 
     // Nearby pickup comparison: compact and contextual, never a modal.
@@ -1252,14 +1297,14 @@
     if (nearbyPickup) {
       const type = nearbyPickup.type;
       const isWeapon = !!Entities.WEAPONS[type];
-      const color = type === 'heart' ? '#ff4d68' : type === 'homing' ? '#68efff' : type === 'grenades' ? '#9aff8a' : '#ffe76a';
+      const color = type === 'homing' ? '#68efff' : type === 'grenades' ? '#9aff8a' : '#ffe76a';
       drawHudRailSection(VW - 218, 105, 206, 38, color);
       if (isWeapon) drawWeaponIcon(VW - 208, 116, color, type);
       else drawGrenadeIcon(VW - 206, 114, color);
       const label = isWeapon ? tr(Entities.WEAPONS[type].nameKey) :
-        (type === 'homing' ? tr('hud.guided', { count: 10 }) :
+        (          type === 'homing' ? tr('hud.guided', { count: 10 }) :
           type === 'jetpack' ? tr('pickup.jetpack') :
-          type === 'heart' ? tr('pickup.life') : tr('hud.grenade', { count: 6 }));
+          tr('hud.grenade', { count: 6 }));
       text('> ' + label, VW - 177, 129, 10, color);
       if (isWeapon) text(tr(Entities.WEAPONS[p.weapon].nameKey), VW - 20, 129, 9, '#aeb8c2', 'right');
     }
@@ -1357,7 +1402,7 @@
       g.save();
       if (G.survScorePulse > 0) {
         g.shadowColor = '#ff0';
-        g.shadowBlur = 10 + pulseAmt * 22;
+        g.shadowBlur = 4 + pulseAmt * 8;
       }
       drawScoreIcon(VW / 2 - 110, 6);
       text(String(G.score).padStart(7, '0'), VW / 2, 36, 30,
@@ -1367,6 +1412,26 @@
       if (G.wave > 0) {
         text(tr('hud.wave', { number: G.wave }), VW / 2, 60, 18, '#ffae42', 'center');
       }
+      // Coin progress bar in survival HUD
+      {
+        const survCoinProg = G.coins / G.COINS_PER_LIFE;
+        g.save(); g.globalAlpha = 0.7;
+        const sbarX = VW / 2 - 40, sbarY = 72, sbarW = 80, sbarH = 4;
+        g.fillStyle = 'rgba(40,35,20,0.5)';
+        g.fillRect(sbarX, sbarY, sbarW, sbarH);
+        g.fillStyle = '#ffd700';
+        g.fillRect(sbarX, sbarY, Math.round(sbarW * survCoinProg), sbarH);
+        // Mini heart icon
+        g.fillStyle = '#ff4d58';
+        g.fillRect(sbarX - 9, sbarY - 1, 2, 2); g.fillRect(sbarX - 5, sbarY - 1, 2, 2);
+        g.fillRect(sbarX - 10, sbarY + 1, 8, 2); g.fillRect(sbarX - 8, sbarY + 3, 5, 1);
+        // Mini coin icon
+        g.fillStyle = '#ffd700';
+        g.fillRect(sbarX + sbarW + 3, sbarY - 1, 4, 6);
+        g.fillStyle = '#ffec80';
+        g.fillRect(sbarX + sbarW + 4, sbarY, 2, 4);
+        g.restore();
+      }
 
       // WAVE BANNER — big dramatic center screen entrance.
       if (G.waveBanner > 0) {
@@ -1375,84 +1440,83 @@
         g.save();
         g.globalAlpha = a;
         g.shadowColor = '#ff6600';
-        g.shadowBlur = 8;
+        g.shadowBlur = 4;
         text(tr('hud.wave', { number: G.wave }), VW / 2, VH / 2 - 60, Math.round(46 * Math.min(scale, 1.3)), '#ffae42', 'center');
         g.restore();
       } else if (G.waveBreakT > 0 && G.wave > 0) {
         text(tr('hud.getReady'), VW / 2, VH / 2 - 60, 24, '#fff', 'center');
       }
+    }
 
-      // Chat messages — enemy taunts or ally hints with portraits (dialogue-style).
-      if (G.survChatMsg) {
-        g.save();
-        const isEnemy = G.survChatSide === 'enemy';
-        const accent = isEnemy ? '#ff5c50' : '#68efff';
-        const chatAge = 10 - G.survChatT;
-        const fadeIn = Math.min(1, chatAge * 3);
-        const fadeOut = G.survChatT < 1.5 ? G.survChatT / 1.5 : 1;
-        g.globalAlpha = Math.max(0, Math.min(1, fadeIn * fadeOut));
+    // Chat messages — enemy taunts or ally hints with portraits (dialogue-style).
+    // Rendered for both survival and arcade modes.
+    if (G.survChatMsg) {
+      g.save();
+      const isEnemy = G.survChatSide === 'enemy';
+      const accent = isEnemy ? '#ff5c50' : '#68efff';
+      const chatAge = 10 - G.survChatT;
+      const fadeIn = Math.min(1, chatAge * 3);
+      const fadeOut = G.survChatT < 1.5 ? G.survChatT / 1.5 : 1;
+      g.globalAlpha = Math.max(0, Math.min(1, fadeIn * fadeOut));
 
-        const bx = 6, by = 6, bw = 320, bh = 50;
-        // Panel background
-        g.fillStyle = 'rgba(2,7,16,0.88)';
-        g.fillRect(bx, by, bw, bh);
-        g.fillStyle = accent;
-        g.fillRect(bx, by, 5, bh);
-        g.strokeStyle = 'rgba(130,220,240,0.58)';
-        g.lineWidth = 2;
-        g.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+      const bx = 6, by = 6, bw = 320, bh = 50;
+      // Panel background
+      g.fillStyle = 'rgba(2,7,16,0.88)';
+      g.fillRect(bx, by, bw, bh);
+      g.fillStyle = accent;
+      g.fillRect(bx, by, 5, bh);
+      g.strokeStyle = 'rgba(130,220,240,0.58)';
+      g.lineWidth = 2;
+      g.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
 
-        // Portrait box
-        const px = bx + 9, py = by + 5, pw = 40, ph = 40;
-        g.save();
-        g.beginPath(); g.rect(px, py, pw, ph); g.clip();
-        g.fillStyle = 'rgba(2,12,22,0.95)';
-        g.fillRect(px, py, pw, ph);
-        const glitch = Math.sin(G.time * 29) > 0.9 ? 1.5 : 0;
-        if (isEnemy) {
-          // Random enemy portrait
-          if (G.survChatPortrait == null) G.survChatPortrait = Math.floor(Math.random() * chatEnemyPortraits.length);
-          const img = chatEnemyPortraits[G.survChatPortrait];
-          if (img && img.naturalWidth) {
-            const iw = img.naturalWidth, ih = img.naturalHeight;
-            const scale = Math.max(pw / iw, ph / ih);
-            const dw = iw * scale, dh = ih * scale;
-            g.drawImage(img, px + (pw - dw) / 2 + glitch, py + (ph - dh) / 2, dw, dh);
-          }
-        } else {
-          // Player face from spritesheet
-          const rows = { juan_p: 0, sergio_h: 1, elena_k: 2 };
-          const row = rows[G.characterId] || 0;
-          if (chatPlayerFaces.naturalWidth) {
-            const cellW = 256, cellH = chatPlayerFaces.naturalHeight / 3;
-            g.drawImage(chatPlayerFaces, 0, row * cellH, cellW, cellH, px + glitch, py, pw, ph);
-          }
+      // Portrait box
+      const px = bx + 9, py = by + 5, pw = 40, ph = 40;
+      g.save();
+      g.beginPath(); g.rect(px, py, pw, ph); g.clip();
+      g.fillStyle = 'rgba(2,12,22,0.95)';
+      g.fillRect(px, py, pw, ph);
+      const glitch = Math.sin(G.time * 29) > 0.9 ? 1.5 : 0;
+      if (isEnemy) {
+        if (G.survChatPortrait == null) G.survChatPortrait = Math.floor(Math.random() * chatEnemyPortraits.length);
+        const img = chatEnemyPortraits[G.survChatPortrait];
+        if (img && img.naturalWidth) {
+          const iw = img.naturalWidth, ih = img.naturalHeight;
+          const scale = Math.max(pw / iw, ph / ih);
+          const dw = iw * scale, dh = ih * scale;
+          g.drawImage(img, px + (pw - dw) / 2 + glitch, py + (ph - dh) / 2, dw, dh);
         }
-        // Scanline + edge glow effect
-        g.globalCompositeOperation = 'lighter';
-        g.globalAlpha = 0.16; g.fillStyle = '#00eaff'; g.fillRect(px + glitch, py, 2, ph);
-        g.fillStyle = '#ff3158'; g.fillRect(px + pw - 3 - glitch, py, 2, ph);
-        g.globalCompositeOperation = 'source-over';
-        g.globalAlpha = 0.20; g.fillStyle = '#07121c';
-        for (let sy = py + 2; sy < py + ph; sy += 4) g.fillRect(px, sy, pw, 1);
-        g.restore();
-
-        // Speaker name
-        const nameKey = isEnemy ? 'dialogue.enemyName' : 'dialogue.heroName';
-        g.font = 'bold ' + Math.round(7 * 0.65) + 'px "Press Start 2P","Courier New",monospace';
-        g.textAlign = 'left';
-        g.fillStyle = '#fff0a8';
-        g.fillText(tr(nameKey), bx + 56, by + 16);
-
-        // Chat text
-        g.font = 'bold ' + Math.round(10 * 0.65) + 'px "Press Start 2P","Courier New",monospace';
-        g.fillStyle = 'rgba(0,0,0,0.9)';
-        g.fillText(G.survChatMsg, bx + 58, by + 36);
-        g.fillStyle = '#ffffff';
-        g.fillText(G.survChatMsg, bx + 56, by + 34);
-
-        g.restore();
+      } else {
+        const rows = { juan_p: 0, sergio_h: 1, elena_k: 2 };
+        const row = rows[G.characterId] || 0;
+        if (chatPlayerFaces.naturalWidth) {
+          const cellW = 256, cellH = chatPlayerFaces.naturalHeight / 3;
+          g.drawImage(chatPlayerFaces, 0, row * cellH, cellW, cellH, px + glitch, py, pw, ph);
+        }
       }
+      // Scanline + edge glow effect
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = 0.16; g.fillStyle = '#00eaff'; g.fillRect(px + glitch, py, 2, ph);
+      g.fillStyle = '#ff3158'; g.fillRect(px + pw - 3 - glitch, py, 2, ph);
+      g.globalCompositeOperation = 'source-over';
+      g.globalAlpha = 0.20; g.fillStyle = '#07121c';
+      for (let sy = py + 2; sy < py + ph; sy += 4) g.fillRect(px, sy, pw, 1);
+      g.restore();
+
+      // Speaker name
+      const nameKey = isEnemy ? 'dialogue.enemyName' : 'dialogue.heroName';
+      g.font = 'bold ' + Math.round(7 * 0.65) + 'px "Press Start 2P","Courier New",monospace';
+      g.textAlign = 'left';
+      g.fillStyle = '#fff0a8';
+      g.fillText(tr(nameKey), bx + 56, by + 16);
+
+      // Chat text
+      g.font = 'bold ' + Math.round(10 * 0.65) + 'px "Press Start 2P","Courier New",monospace';
+      g.fillStyle = 'rgba(0,0,0,0.9)';
+      g.fillText(G.survChatMsg, bx + 58, by + 36);
+      g.fillStyle = '#ffffff';
+      g.fillText(G.survChatMsg, bx + 56, by + 34);
+
+      g.restore();
     }
 
     // Arcade-style mission intro text: no panel, longer hold, heavier START typography.
@@ -2000,7 +2064,7 @@
     }
     Level.drawBackground(g, cam, G.time, VW, VH);
     g.save();
-    g.translate(0, shakeY);
+    g.translate(0, shakeY - G.camY);
     Level.drawGround(g, cam, VW, VH);
     // Day/night cycle overlay — affects world entities but not HUD.
     if (G.mode === 'survival' && G.survDayNight > 0.01) {
@@ -2127,13 +2191,14 @@
     if (saved) {
       startGame('arcade', Characters.isValid(saved.characterId) ? saved.characterId : initialCharacter);
       G.intro = null;
-      G.score = saved.score || 0; G.lives = saved.lives;
+      G.score = saved.score || 0; G.coins = saved.coins || 0; G.lives = saved.lives;
       G.player.x = saved.returnX || Level.PORTAL_X + 95; G.player.y = Level.GROUND;
       G.player.weapon = saved.weapon || 'pistol';
       G.player.ammo = G.player.weapon === 'pistol' ? Infinity : Math.max(0, saved.ammo || 0);
       G.player.grenades = saved.grenades || 0; G.player.homingMissiles = saved.homingMissiles || 0;
       G.player.armor = saved.armor || G.player.maxArmor;
       G.camX = Math.max(0, G.player.x - VW * 0.38);
+      G.camY = 0;
       G.spawnIdx = Level.spawns.findIndex(entry => entry.x > G.player.x - 220);
       if (G.spawnIdx < 0) G.spawnIdx = Level.spawns.length;
       sessionStorage.removeItem('dh_portal_return');
@@ -2170,8 +2235,9 @@
         G.player.x = fp.x + fp.w / 2; G.player.y = fp.y - 2;
       }
       G.camX = Math.max(0, G.player.x - VW * 0.38);
+      G.camY = 0;
       if (saved) {
-        G.score = saved.score || 0; G.lives = saved.lives || 3;
+        G.score = saved.score || 0; G.coins = saved.coins || 0; G.lives = saved.lives || 3;
         G.player.weapon = saved.weapon || 'pistol';
         G.player.ammo = G.player.weapon === 'pistol' ? Infinity : Math.max(0, saved.ammo || 0);
         G.player.grenades = saved.grenades || 0; G.player.homingMissiles = saved.homingMissiles || 0;

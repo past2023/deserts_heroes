@@ -8,7 +8,6 @@
     grenades: { letter:'G', color:'#9aff8a', files:['Grenade_refill_pack.png'], w:38, h:35 },
     homing: { letter:'T', color:'#68efff', files:['Guided_missile_pod.png'], w:56, h:31 },
     jetpack: { letter:'J', color:'#ffb347', files:['jet_pack.png'], w:38, h:40 },
-    heart: { letter:'+', color:'#ff4d68', files:['heart_icon.png'], w:36, h:33 },
   });
   const pickupImages = {};
   for (const type in PICKUP_INFO) {
@@ -119,17 +118,12 @@
           pickup.landed = true;
         }
       }
-      if (pickup.type !== 'homing' && pickup.type !== 'jetpack' && pickup.type !== 'heart' && pickup.t > 14) pickup.dead = true;
+      if (pickup.type !== 'homing' && pickup.type !== 'jetpack' && pickup.t > 14) pickup.dead = true;
       if (!player.dead && Math.abs(player.x - pickup.x) < 28 &&
           Math.abs((player.y - 24) - (pickup.y - 14)) < 44) {
         pickup.dead = true;
         SFX.pickup();
-        if (pickup.type === 'heart') {
-          G.lives = Math.min(5, G.lives + 1);
-          player.hudPulse = 0.8;
-          EntityScore.add(1000, pickup.x, pickup.y - 50);
-          G.scorePops.push({ x:pickup.x, y:pickup.y-68, labelKey:'pickup.life', t:0 });
-        } else if (pickup.type === 'grenades') {
+        if (pickup.type === 'grenades') {
           player.grenades = Math.min(99, player.grenades + 6);
           player.secondaryPulse = 0.45;
           EntityScore.add(200, pickup.x, pickup.y - 50);
@@ -160,7 +154,7 @@
 
   function drawPickups(g, camX) {
     for (const pickup of G.pickups) {
-      if (pickup.type !== 'homing' && pickup.type !== 'jetpack' && pickup.type !== 'heart' && pickup.t > 10 && Math.floor(pickup.t * 8) % 2 === 0) continue;
+      if (pickup.type !== 'homing' && pickup.type !== 'jetpack' && pickup.t > 10 && Math.floor(pickup.t * 8) % 2 === 0) continue;
       const info = PICKUP_INFO[pickup.type];
       const bob = pickup.landed ? Math.sin(pickup.t * 4) * 3 : 0;
       const sx = pickup.x - camX;

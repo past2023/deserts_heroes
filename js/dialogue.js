@@ -10,7 +10,13 @@
 
   function say(speaker,key,duration){ queue.push({speaker:speaker,key:key,duration:duration||4}); }
   function update(dt){
-    if(!current&&queue.length){ current=queue.shift(); timer=current.duration; }
+    if(!current&&queue.length){
+      current=queue.shift(); timer=current.duration;
+      if(window.SFX){
+        if(current.speaker==='enemy'||current.speaker==='boss'){ if(SFX.enemyChatBeep) SFX.enemyChatBeep(); }
+        else if(current.speaker==='player'){ if(SFX.chatBeep) SFX.chatBeep(); }
+      }
+    }
     if(current){ timer-=dt; if(timer<=0){ current=null; timer=0; } }
   }
   function wrap(g,value,width){

@@ -838,7 +838,7 @@
       g.imageSmoothingEnabled = false;
       g.translate(W / 2, 268 + Math.sin(now*0.0006)*2);
       // logo glow
-      g.shadowColor='#ffb347'; g.shadowBlur=18*titleAlpha;
+      g.shadowColor='#ffb347'; g.shadowBlur=6*titleAlpha;
       g.drawImage(logo, -size / 2, -size / 2, size, size);
       g.shadowBlur=0;
       g.restore();

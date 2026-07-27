@@ -71,7 +71,7 @@
     { x: 500,  y: 300, type: 'mg' },
     { x: 720,  y: 250, type: 'grenades' },
     { x: 960,  y: 310, type: 'homing' },
-    { x: 1150, y: 260, type: 'heart' },
+    { x: 1150, y: 260, type: 'grenades' },
     { x: 1370, y: 210, type: 'spread' },
     { x: 1580, y: 270, type: 'grenades' },
     { x: 1790, y: 220, type: 'homing' },
@@ -80,7 +80,7 @@
     { x: 2450, y: 190, type: 'flame' },
     { x: 2680, y: 260, type: 'homing' },
     { x: 2890, y: 210, type: 'grenades' },
-    { x: 3120, y: 270, type: 'heart' },
+    { x: 3120, y: 270, type: 'homing' },
     { x: 3340, y: 220, type: 'mg' },
     { x: 3560, y: 280, type: 'grenades' },
     { x: 3780, y: 230, type: 'spread' },
@@ -218,7 +218,7 @@
       g.beginPath(); g.arc(ex, base - 39, 18 + Math.sin(time * 3) * 2, time * 1.2, time * 1.2 + Math.PI * 1.6); g.stroke();
       g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
       if (imageReady(portalArt)) {
-        g.shadowColor = '#68efff'; g.shadowBlur = 24 + pulse * 12;
+        g.shadowColor = '#68efff'; g.shadowBlur = 8 + pulse * 4;
         g.drawImage(portalArt, ex - 40, base - 80, 80, 80); g.shadowBlur = 0;
       }
       g.restore();

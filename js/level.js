@@ -62,12 +62,23 @@
   const bigShip03Image = new Image();
   bigShip03Image.decoding = 'async';
   bigShip03Image.src = 'assets/vehicles/ships/bigship03.png';
+  const bigShip04Image = new Image();
+  bigShip04Image.decoding = 'async';
+  bigShip04Image.src = 'assets/vehicles/ships/bigship04.png';
   const PORTAL_X = 20750;
   // The first BigShip03 platform encounter is intentionally a little farther
   // from the starting skirmish so the player has more desert runway before the
   // large ship-platform climb begins.
   const BIG_SHIP03_X = 4040;
   const BIG_SHIP03_SHIFT = BIG_SHIP03_X - 3800;
+  // BigShip04: floating ship after BigShip03, same scale as BigShip03.
+  // Image 1408×737 at 0.96× scale → 1352×708, bottom on GROUND, centered at x=8500.
+  const BIG_SHIP04_X = 8500;
+  const BIG_SHIP04_SCALE = 0.96;
+  const BIG_SHIP04_DW = Math.round(1408 * BIG_SHIP04_SCALE);
+  const BIG_SHIP04_DH = Math.round(737 * BIG_SHIP04_SCALE);
+  const BIG_SHIP04_BOTTOM = GROUND;
+  const BIG_SHIP04_DRAWY = GROUND - BIG_SHIP04_DH;
 
   const GROUND_MODULE_W = 512;
   const GROUND_MODULE_H = 128;
@@ -95,6 +106,16 @@
     { x: 3802 + BIG_SHIP03_SHIFT, baseY: 167, y: 167, w: 342, amp: 0, speed: 0, phase: 0 },
     { x: 3624 + BIG_SHIP03_SHIFT, baseY: 257, y: 257, w: 505, amp: 0, speed: 0, phase: 0 },
     { x: 3332 + BIG_SHIP03_SHIFT, baseY: 348, y: 348, w: 854, amp: 0, speed: 0, phase: 0 },
+    // Invisible playable surfaces extracted from bigship04_refe.png
+    // Ship at 0.96× scale (matching BigShip03), bottom on GROUND, centered at x=8500.
+    // Top deck (img y≈196): world y≈-49
+    { x: 8013, baseY: -49, y: -49, w: 959, amp: 0, speed: 0, phase: 0 },
+    // Mid deck (img y≈379): world y≈126
+    { x: 8009, baseY: 126, y: 126, w: 299, amp: 0, speed: 0, phase: 0 },
+    { x: 8353, baseY: 126, y: 126, w: 257, amp: 0, speed: 0, phase: 0 },
+    { x: 8693, baseY: 126, y: 126, w: 225, amp: 0, speed: 0, phase: 0 },
+    // Bottom deck (img y≈550): world y≈290
+    { x: 8009, baseY: 290, y: 290, w: 889, amp: 0, speed: 0, phase: 0 },
     // Extended exploration route: alternating low, medium and high paths.
     { x: 7180, baseY: 390, y: 390, w: 170, amp: 14, speed: 0.55, phase: 0.8 },
     { x: 7520, baseY: 300, y: 300, w: 140, amp: 20, speed: 0.72, phase: 2.2, fragile: true },
@@ -204,6 +225,14 @@
     { x: 6720, type: 'grenadier' },
     { x: 6800, type: 'grenadier' },
     { x: 6860, type: 'bazooka' },
+    // BigShip04 ship-platform encounter: enemies on the floating ship decks.
+    { x: 8150, y: 290, type: 'soldier' },
+    { x: 8400, y: 290, type: 'grenadier' },
+    { x: 8650, y: 290, type: 'knife' },
+    { x: 8200, y: 126, type: 'bazooka' },
+    { x: 8500, y: 126, type: 'soldier' },
+    { x: 8400, y: 126, type: 'turret' },
+    { x: 8350, type: 'pickup', pickup: 'spread' },
     // Second quiet traversal pocket around 8500-8900.
     { x: 8920, type: 'pow' },
     { x: 9100, type: 'knife' }, { x: 9170, type: 'knife' },
@@ -382,38 +411,43 @@
     { x:3440 + BIG_SHIP03_SHIFT, y:140, type:'mg' },
     { x:3680 + BIG_SHIP03_SHIFT, y:2, type:'homing' },
     { x:4000 + BIG_SHIP03_SHIFT, y:142, type:'grenades' },
-    { x:4145 + BIG_SHIP03_SHIFT, y:322, type:'heart' },
+    { x:4145 + BIG_SHIP03_SHIFT, y:322, type:'grenades' },
+
+    // BigShip04 floating ship caches.
+    { x:8450, y:100, type:'mg' },
+    { x:8550, y:100, type:'homing' },
+    { x:8320, y:260, type:'homing' },
 
     // Main path platforms now carry most of the visible rewards; ground props
     // are less loot-heavy so climbing feels valuable.
     { x:1220, y:360, type:'grenades' },
     { x:2080, y:318, type:'spread' },
-    { x:3488, y:374, type:'heart' },
+    { x:3488, y:374, type:'grenades' },
     { x:4215, y:288, type:'rocket' },
     { x:5700, y:350, type:'grenades' },
     { x:6135, y:274, type:'homing' },
 
     { x:7238, y:360, type:'mg' },
     { x:7568, y:268, type:'grenades' },
-    { x:8368, y:250, type:'heart' },
+    { x:8368, y:250, type:'homing' },
     { x:9205, y:298, type:'flame' },
     { x:9668, y:230, type:'homing' },
 
     { x:11135, y:330, type:'grenades' },
-    { x:11582, y:220, type:'heart' },
-    { x:12652, y:198, type:'heart' },
+    { x:11582, y:220, type:'grenades' },
+    { x:12652, y:198, type:'homing' },
     { x:13662, y:218, type:'homing' },
     { x:14395, y:248, type:'grenades' },
-    { x:15732, y:193, type:'heart' },
+    { x:15732, y:193, type:'grenades' },
     { x:16472, y:278, type:'rocket' },
 
     { x:18495, y:318, type:'grenades' },
-    { x:19090, y:208, type:'heart' },
+    { x:19090, y:208, type:'homing' },
     { x:20292, y:315, type:'homing' },
-    { x:20900, y:208, type:'heart' },
+    { x:20900, y:208, type:'grenades' },
     { x:22398, y:262, type:'flame' },
     { x:23895, y:318, type:'grenades' },
-    { x:24490, y:208, type:'heart' },
+    { x:24490, y:208, type:'homing' },
   ];
 
   // ---------------- scenografia (seeded, deterministica) ----------------
@@ -684,7 +718,7 @@
       g.save();
       g.globalCompositeOperation = 'source-over';
       g.fillStyle = 'rgba(5, 14, 45,' + (amount * 0.56).toFixed(3) + ')';
-      g.fillRect(0, 0, VW, GROUND + 6);
+      g.fillRect(0, 0, VW, GROUND + 60);
       g.restore();
     }
   }
@@ -781,7 +815,7 @@
     const sourceH = img.naturalHeight || img.height;
     const tileH = Math.round(sourceH * DUNE_SCALE);
     drawTiledLayer(g, img, camX, DUNE_PARALLAX, DUNE_SCALE,
-      GROUND - tileH + 6, VW);
+      GROUND - tileH + 55, VW);
   }
 
   function drawBigShip03Decor(g, camX, VW) {
@@ -912,6 +946,125 @@
     g.restore();
   }
 
+  function drawBigShip04Decor(g, camX, VW) {
+    if (!imageReady(bigShip04Image)) return;
+    if(window.G && G.state !== 'play') return;
+    const worldX = BIG_SHIP04_X;
+    const screenX = Math.round(worldX - camX);
+    const dw = BIG_SHIP04_DW, dh = BIG_SHIP04_DH;
+    const sx = screenX - Math.round(dw / 2);
+    const sy = BIG_SHIP04_DRAWY;
+    if (sx + dw < -120 || sx > VW + 120) return;
+    g.save();
+    g.imageSmoothingEnabled = false;
+    g.globalAlpha = 0.94;
+    g.drawImage(bigShip04Image, sx, sy, dw, dh);
+
+    const t = (window.G&&G.time)||0;
+
+    // Two left-side reactor nozzles (rear of the ship, exhaust blows left).
+    // Estimated from bigship04.png pixel structure: left edge at x≈0.02,
+    // upper nozzle center y≈0.47, lower nozzle center y≈0.75.
+    const leftReactors = [
+      { x:0.00, y:0.365, s:1.3, phase:0.0, w:22 },
+      { x:0.00, y:0.659, s:1.2, phase:1.7, w:20 },
+    ];
+    g.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < leftReactors.length; i++) {
+      const r = leftReactors[i];
+      const rx = sx + dw * r.x;
+      const ry = sy + dh * r.y;
+      const flick = 0.72 + Math.sin(t * 9.0 + r.phase) * 0.18 + Math.sin(t * 31.0 + i) * 0.08;
+      const flameLen = (58 + Math.sin(t * 5.5 + i) * 14) * r.s * flick;
+      const flameW = r.w * r.s * (0.85 + flick * 0.35);
+
+      // Outer glow halo
+      g.globalAlpha = 0.18 * flick;
+      g.fillStyle = 'rgba(255,140,40,1)';
+      g.beginPath();
+      g.arc(rx - flameLen * 0.25, ry, flameW * 1.8, 0, Math.PI * 2);
+      g.fill();
+
+      // Main flame body (blowing LEFT)
+      const flame = g.createLinearGradient(rx + 4, ry, rx - flameLen, ry);
+      flame.addColorStop(0, 'rgba(255,255,220,0.95)');
+      flame.addColorStop(0.15, 'rgba(255,230,120,0.88)');
+      flame.addColorStop(0.35, 'rgba(255,180,50,0.72)');
+      flame.addColorStop(0.60, 'rgba(255,80,20,0.48)');
+      flame.addColorStop(1, 'rgba(100,12,6,0)');
+      g.globalAlpha = 0.85;
+      g.fillStyle = flame;
+      g.beginPath();
+      g.moveTo(rx + 3, ry - flameW * 0.48);
+      g.bezierCurveTo(rx - flameLen * 0.25, ry - flameW * 1.30, rx - flameLen * 0.65, ry - flameW * 0.55, rx - flameLen, ry);
+      g.bezierCurveTo(rx - flameLen * 0.65, ry + flameW * 0.58, rx - flameLen * 0.22, ry + flameW * 1.20, rx + 3, ry + flameW * 0.48);
+      g.closePath();
+      g.fill();
+
+      // Inner hot core
+      g.globalAlpha = 0.70;
+      const core = g.createLinearGradient(rx + 2, ry, rx - flameLen * 0.55, ry);
+      core.addColorStop(0, 'rgba(255,255,255,0.95)');
+      core.addColorStop(0.3, 'rgba(255,248,200,0.75)');
+      core.addColorStop(0.7, 'rgba(255,200,80,0.30)');
+      core.addColorStop(1, 'rgba(255,100,20,0)');
+      g.fillStyle = core;
+      g.beginPath();
+      g.moveTo(rx + 1, ry - flameW * 0.22);
+      g.bezierCurveTo(rx - flameLen * 0.18, ry - flameW * 0.60, rx - flameLen * 0.42, ry - flameW * 0.28, rx - flameLen * 0.55, ry);
+      g.bezierCurveTo(rx - flameLen * 0.42, ry + flameW * 0.30, rx - flameLen * 0.16, ry + flameW * 0.58, rx + 1, ry + flameW * 0.22);
+      g.closePath();
+      g.fill();
+
+      // White-hot nozzle-exit bar
+      g.globalAlpha = 0.95;
+      g.fillStyle = '#fff8d0';
+      g.fillRect(Math.round(rx - Math.round(flameLen * 0.28)), Math.round(ry - 3), Math.round(flameLen * 0.28), 6);
+    }
+
+    // Black crash smoke — sources at reactor nozzles and along hull toward right.
+    g.globalCompositeOperation = 'source-over';
+    const smokeSources = [
+      { x:0.03, y:0.47, strength:1.8, drift:-1.4 },
+      { x:0.03, y:0.75, strength:1.7, drift:-1.3 },
+      { x:0.18, y:0.50, strength:1.1, drift:-1.0 },
+      { x:0.35, y:0.38, strength:1.0, drift:-0.9 },
+      { x:0.50, y:0.60, strength:1.05, drift:-0.95 },
+      { x:0.68, y:0.42, strength:0.95, drift:-0.85 },
+    ];
+    for (let sIdx = 0; sIdx < smokeSources.length; sIdx++) {
+      const src = smokeSources[sIdx];
+      const count = sIdx < 2 ? 14 : 9;
+      const baseX = sx + dw * src.x;
+      const baseY = sy + dh * src.y;
+      for (let i = 0; i < count; i++) {
+        const drift = (t * (10 + sIdx * 0.7) + i * 13 + sIdx * 19) % 180;
+        const puff = 1 - drift / 180;
+        const wobble = Math.sin(t * 0.9 + i * 1.5 + sIdx) * (6 + i % 4);
+        g.globalAlpha = (0.18 + src.strength * 0.08) * puff;
+        g.fillStyle = i % 3 === 0 ? '#030304' : i % 2 ? '#0d0d12' : '#17100e';
+        g.beginPath();
+        g.arc(
+          baseX + drift * (0.4 + src.drift * 0.3) + wobble,
+          baseY - drift * (0.2 + src.drift * 0.15),
+          (10 + (1 - puff) * 26 + (i % 4) * 3) * src.strength,
+          0, Math.PI * 2
+        );
+        g.fill();
+        if (i % 2 === 0) {
+          g.globalAlpha *= 0.6;
+          g.fillStyle = '#050507';
+          g.beginPath();
+          g.arc(baseX + drift * 0.5 + wobble - 6, baseY - drift * 0.28 - 4,
+            (7 + (1 - puff) * 14) * src.strength, 0, Math.PI * 2);
+          g.fill();
+        }
+      }
+    }
+    g.globalAlpha=1;
+    g.restore();
+  }
+
   function drawDesertPlant(g, plant, camX) {
     const type = plant.type;
     const px = plant.x - camX;
@@ -1031,6 +1184,7 @@
     // Supplied palm/cactus PNGs and large ship decor occupy this layer, behind
     // gameplay entities but in front of the dune panorama.
     drawBigShip03Decor(g, camX, VW);
+    drawBigShip04Decor(g, camX, VW);
     for (const plant of desertPlants) drawDesertPlant(g, plant, camX);
 
     const externalGround = drawGroundModules(g, camX, VW);
@@ -1391,7 +1545,7 @@
       g.beginPath(); g.arc(portalScreenX, GROUND - 34, 18 + Math.sin(G.time * 3) * 2, G.time * 1.2, G.time * 1.2 + Math.PI * 1.6); g.stroke();
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
       if (imageReady(portalDoorImage)) {
-        g.shadowColor = '#58eaff'; g.shadowBlur = 18 + portalPulse * 12;
+        g.shadowColor = '#58eaff'; g.shadowBlur = 6 + portalPulse * 4;
         g.drawImage(portalDoorImage, portalScreenX - 32, GROUND - 64, 64, 64);
         g.shadowBlur = 0;
       }

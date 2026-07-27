@@ -18,6 +18,18 @@
   bossTankArt.chassis.src = 'assets/vehicles/boss_tank01/chassis.png';
   bossTankArt.pieces.src = 'assets/vehicles/boss_tank01/pieces.png';
   bossTankArt.destroyed.src = 'assets/vehicles/boss_tank01/destroyed.png';
+
+  const coinSprite = new Image();
+  coinSprite.src = 'assets/pickups/coins_ani01.png';
+  const COIN_FRAMES = [
+    { x: 3, w: 5 },
+    { x: 14, w: 7 },
+    { x: 24, w: 11 },
+    { x: 36, w: 23 },
+    { x: 62, w: 7 },
+    { x: 75, w: 5 },
+  ];
+  const COIN_FRAME_H = 12;
   const enemyTankArt = { full: new Image(), chassis: new Image(), pieces: new Image(), destroyed: new Image() };
   enemyTankArt.full.src = 'assets/vehicles/enemy_tank01/full.png';
   enemyTankArt.chassis.src = 'assets/vehicles/enemy_tank01/chassis.png';
@@ -534,7 +546,7 @@
     p.armor = p.maxArmor;
     p.deathHeavenFx = false; p.deathTrailT = 0;
     p.x = clamp(p.x, G.camLockL + 40, G.camLockR - 40);
-    p.y = -40; p.vy = 0; p.vx = 0; p.doubleJumpReady = true;
+    p.y = Level.GROUND; p.vy = 0; p.vx = 0; p.onGround = true; p.doubleJumpReady = true;
     p.inv = 2.5;
     p.weapon = 'pistol'; p.ammo = Infinity;
     p.grenades = Math.max(p.grenades, 5);
@@ -1277,13 +1289,13 @@
         vx: side * (finalBoss ? 5.2 : 10.2) + rnd(-95, 95),
         vy: baseVy + rnd(-190, 105), t: 0, life: rnd(finalBoss ? 3.1 : 2.15, finalBoss ? 4.0 : 2.85),
         color: Math.random() < 0.22 ? '#c8f6ff' : Math.random() < 0.58 ? '#31a6ff' : '#15588a',
-        size: rnd(finalBoss ? 14 : 10, finalBoss ? 24 : 17), grav: 1040,
+        size: rnd(finalBoss ? 10 : 6, finalBoss ? 16 : 10), grav: 1040,
         rot: rnd(0, Math.PI * 2), spin: rnd(-18, 18), phase: rnd(0, Math.PI * 2),
         landed: false,
       });
     }
     G.scorePops.push({
-      x: x, y: y - (finalBoss ? 170 : 90), label: finalBoss ? 'DIAMOND JACKPOT!' : 'DIAMOND BONUS!', t: 0,
+      x: x, y: y - (finalBoss ? 170 : 90),       label: finalBoss ? 'COIN JACKPOT!' : 'COIN BONUS!', t: 0,
     });
   }
 
@@ -3216,6 +3228,28 @@
           pa.vx *= 0.82;
           pa.grav = 0;
         }
+      }
+      if (pa.kind === 'coin' && pa.landed && !pa.collected) {
+        const pl = G.player;
+        if (pl && !pl.dead && Math.abs(pl.x - pa.x) < 30 && Math.abs(pl.y - pa.y) < 50) {
+          pa.collected = true;
+          pa.life = 0;
+          G.coins++;
+          G.score += 100;
+          SFX.pickup();
+          G.scorePops.push({ x: pa.x, y: pa.y - 20, label: '+1', t: 0, color: '#ffd700', big: false });
+          if (G.coins >= G.COINS_PER_LIFE) {
+            G.coins -= G.COINS_PER_LIFE;
+            G.lives = Math.min(5, G.lives + 1);
+            SFX.coinLife();
+            G.scorePops.push({ x: pa.x, y: pa.y - 50, label: 'EXTRA LIFE!', t: 0, big: true, color: '#ff4d68' });
+            G.screenFlash = Math.max(G.screenFlash || 0, 0.35);
+            G.screenFlashColor = '#ff4d68';
+            var congrats = ['Nice work!', 'Coins pay off!', 'Extra life!', 'Keep collecting!', 'Well done!'];
+            G.scorePops.push({ x: pa.x, y: pa.y - 80, label: congrats[Math.floor(Math.random() * congrats.length)], t: 0, big: true, color: '#68efff' });
+            if (SFX.chatBeep) SFX.chatBeep();
+          }
+        }
       } else if (pa.y > Level.GROUND && pa.vy > 0 && pa.kind !== 'ring' && pa.kind !== 'glow') {
         pa.y = Level.GROUND;
         if (pa.kind === 'casing' && !pa.bounced) {
@@ -3308,51 +3342,30 @@
       if (pa.kind === 'coin') {
         const spin = Math.abs(Math.sin((pa.phase || 0) + pa.t * 18 + (pa.spin || 0) * 0.08));
         const scale = Math.max(1, Math.round(pa.size / 7));
-        const frame = spin > 0.66 ? 2 : spin > 0.30 ? 1 : 0;
         g.translate(Math.round(sx), Math.round(pa.y));
         g.scale(scale, scale);
         g.globalAlpha = alpha;
         g.imageSmoothingEnabled = false;
-        // Pixel-art blue diamond: chunky rectangles in a rhombus shape,
-        // 3 spin frames with cyan/blue palette.
-        if (frame === 2) {
-          // face-on diamond
-          g.fillStyle = '#0d3a6e';
-          g.fillRect(-5, -8, 10, 16); g.fillRect(-8, -5, 16, 10);
-          g.fillStyle = '#1a6ec8';
-          g.fillRect(-4, -7, 8, 14); g.fillRect(-7, -4, 14, 8);
-          g.fillStyle = '#38b4ff';
-          g.fillRect(-5, -3, 10, 6); g.fillRect(-3, -6, 6, 12);
-          g.fillStyle = '#9ee8ff';
-          g.fillRect(-3, -4, 3, 5);
-          g.fillStyle = '#1a6ec8';
-          g.fillRect(2, -1, 3, 5);
-        } else if (frame === 1) {
-          // mid-rotation, narrower
-          g.fillStyle = '#0d3a6e';
-          g.fillRect(-4, -8, 8, 16); g.fillRect(-5, -5, 10, 10);
-          g.fillStyle = '#1a6ec8';
-          g.fillRect(-3, -7, 6, 14); g.fillRect(-4, -4, 8, 8);
-          g.fillStyle = '#38b4ff';
-          g.fillRect(-2, -6, 4, 12); g.fillRect(-3, -2, 6, 4);
-          g.fillStyle = '#9ee8ff';
-          g.fillRect(-2, -4, 2, 5);
-          g.fillStyle = '#1a6ec8';
-          g.fillRect(1, -1, 2, 5);
+        if (coinSprite.naturalWidth > 0) {
+          var fi = spin > 0.66 ? 3 : spin > 0.40 ? 2 : spin > 0.18 ? 1 : 0;
+          var cf = COIN_FRAMES[fi];
+          var drawW = cf.w * 2;
+          var drawH = COIN_FRAME_H * 2;
+          g.drawImage(coinSprite, cf.x, 0, cf.w, COIN_FRAME_H,
+            Math.round(-drawW / 2), Math.round(-drawH / 2), drawW, drawH);
+          if (spin > 0.80) {
+            g.globalCompositeOperation = 'lighter';
+            g.globalAlpha = alpha * 0.88;
+            g.drawImage(coinSprite, cf.x, 0, cf.w, COIN_FRAME_H,
+              Math.round(-drawW / 2), Math.round(-drawH / 2), drawW, drawH);
+          }
         } else {
-          // edge-on, thin sliver
-          g.fillStyle = '#0d3a6e';
-          g.fillRect(-2, -8, 4, 16); g.fillRect(-3, -5, 6, 10);
-          g.fillStyle = '#38b4ff';
-          g.fillRect(-1, -7, 2, 14);
-          g.fillStyle = '#9ee8ff';
-          g.fillRect(-1, -5, 1, 5);
-        }
-        if (spin > 0.80) {
-          g.globalCompositeOperation = 'lighter';
-          g.globalAlpha = alpha * 0.88;
-          g.fillStyle = '#d0f4ff';
-          g.fillRect(-1, -8, 2, 16);
+          var fi = spin > 0.66 ? 3 : spin > 0.40 ? 2 : spin > 0.18 ? 1 : 0;
+          var cf = COIN_FRAMES[fi];
+          g.fillStyle = '#ffd700';
+          g.fillRect(Math.round(-cf.w / 2), -6, cf.w, 12);
+          g.fillStyle = '#ffec80';
+          g.fillRect(Math.round(-cf.w / 2) + 1, -5, Math.max(1, cf.w - 2), 10);
         }
       } else if (pa.kind === 'fireball') {
         // Expanded Flame Shot look: brilliant white core, yellow plasma,

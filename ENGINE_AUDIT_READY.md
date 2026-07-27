@@ -33,7 +33,7 @@ window.G = { state, mode, characterId, camX, score, lives, combo, player, enemie
 ```
 - Single global mutable state. Functional for now but is the #1 scalability risk.
 - Fixed timestep loop (implied from entities), `hitStop`, `shake`, `hurtFlash`, `screenFlash` for game feel.
-- Camera: lerp to player.x - 0.38*VW, locked at Level.W - VW for boss, fixed at 350 for survival.
+- Camera: lerp to player.x - 0.38*VW, locked at Level.W - VW for boss, fixed at 350 for survival. Vertical follow (G.camY) triggers when player.y < 0.38*VH, clamped to [-260, 0], applied via g.translate in drawWorld.
 - Intro mission cinematic: rocket surfboard arrival (boardActive + exhaust particles, depart accel 620 px/s²).
 - Portal transition: `sessionStorage dh_portal_return` preserves score/lives/weapon across `portal-level.html`.
 
@@ -205,15 +205,19 @@ But audit requires readiness before coding — this document is Phase 1-2, next 
 
 - [x] Repo cloned, 10k loc analyzed, docs synchronized (23-Jul-2026)
 - [x] Campaign flow traced: index.html → intro → menu → character → galactic → tutorial placeholder → level1 → portal-level → return
-- [x] Asset inventories verified: 3 heroes PNG, 5 soldiers modular, vehicles, pickups, scenery, terrain
+- [x] Asset inventories verified: 3 heroes PNG, 5 soldiers modular, vehicles, pickups, scenery, terrain, trains (13 PNGs), masts (6 PNGs)
 - [x] Audio engine understood: procedural + MP3 router, bus separation, Safari persistence
 - [x] Known hazards: G monolith, script order, no pool, hardcoded spawns
-- [ ] **NEXT:** Create `assets/data/tutorial_triggers.json` + `js/tutorial-level.js` + `docs/tutorial-design.md`
-- [ ] Add i18n tutorial keys in `js/i18n.js`
-- [ ] Update `tutorial.html` from placeholder to real level loader (reuse level1.html structure)
-- [ ] QA: test file:// and http://localhost:8000, Safari + Chrome + gamepad
-- [ ] Profile: check particle count cap (recommend 400 max), image onload fallback counter
-- [ ] Update `docs/current-runtime-status.md` + `next-phase-handoff.md` after tutorial lands
+- [x] Tutorial level built (`js/tutorial-level.js`, `tutorial.html`) — 8 modules, 62 platforms, light FX, Soldier06 observers
+- [x] Level 2 train level built (`js/train-level.js`, `level2.html`) — 0.95x train segments, time-based masts, smoke/sparks FX
+- [x] Survival mode overhaul — kill streaks, score milestones, chat system, timed platforms, day/night cycle
+- [ ] **NEXT:** Iterate Level 2 gameplay (enemy pacing, difficulty curve, visual polish)
+- [ ] Add data-driven dialogue triggers and character-specific hero lines
+- [ ] Separate the 26,000-pixel mission encounter table into authored sectors
+- [ ] Add automated collision and campaign-flow tests
+- [ ] Profile long-session particle and image memory in Safari
+- [ ] Define Mission 03 gameplay using the story bible
+- [ ] Update `docs/current-runtime-status.md` + `next-phase-handoff.md` after major phases
 
 ---
 
@@ -251,6 +255,17 @@ Let's build the Training Annex.
 
 ---
 
-## Current implementation sync — 2026-07-26
+## Current implementation sync — 2026-07-27
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes Press Start 2P font system, portal beacon FX, settings submenu layout fix, enhanced intro tank slide (particles/wind/heat wave), center-screen info text without boxes, corrected tutorial FX positions per PNG pixel scanning, space fighter enemy type in portal level, blue diamond pixel-art coins, and pixel alien loading font.
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
+- **Level 2 train level** (`js/train-level.js`, `level2.html`): 0.95x scaled train segments (motor02→random wagons→motor01), GROUND=375, TRAIN_X_OFFSET=-400, 6 mast types at time-based MAST_SPEED=600, black smoke + electric sparks FX, speed lines, dust particles, parallax +70px lower, 24 enemy spawns, exit portal beacon FX.
+- Survival kill streak multipliers (up to x5.75), score milestones (5K/10K/25K/50K/100K), wave clear FX, arena edge glow, bigger score display, wave banner, chat system with enemy/ally portraits, timed platforms (floating_platform.png), day/night cycle.
+- Press Start 2P font system across all HTML/JS (28 canvas sites, 10 files, Courier New fallback).
+- Portal beacon FX (radial gradient + rotating arc) replacing ellipse rings in Level 1 and portal level.
+- Settings submenu binding help text repositioned for Press Start 2P readability.
+- Intro tank slide: 42 ground particles, drawSandWind() wind streaks, heat wave distortion FX.
+- Center-screen info text boxes removed (wave banner, jetpack notice, boss warning/taunt).
+- Tutorial FX positions corrected per PNG pixel scanning: all fires y+8, Module 3 electric-only, Module 5 lamps repositioned.
+- Space fighter enemy type (enemies_ship01/02.png) in portal level (16 enemies total).
+- Blue diamond pixel-art coins replacing gold coins.
+- Pixel alien loading font (pixel-font.js) with canvas-based 5x5 bitmap glyphs.

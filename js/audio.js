@@ -342,6 +342,32 @@
     },
     warning() { tone(1100, 0.09, 'square', 0.12); },
     blip() { tone(880, 0.04, 'square', 0.08); },
+    coinLife() {
+      const seq = [523, 659, 784, 1046, 1318, 1568];
+      seq.forEach((f, i) => tone(f, 0.14, 'square', 0.12, null, i * 0.07));
+      tone(2093, 0.4, 'sine', 0.08, 2637, 0.35);
+      noise(0.18, 0.08, 8000, 4000, 0.3);
+    },
+    chatBeep() {
+      for (let i = 0; i < 4; i++) {
+        var t = i * 0.2;
+        var f1 = 1100 + (i % 2) * 400;
+        var f2 = 1400 + ((i + 1) % 3) * 200;
+        var v = 0.12 + Math.random() * 0.03;
+        tone(f1, 0.05, 'square', v, null, t);
+        tone(f2, 0.05, 'square', v, null, t + 0.05);
+      }
+    },
+    enemyChatBeep() {
+      for (let i = 0; i < 3; i++) {
+        var t = i * 0.22;
+        var base = 350 + i * 40;
+        var v = 0.11 + Math.random() * 0.03;
+        tone(base, 0.06, 'sawtooth', v, base * 0.7, t);
+        tone(base * 0.8, 0.06, 'sawtooth', v * 0.9, base * 0.55, t + 0.06);
+        noise(0.08, 0.10, 2800, 900, t + 0.03);
+      }
+    },
     victory() {
       const seq = [523, 523, 523, 659, 784, 1046];
       seq.forEach((f, i) => tone(f, 0.22, 'square', 0.18, null, i * 0.16));

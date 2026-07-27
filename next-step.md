@@ -411,10 +411,27 @@ Aim for professional indie quality, not prototype quality.
 
 ## Documentation synchronization
 
-Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-25). Latest changes include the carousel character select, reference-image tutorial platforms with added upper-route rewards, tutorial CRT/electric FX, pilar02 smoke/electric foreground, stronger tank-piercing Soldier06 lasers with enemy taunts, drill-tip Ally Tank 02 laser origin, ally tank dust/exhaust plus realistic oily critical black smog, Level 1 fixed-world vertical UFO/BigShip03 ship-platform section, non-parallax lava with fire/smoke/bubbles, pixel casino coin awards for destroyed helicopters/vehicles/boss, with mid-fight boss drops and a brighter final jackpot, and simple retro pixel loading bars.
+Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-27). Latest changes include Level 2 train level implementation, survival mode overhaul (kill streaks, score milestones, chat system, timed platforms, day/night cycle), carousel character select, reference-image tutorial platforms with upper-route rewards, tutorial CRT/electric FX, pilar02 smoke/electric foreground, stronger tank-piercing Soldier06 lasers with enemy taunts, drill-tip Ally Tank 02 laser origin, ally tank dust/exhaust plus realistic oily critical black smog, Level 1 fixed-world vertical UFO/BigShip03 ship-platform section, BigShip04 floating ship at 0.96× scale with reference-extracted decks and reactor FX, vertical camera follow (G.camY) revealing ship rooftops on high jumps, non-parallax lava with fire/smoke/bubbles, pixel casino coin awards for destroyed helicopters/vehicles/boss, and simple retro pixel loading bars.
 
 ---
 
-## Current implementation sync — 2026-07-26
+## Current implementation sync — 2026-07-27
 
-Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes Press Start 2P font system, portal beacon FX, settings submenu layout fix, enhanced intro tank slide (particles/wind/heat wave), center-screen info text without boxes, corrected tutorial FX positions per PNG pixel scanning, space fighter enemy type in portal level, blue diamond pixel-art coins, and pixel alien loading font.
+Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
+- **Coin-to-life system** (`js/entities.js`, `js/game.js`, `js/entity-score.js`, `js/entity-collectibles.js`): Animated coin sprite sheet (coins_ani01.png, 6 frames), `G.coins` counter, `G.COINS_PER_LIFE=50`, coin HUD progress bar, all heart pickups removed, coinLife SFX.
+- **Chat SFX** (`js/audio.js`, `js/dialogue.js`, `js/game.js`): `chatBeep` (4 repeating beeps), `enemyChatBeep` (3 gritty cycles), `coinLife` (ascending arpeggio). Beeps in story dialogue (one-shot on start), survival chat, and coin-to-life reward.
+- **Safari glow fix** (`js/entity-score.js`, `js/game.js`, `js/level.js`, `js/portal-level.js`, `js/train-level.js`, `js/intro-cinematic.js`): All shadowBlur values reduced ~60% for cross-browser consistency.
+- **Tutorial vertical camera disabled** (`js/tutorial-level.js`, `js/game.js`): `disableCamY:true` flag, camera resets to 0.
+- **Respawn ground level** (`js/entities.js`): `p.y=Level.GROUND, p.onGround=true` instead of `p.y=-40`.
+- **Tutorial→survival fix** (`js/game.js`): Redirects to `level1.html?autostart=1` when mode changes from tutorial.
+- **Dune02 lowered + night tint** (`js/level.js`, `js/train-level.js`): +55 offset, +60 fill.
+- **Level 2 train level** (`js/train-level.js`, `level2.html`): 0.95x scaled train segments, GROUND=375, 6 mast types, black smoke + electric sparks FX, speed lines, dust, parallax +70px lower, 24 enemy spawns, exit portal beacon FX.
+- Survival kill streak multipliers (up to x5.75), score milestones (5K/10K/25K/50K/100K), wave clear FX, arena edge glow, bigger score display, wave banner, chat system with enemy/ally portraits, timed platforms (floating_platform.png), day/night cycle.
+- Press Start 2P font system across all HTML/JS (28 canvas sites, 10 files, Courier New fallback).
+- Portal beacon FX (radial gradient + rotating arc) replacing ellipse rings in Level 1 and portal level.
+- Settings submenu binding help text repositioned for Press Start 2P readability.
+- Intro tank slide: 42 ground particles, drawSandWind() wind streaks, heat wave distortion FX.
+- Center-screen info text boxes removed (wave banner, jetpack notice, boss warning/taunt).
+- Tutorial FX positions corrected per PNG pixel scanning: all fires y+8, Module 3 electric-only, Module 5 lamps repositioned.
+- Space fighter enemy type (enemies_ship01/02.png) in portal level (16 enemies total).
+- Pixel alien loading font (pixel-font.js) with canvas-based 5x5 bitmap glyphs.
