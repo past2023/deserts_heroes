@@ -9,6 +9,7 @@ Current implementation status:
 | Vehicle | External art status | Renderer |
 |---|---|---|
 | Allied assault tank | **Implemented** — all 8 supplied sheets active | `js/vehicle-assets.js` |
+| Enemy spider tank | **Implemented** — 8-part modular art (chassis, turret, 4 legs, destroyed) | `js/spider-tank.js` (`SpiderTank.draw()`) |
 | Standard enemy tank | Awaiting PNG sheets | generated fallback |
 | Standard helicopter | Awaiting PNG sheets | generated fallback |
 | Gunship miniboss | Awaiting PNG sheets | scaled generated fallback |
@@ -49,6 +50,7 @@ Vehicles will be displayed at native source size. Do not create 2× or 4× enlar
 | Vehicle | Frame canvas | Pivot / anchor | Recommended damageable hitbox | Role |
 |---|---:|---:|---:|---|
 | Allied rocket/assault tank | **180 × 120** | `(90,116)` bottom-center | `140 × 82` | Player vehicle |
+| Enemy spider tank | **325 × 198** | `(162,198)` bottom-center | `130 × 65` | Heavy ground enemy (8-part modular: chassis, turret, 4 legs, destroyed) |
 | Standard enemy tank | **200 × 120** | `(100,116)` bottom-center | `170 × 88` | Regular armored enemy |
 | Standard helicopter | **240 × 140** | `(120,75)` center | `190 × 72` body only | Flying enemy |
 | Gunship helicopter | **360 × 200** | `(180,104)` center | `300 × 118` body only | Mid-level miniboss |

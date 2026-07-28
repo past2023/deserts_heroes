@@ -7,6 +7,7 @@ You are continuing work on `past2023/deserts_heroes`. Current Arena work is on b
 Desert's Heroes is a 2D side-scrolling pixel-art run-and-gun game (960×540 canvas, JavaScript, no frameworks). It has: intro cinematic, galactic mission map, tutorial level (8 modules), arcade level1, **Level 2 train level**, survival mode, portal level.
 
 **Key files:**
+- `js/spider-tank.js` — Reusable spider tank animation module (`window.SpiderTank`): art loading, multi-layer draw, walk animation. Use `SpiderTank.createArtSet(pathPrefix)` for future variants.
 - `js/game.js` — Main engine, states, HUD, character select
 - `js/tutorial-level.js` — Tutorial world platforms + lights
 - `js/entities.js` — Player, enemies, boss, bullets, particles (monolith, 3600+ LOC)
@@ -163,6 +164,7 @@ Register new tracks in `js/music-tracks.js` `files` object, then call `MusicTrac
 ## Current implementation sync — 2026-07-27
 
 Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
+- **Spider tank enemy** (`js/spider-tank.js`, `js/entities.js`, `js/level.js`): Reusable `SpiderTank` module with art loading, multi-layer draw function, diagonal walk animation (X-flipped by facing). 8-part modular art (chassis, turret, 4 legs, destroyed). 18 HP, dual MG+cannon attack, 3 speed tiers, dust+spark particles. 5 spawns in Level 1 (x:7500, 13200, 17500, 20800, 22800). `SpiderTank.createArtSet(pathPrefix)` for future variants.
 - **Coin-to-life system** (`js/entities.js`, `js/game.js`, `js/entity-score.js`, `js/entity-collectibles.js`): Animated coin sprite sheet (coins_ani01.png, 6 frames), `G.coins` counter, `G.COINS_PER_LIFE=50`, coin HUD progress bar, all heart pickups removed, coinLife SFX.
 - **Chat SFX** (`js/audio.js`, `js/dialogue.js`, `js/game.js`): `chatBeep` (4 repeating beeps), `enemyChatBeep` (3 gritty cycles), `coinLife` (ascending arpeggio). Beeps in story dialogue (one-shot on start), survival chat, and coin-to-life reward.
 - **Safari glow fix** (`js/entity-score.js`, `js/game.js`, `js/level.js`, `js/portal-level.js`, `js/train-level.js`, `js/intro-cinematic.js`): All shadowBlur values reduced ~60% for cross-browser consistency.

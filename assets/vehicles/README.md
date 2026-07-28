@@ -58,6 +58,41 @@ Primary fire is contextual without adding another key:
 
 The ground-target correction is intentionally limited and is not homing: it only selects a firing angle when a valid ground enemy is already in front of the tank.
 
+## Enemy spider tank — active
+
+8-part modular art for the heavy ground spider tank enemy.
+
+Source contract:
+
+```text
+Frame size: 325 × 198
+Direction: faces right (turret flipped by engine for left)
+World anchor: bottom-center
+Damageable body hitbox: 130 × 65
+```
+
+Modular parts:
+
+| Part | File | Description |
+|---|---|---|
+| full | `enemy_spider_tank01.png` | Complete fallback when chassis missing |
+| chassis | `enemy_spider_tank01_chassis.png` | Main body |
+| turret | `enemy_spider_tank01_turret.png` | Rotating turret with eye glow |
+| leg01–04 | `enemy_spider_tank01_leg0{1-4}.png` | 4 individual legs for walk animation |
+| destroyed | `enemy_spider_tank01_destroyed.png` | Wreck art for corpses/permanent remains |
+
+Animation system (`js/spider-tank.js`):
+
+- Diagonal leg pairs (1+4 and 2+3) oscillate with sin/cos at `time * 5.5`
+- X component flipped by facing so legs swing forward in both directions
+- Idle vibration when stopped (22/26 Hz body, 24/28 Hz turret)
+- Walking body bounce (18/22 Hz subtle oscillation)
+- Turret separate facing flip for cannon direction
+
+Gameplay stats: 18 HP, 1200 points, dual attack (3-round MG burst + cannon shell), 3 chase speed tiers (14/26/38 px/s).
+
+Future variants: use `SpiderTank.createArtSet(pathPrefix)` with matching PNG naming convention.
+
 ## Documentation synchronization
 
 Runtime systems have advanced beyond some historical specifications in this file. For a new chat or production phase, read `docs/current-runtime-status.md`, `docs/world-story-bible.md`, and `docs/next-phase-handoff.md` (synchronized 2026-07-23).

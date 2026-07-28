@@ -15,6 +15,9 @@ It features: a cinematic intro, a galactic mission map, a tutorial level, a full
 **Audio:** Procedural WebAudio (SFX + music) + optional authored MP3 soundtrack.  
 **Localization:** i18n system (en, es, fr, ru).
 
+**Key files:**
+- `js/spider-tank.js` — Reusable spider tank animation module (`window.SpiderTank`): art loading, multi-layer draw function, walk animation. Supports future spider tank variants via `SpiderTank.createArtSet(pathPrefix)`.
+
 ---
 
 ## 2. HTML Pages & Navigation Flow
@@ -168,6 +171,7 @@ Main arcade level with:
 - Level 1 platform routes carry more visible rewards while ground prop loot is reduced
 - Lava gaps use a fresh non-parallax molten animation: slow surface waves, fire plumes, embers, smoke, bubbles and clean unboxed cutaway edges
 - 6 enemy types, POW rescues, weapon pickups
+- Spider tank encounters: 5 spider tanks spread across the level (x:7500, 13200, 17500, 20800, 22800) — 18 HP, dual MG+cannon attack, multi-legged walk animation
 - Portal gate uses beacon light FX (radial gradient glow + rotating arc stroke + white core) replacing old ellipse rings
 - Boss fight at end
 - Mission intro with supplied PNG rocket-board fly-in and a fixed-world opening UFO that only rises vertically with no horizontal self/parallax drift
@@ -231,6 +235,7 @@ High-speed desert railway level where the player runs on train rooftops.
 | heli | 10 | Attack helicopter |
 | gunship | 36 | Miniboss gunship |
 | tank | 14 | Armored vehicle |
+| spider_tank | 18 | Multi-legged assault walker, dual MG+cannon attack |
 | space_fighter | 6 | Hover/chase/fan-fire space enemy (portal level, `enemies_ship01/02.png`) |
 
 ### Boss
@@ -267,6 +272,7 @@ High-speed desert railway level where the player runs on train rooftops.
 ## 12. Known Issues / Next Steps
 
 ### Recently Fixed
+- **Spider tank enemy** — 18 HP heavy ground enemy with 8-part modular art (chassis, turret, 4 legs, destroyed) at `assets/vehicles/enemy_spider_tank01/`. Multi-layer walk animation with diagonal leg pairs, X-flipped by facing so legs swing forward in both directions. Dual attack pattern: 3-round MG burst or cannon shell. Chases player with 3 speed tiers, stops at close range to vibrate and fire. Dust+spark particles at leg ground contact, trailing smoke while moving. Reusable `js/spider-tank.js` module (`SpiderTank.draw()`, `SpiderTank.createArtSet()`) supports future variants. 5 spider tanks spread across Level 1 (x:7500, 13200, 17500, 20800, 22800). Worth 1200 points.
 - **Coin-to-life system** — Animated coin sprite sheet (`coins_ani01.png`, 84×12px, 6 frames) with spin animation. `G.coins` counter, `G.COINS_PER_LIFE = 50`. Collecting 50 coins grants an extra life (max 5), screen flash, "EXTRA LIFE!" popup, and congrats scorePop. All heart pickups removed from level1, portal-level, train-level, and tutorial. Coin HUD replaced with yellow progress bar + mini heart/coin icons (no numbers).
 - **Chat sound effects** — `SFX.chatBeep()` (4 repeating robot beeps, ~0.8s) and `SFX.enemyChatBeep()` (3 gritty cycles with noise, ~0.66s). `SFX.coinLife()` (ascending arpeggio). Beeps play once when story dialogue starts in Level 1/2 (`js/dialogue.js`), once per survival chat message, and once on coin-to-life reward. Volume tuned for combat mix (0.12/0.11 effective after gain chain).
 - **Safari glow fix** — All `shadowBlur` values reduced across `entity-score.js` (12→4), `game.js` survival score pulse (10+pulse×22→4+pulse×8), wave banner (8→4), `level.js` portal (18+pulse×12→6+pulse×4), `portal-level.js` portal (24+pulse×12→8+pulse×4), `train-level.js` portal (18+pulse×12→6+pulse×4), `intro-cinematic.js` logo (18×alpha→6×alpha). Safari renders shadowBlur denser/larger than Chrome.
@@ -305,6 +311,7 @@ High-speed desert railway level where the player runs on train rooftops.
 ## Current implementation sync — 2026-07-27
 
 Current branch/PR: `arena/019f9a46-deserts-heroes` / PR #9. Latest runtime state includes:
+- **Spider tank enemy** (`js/spider-tank.js`, `js/entities.js`, `js/level.js`): Reusable `SpiderTank` module with art loading, multi-layer draw function, diagonal walk animation (X-flipped by facing). 8-part modular art (chassis, turret, 4 legs, destroyed). 18 HP, dual MG+cannon attack, 3 speed tiers, dust+spark particles. 5 spawns in Level 1 (x:7500, 13200, 17500, 20800, 22800). `SpiderTank.createArtSet(pathPrefix)` for future variants.
 - **Coin-to-life system** (`js/entities.js`, `js/game.js`, `js/entity-score.js`, `js/entity-collectibles.js`): Animated coin sprite sheet (coins_ani01.png, 6 frames), `G.coins` counter, `G.COINS_PER_LIFE=50`, coin HUD progress bar, all heart pickups removed, coinLife SFX.
 - **Chat SFX** (`js/audio.js`, `js/dialogue.js`, `js/game.js`): `chatBeep` (4 repeating beeps), `enemyChatBeep` (3 gritty cycles), `coinLife` (ascending arpeggio). Beeps in story dialogue (one-shot on start), survival chat, and coin-to-life reward.
 - **Safari glow fix** (`js/entity-score.js`, `js/game.js`, `js/level.js`, `js/portal-level.js`, `js/train-level.js`, `js/intro-cinematic.js`): All shadowBlur values reduced ~60% for cross-browser consistency.

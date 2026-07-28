@@ -225,6 +225,8 @@
     { x: 6720, type: 'grenadier' },
     { x: 6800, type: 'grenadier' },
     { x: 6860, type: 'bazooka' },
+    // First spider tank encounter after BigShip04 section.
+    { x: 7500, type: 'spider_tank' },
     // BigShip04 ship-platform encounter: enemies on the floating ship decks.
     { x: 8150, y: 290, type: 'soldier' },
     { x: 8400, y: 290, type: 'grenadier' },
@@ -246,7 +248,9 @@
     { x: 11680, type: 'pow' },
     { x: 11980, type: 'knife' }, { x: 12050, type: 'knife' },
     { x: 12480, type: 'heli' }, { x: 12720, type: 'bazooka' },
-    { x: 12820, type: 'soldier' }, { x: 12900, type: 'soldier' },
+    { x: 12820, type: 'soldier' },     { x: 12900, type: 'soldier' },
+    // Mid-game spider tank encounter.
+    { x: 13200, type: 'spider_tank' },
     { x: 13480, type: 'pow' },
     { x: 13720, type: 'tank' }, { x: 13860, type: 'grenadier' },
     { x: 14480, type: 'turret' }, { x: 14580, type: 'soldier' },
@@ -257,6 +261,8 @@
     { x: 16290, type: 'knife' }, { x: 16500, type: 'turret' },
     { x: 16620, type: 'soldier' }, { x: 16700, type: 'soldier' },
     { x: 16900, type: 'bazooka' },
+    // Late-mid spider tank encounter before the final push.
+    { x: 17500, type: 'spider_tank' },
 
     // Longer late-game enemy territories with two extended calm pockets.
     { x: 18300, type: 'soldier' },
@@ -267,11 +273,13 @@
     { x: 19600, type: 'heli' },
     { x: 19860, type: 'turret' },
     { x: 20120, type: 'tank' },
+    { x: 20800, type: 'spider_tank' },
     { x: 21160, type: 'bazooka' },
     { x: 21420, type: 'soldier' },
     { x: 21680, type: 'heli' },
     { x: 21940, type: 'turret' },
     { x: 22200, type: 'tank' },
+    { x: 22800, type: 'spider_tank' },
     { x: 22460, type: 'soldier' },
     { x: 22720, type: 'grenadier' },
     { x: 22980, type: 'knife' },
@@ -287,7 +295,11 @@
   const BOSS_X = 25600;         // posizione di stazionamento del boss
 
   // carri alleati "SLUG" parcheggiati, pilotabili dal giocatore
-  const slugSpawns = [2250, 5480, 8650, 14520, 22600];
+  const slugSpawns = [
+    { x: 2250, type: 'ally_tank03' },
+    { x: 5480, type: 'ally_tank02' },
+    8650, 14520, 22600
+  ];
 
   // Supplied destructible gameplay decorations replace the old generated
   // crates and barrels. Fuel canisters (tonnel) retain chain-reaction damage.
@@ -347,7 +359,7 @@
   // Lava gaps interrupt the normal ground collision. Wide gaps are crossed via
   // the stair-platform routes above them.
   const lavaGaps = [
-    { x: 11040, w: 190 }, { x: 12110, w: 310 },
+    { x: 11040, w: 310 }, { x: 12110, w: 310 },
     { x: 13940, w: 350 }, { x: 15620, w: 360 },
     { x: 18880, w: 330 }, { x: 21840, w: 390 }, { x: 24120, w: 340 },
   ];
@@ -360,23 +372,45 @@
   ];
   let hazardTime = 0;
 
-  // Gooey lava surface: offscreen canvas with animated blobs that merge via
-  // blur, inspired by SVG goo filter technique.
-  const GOOEY_W = 640, GOOEY_H = 90;
-  const _goeCanvas = document.createElement('canvas');
-  _goeCanvas.width = GOOEY_W; _goeCanvas.height = GOOEY_H;
-  const _goeCtx = _goeCanvas.getContext('2d');
-  const _goeBlobs = [];
-  for (let i = 0; i < 22; i++) {
-    _goeBlobs.push({
-      x: Math.random() * GOOEY_W,
-      y: 20 + Math.random() * 30,
-      r: 10 + Math.random() * 20,
-      vx: (Math.random() - 0.5) * 35,
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.7 + Math.random() * 1.3,
-      bobAmp: 3 + Math.random() * 8,
-    });
+  // Pixel-art lava: offscreen buffer at low resolution, scaled up for retro look.
+  const LAVA_BUF_W = 160, LAVA_BUF_H = 28;
+  const _lavaBuf = document.createElement('canvas');
+  _lavaBuf.width = LAVA_BUF_W; _lavaBuf.height = LAVA_BUF_H;
+  const _lavaCtx = _lavaBuf.getContext('2d');
+  const _lavaColors = {
+    deep: '#8b0000', dark: '#b22222', mid: '#cc3300', orange: '#e65c00',
+    bright: '#ff8800', yellow: '#ffaa00', hot: '#ffcc00', white: '#ffee66'
+  };
+  const _lavaBubbles = Array.from({length: 14}, () => ({
+    x: 5 + Math.random() * (LAVA_BUF_W - 10),
+    y: 10 + Math.random() * 12,
+    size: 1 + Math.floor(Math.random() * 2),
+    speed: 0.15 + Math.random() * 0.2,
+    wobble: Math.random() * Math.PI * 2,
+    alive: true, popTimer: 0, maxPop: 6 + Math.floor(Math.random() * 6)
+  }));
+  const _lavaEmbers = Array.from({length: 14}, () => ({
+    x: 3 + Math.random() * (LAVA_BUF_W - 6),
+    y: 5 - Math.random() * 6,
+    speed: 0.15 + Math.random() * 0.3,
+    wobble: Math.random() * Math.PI * 2,
+    life: Math.random() * 60,
+    maxLife: 30 + Math.random() * 50
+  }));
+  function _lavaSurfY(x, t) {
+    return Math.floor(6 +
+      Math.sin(x * 0.09 + t * 0.8) * 1.3 +
+      Math.sin(x * 0.15 - t * 1.2) * 0.6 +
+      Math.sin(x * 0.045 + t * 0.4) * 1.0);
+  }
+  function _lavaPx(x, y, color) {
+    if (x >= 0 && x < LAVA_BUF_W && y >= 0 && y < LAVA_BUF_H) {
+      _lavaCtx.fillStyle = color;
+      _lavaCtx.fillRect(x, y, 1, 1);
+    }
+  }
+  function _lavaNoise(x, y, s) {
+    return Math.abs(Math.sin(x * 127.1 + y * 311.7 + s * 74.7) * 43758.5453 % 1);
   }
 
   function isLavaGap(x) {
@@ -1225,26 +1259,7 @@
       }
     }
 
-    // Low amber light under the cutaway hints at molten heat without washing out
-    // the supplied terrain art.  The actual lava below is rebuilt from scratch:
-    // slow rolling magma, flame-animation plumes, smoke, bubbles and embers.
-    const lavaGlow = 0.18 + Math.max(0, Math.sin(hazardTime * 0.48)) * 0.12;
-    if (lavaGlow > 0) {
-      g.save();
-      g.globalCompositeOperation = 'lighter';
-      g.globalAlpha = lavaGlow;
-      const lava = g.createLinearGradient(0, VH, 0, GROUND - 12);
-      lava.addColorStop(0, 'rgba(180,24,12,0.55)');
-      lava.addColorStop(0.48, 'rgba(255,91,22,0.32)');
-      lava.addColorStop(1, 'rgba(255,178,54,0)');
-      g.fillStyle = lava;
-      g.fillRect(0, GROUND - 12, VW, VH - GROUND + 12);
-      g.restore();
-    }
-
-    // Open lava cuts: slow arcade magma with readable hazards.  It deliberately
-    // borrows the flame-shot language (red/orange outer body, yellow core,
-    // white-hot tips) but adds heavy smoke and popping surface bubbles.
+    // Pixel-art lava: each gap renders a low-res buffer scaled up for a retro look.
     for (const gap of lavaGaps) {
       const gx = gap.x - camX;
       if (gx + gap.w < 0 || gx > VW) continue;
@@ -1253,247 +1268,164 @@
       const gapW = Math.max(1, gap.w);
       const lavaTime = hazardTime * 0.54 + gap.x * 0.0011;
 
-      // The lava itself fills the cutout; no dark boxed overlay is drawn,
-      // keeping the gap clean and free of black rectangular/parallax artifacts.
+      // Render lava into low-res buffer
+      _lavaCtx.clearRect(0, 0, LAVA_BUF_W, LAVA_BUF_H);
+      const C = _lavaColors;
 
-      g.save();
-      g.beginPath();
-      g.rect(visibleX, GROUND - 112, visibleW, VH - GROUND + 126);
-      g.clip();
-
-      // Deep molten body, darker below and white-hot near the surface.
-      const body = g.createLinearGradient(0, GROUND - 2, 0, VH);
-      body.addColorStop(0, '#fff0a4');
-      body.addColorStop(0.08, '#ffbd35');
-      body.addColorStop(0.28, '#ff6420');
-      body.addColorStop(0.62, '#921317');
-      body.addColorStop(1, '#1b0308');
-      g.fillStyle = body;
-      g.fillRect(gx, GROUND - 2, gap.w, VH - GROUND + 4);
-
-      // Slow rolling convection bands under the surface.
-      g.globalCompositeOperation = 'lighter';
-      for (let band = 0; band < 4; band++) {
-        const y0 = GROUND + 14 + band * 18;
-        g.globalAlpha = 0.18 + band * 0.035;
-        g.fillStyle = band % 2 ? '#ff3b18' : '#ff9b24';
-        g.beginPath();
-        g.moveTo(gx, y0 + 16);
-        for (let localX = 0; localX <= gap.w + 8; localX += 12) {
-          const worldX = gap.x + localX;
-          const screenX = gx + localX;
-          const wave = Math.sin(worldX * 0.035 + lavaTime * (0.85 - band * 0.09) + band * 1.7) * (5 + band * 1.5) +
-            Math.sin(worldX * 0.083 - lavaTime * 0.52 + band) * 2;
-          g.lineTo(screenX, y0 + wave);
-        }
-        g.lineTo(gx + gap.w, y0 + 35);
-        g.lineTo(gx, y0 + 35);
-        g.closePath();
-        g.fill();
-      }
-
-      // --- Gooey molten surface: animated blobs blurred into organic shapes ---
-      // Inspired by SVG goo filter (blur + threshold). We draw colored circles
-      // on a tiny offscreen canvas, blur them so they merge, then stamp onto the
-      // main canvas with a hot-to-dark gradient for the molten look.
-      const gw = Math.min(GOOEY_W, Math.ceil(visibleW));
-      _goeCtx.clearRect(0, 0, GOOEY_W, GOOEY_H);
-
-      // Draw lava blobs
-      for (const b of _goeBlobs) {
-        const bx = ((b.x + lavaTime * b.vx) % (GOOEY_W + b.r * 2)) - b.r;
-        const by = b.y + Math.sin(lavaTime * b.speed + b.phase) * b.bobAmp;
-        _goeCtx.globalAlpha = 0.82;
-        _goeCtx.fillStyle = '#ffb830';
-        _goeCtx.beginPath();
-        _goeCtx.arc(bx, by, b.r, 0, Math.PI * 2);
-        _goeCtx.fill();
-        // Inner bright core
-        _goeCtx.globalAlpha = 0.5;
-        _goeCtx.fillStyle = '#ffe88a';
-        _goeCtx.beginPath();
-        _goeCtx.arc(bx, by - 1, b.r * 0.55, 0, Math.PI * 2);
-        _goeCtx.fill();
-      }
-
-      // Blur to merge blobs into organic goo
-      _goeCtx.globalAlpha = 1;
-      _goeCtx.filter = 'blur(9px)';
-      _goeCtx.drawImage(_goeCanvas, 0, 0);
-      _goeCtx.filter = 'none';
-
-      // Stamp onto main canvas with hot gradient overlay
-      g.save();
-      g.beginPath();
-      g.rect(visibleX, GROUND - 4, visibleW, 50);
-      g.clip();
-      g.drawImage(_goeCanvas, 0, 0, gw, GOOEY_H, visibleX, GROUND - 14, visibleW, 50);
-
-      // Gradient overlay: white-hot top → orange → dark red base
-      const gooGrad = g.createLinearGradient(0, GROUND - 14, 0, GROUND + 36);
-      gooGrad.addColorStop(0, 'rgba(255,252,200,0.9)');
-      gooGrad.addColorStop(0.12, 'rgba(255,210,75,0.75)');
-      gooGrad.addColorStop(0.35, 'rgba(255,116,34,0.65)');
-      gooGrad.addColorStop(0.65, 'rgba(126,16,18,0.8)');
-      gooGrad.addColorStop(1, 'rgba(27,3,8,1)');
-      g.globalCompositeOperation = 'source-over';
-      g.fillStyle = gooGrad;
-      g.fillRect(visibleX, GROUND - 14, visibleW, 50);
-
-      // Bright shimmer streaks riding on the gooey surface
-      g.globalCompositeOperation = 'lighter';
-      for (let lx = 8; lx < visibleW - 6; lx += 16) {
-        const wx = gap.x + (visibleX - gx) + lx;
-        const shim = Math.sin(wx * 0.19 + lavaTime * 1.8);
-        const len = 5 + Math.abs(shim) * 18;
-        const sy = GROUND - 6 + Math.sin(wx * 0.052 + lavaTime * 1.3) * 4;
-        g.globalAlpha = 0.38 + Math.max(0, shim) * 0.24;
-        g.fillStyle = '#fff4ae';
-        g.fillRect(Math.round(visibleX + lx), Math.round(sy), Math.round(len), 2);
-      }
-      g.restore();
-
-      // Dark crust plates drifting across the surface, broken by hot cracks.
-      g.globalCompositeOperation = 'source-over';
-      const surfaceY = GROUND + 5;
-      const plates = Math.max(5, Math.floor(gap.w / 48));
-      for (let i = 0; i < plates; i++) {
-        const lane = (i + ((lavaTime * 0.035 + i * 0.23) % 1)) / plates;
-        const worldX = gap.x + (lane % 1) * gapW;
-        const px = worldX - camX;
-        const py = surfaceY + Math.sin(lavaTime * 0.8 + i * 1.9) * 3;
-        const pw = 18 + (i % 4) * 8;
-        g.globalAlpha = 0.30;
-        g.fillStyle = i % 2 ? '#6e170d' : '#85240f';
-        g.beginPath();
-        g.moveTo(px - pw * 0.55, py + 5);
-        g.lineTo(px - pw * 0.20, py - 1);
-        g.lineTo(px + pw * 0.46, py + 1);
-        g.lineTo(px + pw * 0.62, py + 8);
-        g.lineTo(px + pw * 0.05, py + 11);
-        g.closePath();
-        g.fill();
-        g.globalAlpha = 0.46;
-        g.fillStyle = '#ffb536';
-        g.fillRect(Math.round(px - pw * 0.28), Math.round(py + 4), Math.max(5, pw * 0.42), 2);
-      }
-
-      // Flame animation plumes: nested flame shapes that breathe upward from
-      // the lava, more like the weapon flame than the old vertical columns.
-      const plumeCount = Math.max(3, Math.floor(gap.w / 88));
-      for (let i = 0; i < plumeCount; i++) {
-        const cycle = (lavaTime * (0.23 + (i % 3) * 0.035) + i * 0.29) % 1;
-        const grow = Math.sin(cycle * Math.PI);
-        const baseX = gx + (i + 0.5) / plumeCount * gapW + Math.sin(lavaTime * 0.9 + i * 2.4) * 14;
-        const baseY = GROUND + 18 + Math.sin(lavaTime * 1.1 + i) * 3;
-        const height = (34 + (i % 4) * 10) * (0.55 + grow * 0.75);
-        const width = (16 + (i % 3) * 7) * (0.8 + grow * 0.45);
-        const sway = Math.sin(lavaTime * 1.6 + i * 1.8) * 13;
-        const colors = [
-          ['rgba(176,16,12,0)', 'rgba(255,54,18,0.62)', 'rgba(255,126,28,0.35)'],
-          ['rgba(255,64,18,0)', 'rgba(255,145,28,0.72)', 'rgba(255,216,70,0.28)'],
-          ['rgba(255,184,44,0)', 'rgba(255,244,142,0.78)', 'rgba(255,255,255,0.18)']
-        ];
-        for (let layer = 0; layer < 3; layer++) {
-          const scale = 1 - layer * 0.28;
-          const topY = baseY - height * scale;
-          const topX = baseX + sway * (0.34 + layer * 0.18);
-          const grad = g.createLinearGradient(baseX, baseY + 12, topX, topY);
-          grad.addColorStop(0, colors[layer][0]);
-          grad.addColorStop(0.32, colors[layer][1]);
-          grad.addColorStop(0.78, colors[layer][2]);
-          grad.addColorStop(1, 'rgba(255,255,255,0)');
-          g.globalAlpha = (0.42 + grow * 0.44) * (1 - layer * 0.17);
-          g.fillStyle = grad;
-          g.beginPath();
-          g.moveTo(baseX - width * scale, baseY + 12);
-          g.bezierCurveTo(baseX - width * 1.35 * scale, baseY - height * 0.28 * scale,
-            topX - width * 0.24 * scale, baseY - height * 0.72 * scale, topX, topY);
-          g.bezierCurveTo(topX + width * 0.38 * scale, baseY - height * 0.66 * scale,
-            baseX + width * 1.25 * scale, baseY - height * 0.24 * scale, baseX + width * scale, baseY + 12);
-          g.closePath();
-          g.fill();
+      // Draw lava body pixel by pixel
+      for (let x = 0; x < LAVA_BUF_W; x++) {
+        const sy = _lavaSurfY(x, lavaTime);
+        for (let y = sy; y < LAVA_BUF_H; y++) {
+          const d = y - sy;
+          const maxD = LAVA_BUF_H - sy;
+          let color;
+          if (d <= 1) {
+            const s1 = Math.sin(x * 0.8 + lavaTime * 2.5) * 0.5 + 0.5;
+            const s2 = Math.sin(x * 1.5 - lavaTime * 1.8) * 0.5 + 0.5;
+            color = s1 > 0.7 && s2 > 0.5 ? C.white : s1 > 0.4 ? C.hot : C.yellow;
+          } else if (d <= 3) {
+            const v = Math.sin(x * 1.2 + lavaTime * 1.5 + y * 0.5);
+            color = v > 0.5 ? C.hot : v > 0 ? C.yellow : C.bright;
+          } else if (d <= 7) {
+            const v = Math.sin(x * 0.9 + lavaTime + y * 0.3);
+            const v2 = Math.sin(x * 1.8 - lavaTime * 0.7 + y * 0.6);
+            color = v > 0.4 && v2 > 0.2 ? C.bright : v > 0 ? C.orange : C.mid;
+          } else if (d <= 14) {
+            const v = Math.sin(x * 0.7 + lavaTime * 0.6 + y * 0.4);
+            color = v > 0.5 ? C.orange : v > 0 ? C.mid : C.dark;
+          } else {
+            const v = Math.sin(x * 0.5 + lavaTime * 0.3 + y * 0.2);
+            color = v > 0.6 ? C.mid : v > 0.2 ? C.dark : C.deep;
+          }
+          // Flow streaks
+          const f1 = Math.sin((x + y * 0.5) * 0.6 + lavaTime * 1.3);
+          const f2 = Math.sin((x * 0.8 - y * 0.3) * 0.9 - lavaTime * 0.9);
+          if (d > 3 && f1 > 0.7 && f2 > 0.3)
+            color = d <= 7 ? C.yellow : d <= 14 ? C.bright : C.orange;
+          // Texture noise
+          if (_lavaNoise(x, y, Math.floor(lavaTime * 3)) > 0.92 && d > 2)
+            color = d <= 7 ? C.mid : C.deep;
+          _lavaPx(x, y, color);
         }
       }
 
-      // Popping bubbles.  Most are glowing domes; at the end of their cycle they
-      // burst into small rings and sparks at the surface.
-      const bubbleCount = Math.max(9, Math.floor(gap.w / 34));
-      for (let i = 0; i < bubbleCount; i++) {
-        const phase = (lavaTime * (0.18 + (i % 5) * 0.018) + i * 0.173) % 1;
-        const bx = gx + 18 + ((i * 61 + gap.x * 0.13) % Math.max(26, gap.w - 36));
-        const rise = phase < 0.82 ? phase / 0.82 : 1;
-        const by = GROUND + 54 - rise * 52 + Math.sin(lavaTime + i) * 2;
-        const radius = 3 + (i % 5) + rise * 3;
-        if (phase < 0.82) {
-          g.globalAlpha = 0.30 + rise * 0.42;
-          g.fillStyle = i % 3 ? '#ffcf45' : '#fff2a6';
-          g.beginPath();
-          g.arc(bx, by, radius, 0, Math.PI * 2);
-          g.fill();
-          g.globalAlpha = 0.42;
-          g.strokeStyle = '#fff8b8';
-          g.lineWidth = 1;
-          g.beginPath();
-          g.arc(bx - radius * 0.25, by - radius * 0.25, Math.max(1, radius * 0.45), 0, Math.PI * 2);
-          g.stroke();
+      // Surface highlights
+      for (let x = 0; x < LAVA_BUF_W; x++) {
+        const sy = _lavaSurfY(x, lavaTime);
+        const b = Math.sin(x * 1.1 + lavaTime * 2) * 0.5 + 0.5;
+        if (b > 0.3) _lavaPx(x, sy, b > 0.7 ? C.white : C.hot);
+        const crust = Math.sin(x * 2.3 + lavaTime * 0.5) * Math.cos(x * 1.7 - lavaTime * 0.3);
+        if (crust > 0.6 && sy + 1 < LAVA_BUF_H) _lavaPx(x, sy + 1, C.orange);
+      }
+
+      // Bubbles
+      for (const b of _lavaBubbles) {
+        if (!b.alive) {
+          if (b.popTimer < 4) {
+            const bx = Math.floor(b.x), by = _lavaSurfY(bx, lavaTime);
+            _lavaPx(bx - 1, by - 1 - b.popTimer, C.hot);
+            _lavaPx(bx + 1, by - 1 - b.popTimer, C.yellow);
+            if (b.popTimer < 2) _lavaPx(bx, by - 2 - b.popTimer, C.white);
+          }
+          continue;
+        }
+        const bx = Math.floor(b.x), by = Math.floor(b.y);
+        const sy = _lavaSurfY(bx, lavaTime);
+        if (by < sy) continue;
+        const d = by - sy;
+        const col = d < 3 ? '#ffdd44' : d < 8 ? C.bright : C.mid;
+        if (b.size === 1) {
+          _lavaPx(bx, by, col);
         } else {
-          const pop = (phase - 0.82) / 0.18;
-          g.globalAlpha = (1 - pop) * 0.66;
-          g.strokeStyle = '#fff4a8';
-          g.lineWidth = 1.5;
-          g.beginPath();
-          g.arc(bx, surfaceY + 1, 5 + pop * 13, 0, Math.PI * 2);
-          g.stroke();
-          g.fillStyle = '#ffd34a';
-          g.fillRect(Math.round(bx - 2), Math.round(surfaceY - 6 - pop * 14), 3, 5);
-          g.fillRect(Math.round(bx + 5), Math.round(surfaceY - 3 - pop * 10), 2, 4);
+          _lavaPx(bx, by, col); _lavaPx(bx + 1, by, col);
+          _lavaPx(bx, by + 1, col); _lavaPx(bx + 1, by + 1, d < 3 ? C.hot : C.bright);
         }
       }
 
-      // Embers rising through the same clipped pit space.
-      const emberCount = Math.max(18, Math.floor(gap.w / 12));
-      for (let i = 0; i < emberCount; i++) {
-        const phase = (lavaTime * (0.16 + (i % 7) * 0.012) + i * 0.071) % 1;
-        const ex = gx + 8 + ((i * 47 + gap.x * 0.21) % Math.max(18, gap.w - 16)) + Math.sin(lavaTime * 1.4 + i) * 8;
-        const ey = GROUND + 44 - phase * 136;
-        g.globalAlpha = (1 - phase) * (i % 4 ? 0.45 : 0.72);
-        g.fillStyle = i % 5 === 0 ? '#ffffff' : i % 2 ? '#ffd44c' : '#ff6424';
-        g.fillRect(Math.round(ex), Math.round(ey), i % 5 === 0 ? 2 : 1, 3 + (i % 3));
+      // Embers
+      for (const e of _lavaEmbers) {
+        const px2 = Math.floor(e.x), py = Math.floor(e.y);
+        if (py >= 0 && py < LAVA_BUF_H) {
+          const r = e.life / e.maxLife;
+          _lavaPx(px2, py, r < 0.3 ? C.white : r < 0.6 ? C.hot : C.orange);
+        }
       }
 
-      // Smoke puffs are drawn normally, above the glow, so they darken and sell
-      // heat without becoming neon.  They rise slowly and expand/fade.
-      g.globalCompositeOperation = 'source-over';
-      const smokeCount = Math.max(5, Math.floor(gap.w / 58));
-      for (let i = 0; i < smokeCount; i++) {
-        const phase = (lavaTime * (0.105 + (i % 4) * 0.01) + i * 0.211) % 1;
-        const sx = gx + (i + 0.5) / smokeCount * gapW + Math.sin(lavaTime * 0.55 + i) * 24;
-        const sy = GROUND - 8 - phase * 92;
-        const sr = 9 + phase * 22 + (i % 3) * 3;
-        g.globalAlpha = (1 - phase) * 0.20;
-        g.fillStyle = i % 2 ? '#1e1718' : '#3b2c27';
-        g.beginPath();
-        g.arc(sx, sy, sr, 0, Math.PI * 2);
-        g.fill();
-        g.globalAlpha *= 0.55;
-        g.beginPath();
-        g.arc(sx + sr * 0.55, sy + sr * 0.10, sr * 0.72, 0, Math.PI * 2);
-        g.fill();
+      // Extra procedural rising embers for denser particle feel
+      for (let i = 0; i < 10; i++) {
+        const ephase = ((lavaTime * (0.18 + (i % 4) * 0.03) + i * 0.23) % 1);
+        const ex = (i * 17 + Math.floor(lavaTime * 8 + i * 7)) % LAVA_BUF_W;
+        const esy = _lavaSurfY(ex, lavaTime);
+        const ey = esy - 1 - ephase * (LAVA_BUF_H - esy);
+        if (ey >= 0 && ey < LAVA_BUF_H) {
+          _lavaPx(ex, Math.floor(ey), ephase < 0.25 ? C.white : ephase < 0.5 ? C.hot : C.orange);
+        }
       }
 
-      // A translucent orange haze over the lip blends fire, smoke and terrain.
+      // Scale buffer to fill the gap on the main canvas
+      // Calculate source rect so only the visible portion of the buffer is drawn
+      // (prevents accordion stretching when gap is partially off-screen)
+      const srcX = (visibleX - gx) / gapW * LAVA_BUF_W;
+      const srcW = visibleW / gapW * LAVA_BUF_W;
+      g.save();
+      g.beginPath();
+      g.rect(visibleX, GROUND - 80, visibleW, VH - GROUND + 80);
+      g.clip();
+      g.imageSmoothingEnabled = false;
+      g.drawImage(_lavaBuf, srcX, 0, srcW, LAVA_BUF_H,
+        visibleX, GROUND - 8, visibleW, VH - GROUND + 8);
+
+      // Amber glow above lava
       g.globalCompositeOperation = 'lighter';
-      const haze = g.createLinearGradient(0, GROUND - 80, 0, GROUND + 34);
-      haze.addColorStop(0, 'rgba(255,92,20,0)');
-      haze.addColorStop(0.55, 'rgba(255,116,24,0.18)');
-      haze.addColorStop(1, 'rgba(255,200,80,0.08)');
-      g.globalAlpha = 1;
-      g.fillStyle = haze;
-      g.fillRect(visibleX, GROUND - 80, visibleW, 114);
+      g.globalAlpha = 0.14 + Math.max(0, Math.sin(lavaTime * 0.48)) * 0.10;
+      const glow = g.createLinearGradient(0, GROUND - 60, 0, GROUND + 20);
+      glow.addColorStop(0, 'rgba(255,92,20,0)');
+      glow.addColorStop(0.55, 'rgba(255,116,24,0.18)');
+      glow.addColorStop(1, 'rgba(255,200,80,0.08)');
+      g.fillStyle = glow;
+      g.fillRect(visibleX, GROUND - 60, visibleW, 80);
+
+      // 1x1 pixel rising sparks above the lava surface
+      const sparkCount = Math.max(14, Math.floor(visibleW / 10));
+      for (let i = 0; i < sparkCount; i++) {
+        const phase = ((lavaTime * (0.22 + (i % 5) * 0.025) + i * 0.137) % 1);
+        const sx = visibleX + ((i * 29 + gap.x * 0.17) % visibleW);
+        const sy = GROUND - 2 - phase * 52;
+        g.globalAlpha = (1 - phase) * 0.85;
+        g.fillStyle = i % 4 === 0 ? '#ffffff' : i % 3 === 0 ? '#ffee66' : i % 2 ? '#ffcc44' : '#ff8822';
+        g.fillRect(Math.round(sx), Math.round(sy), 1, 1);
+      }
+
+      // Pulsing glow: visible rhythmic heat pulse over the entire lava body
+      const pulsePhase = Math.sin(lavaTime * 1.8) * 0.5 + 0.5;
+      g.save();
+      g.beginPath();
+      g.rect(visibleX, GROUND - 4, visibleW, VH - GROUND + 4);
+      g.clip();
+      g.globalCompositeOperation = 'source-over';
+      g.globalAlpha = 0.12 + pulsePhase * 0.22;
+      const pulseGrad = g.createLinearGradient(0, GROUND - 4, 0, VH);
+      pulseGrad.addColorStop(0, 'rgba(255,220,100,0.7)');
+      pulseGrad.addColorStop(0.12, 'rgba(255,140,30,0.5)');
+      pulseGrad.addColorStop(0.35, 'rgba(220,60,15,0.3)');
+      pulseGrad.addColorStop(0.7, 'rgba(140,20,8,0.12)');
+      pulseGrad.addColorStop(1, 'rgba(60,5,2,0)');
+      g.fillStyle = pulseGrad;
+      g.fillRect(visibleX, GROUND - 4, visibleW, VH - GROUND + 4);
+
+      // Secondary shimmer: faster warm wobble at the surface
+      g.globalAlpha = 0.08 + Math.sin(lavaTime * 3.2) * 0.08;
+      const shimGrad = g.createLinearGradient(0, GROUND - 6, 0, GROUND + 24);
+      shimGrad.addColorStop(0, 'rgba(255,255,200,0.6)');
+      shimGrad.addColorStop(0.3, 'rgba(255,180,60,0.3)');
+      shimGrad.addColorStop(1, 'rgba(180,40,10,0)');
+      g.fillStyle = shimGrad;
+      g.fillRect(visibleX, GROUND - 6, visibleW, 30);
       g.restore();
 
-      // Small warm rock lips connect terrain edges without black boxed outlines.
+      g.restore();
+
+      // Small warm rock lips at gap edges
       g.fillStyle = '#6b321f';
       g.fillRect(Math.round(gx - 8), GROUND - 5, 13, 10);
       g.fillRect(Math.round(gx + gap.w - 5), GROUND - 5, 13, 10);
@@ -1507,6 +1439,37 @@
       g.fillRect(Math.round(gx), GROUND - 2, 3, 6);
       g.fillRect(Math.round(gx + gap.w - 2), GROUND - 2, 3, 6);
       g.restore();
+    }
+
+    // Update lava bubbles and embers once per frame
+    for (const b of _lavaBubbles) {
+      if (!b.alive) {
+        b.popTimer++;
+        if (b.popTimer > b.maxPop) {
+          b.x = 5 + Math.random() * (LAVA_BUF_W - 10);
+          b.y = 12 + Math.random() * 10;
+          b.alive = true; b.popTimer = 0;
+        }
+        continue;
+      }
+      b.y -= b.speed;
+      b.wobble += 0.05 + Math.random() * 0.03;
+      b.x += Math.sin(b.wobble) * 0.15;
+      if (b.y <= _lavaSurfY(Math.floor(b.x), hazardTime * 0.54) + 1) {
+        b.alive = false; b.popTimer = 0;
+      }
+    }
+    for (const e of _lavaEmbers) {
+      e.y -= e.speed * 0.3;
+      e.wobble += 0.06;
+      e.x += Math.sin(e.wobble) * 0.2;
+      e.life++;
+      if (e.life > e.maxLife) {
+        e.x = 3 + Math.random() * (LAVA_BUF_W - 6);
+        e.y = _lavaSurfY(Math.floor(e.x), hazardTime * 0.54) - 1;
+        e.life = 0;
+        e.maxLife = 30 + Math.random() * 50;
+      }
     }
 
     // Energy walls are readable: warning sparks precede every lethal beam.

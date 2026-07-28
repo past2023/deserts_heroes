@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Spider Tank Test</title>
+<style>
+  body { margin: 0; background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; }
+  canvas { background: #2a2018; image-rendering: pixelated; }
+  #info { position: fixed; top: 10px; left: 10px; color: #aaa; font: 12px monospace; }
+</style>
+</head>
+<body>
+<div id="info">Arrows: move/jump | Spider tank chases you</div>
+<canvas id="c" width="960" height="540"></canvas>
+<script src="js/spider-tank.js"></script>
+<script>
+(function () {
+  var canvas = document.getElementById('c');
+  var g = canvas.getContext('2d');
+  var W = 960, H = 540, GROUND = 420, GRAV = 2200;
+
+  var player = { x: 480, y: GROUND, vx: 0, vy: 0, facing: 1, onGround: true };
+  var SPEED = 220, JUMP = -780;
+
+  var spider = { x: 200, y: GROUND, facing: 1, vx: 0, t: 0, legPhase: 0, recoil: 0, flash: 0 };
+
+  var keys = {};
+  window.addEventListener('keydown', function(e) { keys[e.code] = true; e.preventDefault(); });
+  window.addEventListener('keyup', function(e) { keys[e.code] = false; });
+
+  var lastTime = performance.now();
+
+  var particles = [];
+
+  function update(dt) {
+    player.vx = 0;
+    if (keys['ArrowLeft'] || keys['KeyA']) { player.vx = -SPEED; player.facing = -1; }
+    if (keys['ArrowRight'] || keys['KeyD']) { player.vx = SPEED; player.facing = 1; }
+    if ((keys['ArrowUp'] || keys['KeyW'] || keys['Space']) && player.onGround) {
+      player.vy = JUMP; player.onGround = false;
+    }
+    player.vy += GRAV * dt;
+    player.x += player.vx * dt;
+    player.y += player.vy * dt;
+    if (player.y >= GROUND) { player.y = GROUND; player.vy = 0; player.onGround = true; }
+    if (player.x < 30) player.x = 30;
+    if (player.x > W - 30) player.x = W - 30;
+
+    spider.t += dt;
+    var dx = player.x - spider.x;
+    var adx = Math.abs(dx);
+    spider.facing = dx > 0 ? 1 : -1;
+    if (adx > 90) {
+      var chaseSpeed = adx < 200 ? 14 : adx < 400 ? 26 : 38;
+      spider.vx = spider.facing * chaseSpeed;
+      spider.x += spider.vx * dt;
+      // Dust + spark particles at ground when legs hit
+      var wp = spider.t * 5.5;
+      for (var li = 1; li <= 4; li++) {
+        var phase = (li === 1 || li === 4) ? wp : wp + Math.PI;
+        if (Math.cos(phase) > 0.95 && Math.random() < dt * 32) {
+          var lx = li <= 2 ? -28 : 28;
+          for (var pi = 0; pi < 5; pi++) {
+            particles.push({ x: spider.x + lx + (Math.random()-0.5)*24, y: GROUND - 2,
+              vx: (Math.random()-0.5)*44, vy: -10 - Math.random()*45,
+              t: 0, life: 0.25 + Math.random()*0.3, size: 2 + Math.random()*4 });
+          }
+          for (var pi = 0; pi < 5; pi++) {
+            particles.push({ x: spider.x + lx + (Math.random()-0.5)*16, y: GROUND - 1,
+              vx: (Math.random()-0.5)*70, vy: -18 - Math.random()*75,
+              t: 0, life: 0.1 + Math.random()*0.2, size: 1 + Math.random()*1.5, bright: true });
+          }
+        }
+      }
+      // Trailing smoke while moving
+      if (Math.random() < dt * 12) {
+        particles.push({ x: spider.x - spider.facing * 30 + (Math.random()-0.5)*20, y: GROUND - 2 - Math.random()*4,
+          vx: -spider.facing * (5 + Math.random()*10), vy: -6 - Math.random()*12,
+          t: 0, life: 0.3 + Math.random()*0.3, size: 3 + Math.random()*4 });
+      }
+    } else {
+      spider.vx = 0;
+    }
+    if (spider.recoil > 0) spider.recoil = Math.max(0, spider.recoil - dt * 48);
+  }
+
+  function drawSpiderTankArt(g, x, y, facing, enemy) {
+    SpiderTank.draw(g, x, y, facing, enemy, false);
+  }
+
+  function drawPlayer(g, p) {
+    g.save();
+    g.translate(Math.round(p.x), Math.round(p.y));
+    if (p.facing < 0) g.scale(-1, 1);
+    g.fillStyle = '#4a90d9';
+    g.fillRect(-8, -54, 16, 36);
+    g.fillStyle = '#f0c8a0';
+    g.fillRect(-6, -68, 12, 14);
+    var legPhase = p.onGround && Math.abs(p.vx) > 0 ? performance.now() * 0.008 : 0;
+    g.fillStyle = '#3a3a5c';
+    if (p.onGround) {
+      g.fillRect(-7 + Math.sin(legPhase) * 3, -18, 5, 18);
+      g.fillRect(2 - Math.sin(legPhase) * 3, -18, 5, 18);
+    } else {
+      g.fillRect(-7, -18, 5, 14);
+      g.fillRect(2, -22, 5, 14);
+    }
+    g.fillStyle = '#888';
+    g.fillRect(8, -48, 14, 3);
+    g.restore();
+  }
+
+  function render(time) {
+    var dt = Math.min((time - lastTime) / 1000, 0.05);
+    lastTime = time;
+    update(dt);
+
+    g.clearRect(0, 0, W, H);
+
+    g.fillStyle = '#3a2e1e';
+    g.fillRect(0, GROUND, W, H - GROUND);
+    g.fillStyle = '#4a3e2e';
+    g.fillRect(0, GROUND, W, 3);
+
+    var dist = Math.abs(player.x - spider.x);
+    g.fillStyle = '#666';
+    g.font = '11px monospace';
+    g.fillText('Distance: ' + Math.round(dist) + 'px', 10, 30);
+
+    drawSpiderTankArt(g, spider.x, spider.y, spider.facing, spider);
+    drawPlayer(g, player);
+
+    // Update + draw particles
+    for (var pi = particles.length - 1; pi >= 0; pi--) {
+      var pp = particles[pi];
+      pp.t += dt;
+      if (pp.t >= pp.life) { particles.splice(pi, 1); continue; }
+      pp.vy += 200 * dt;
+      pp.x += pp.vx * dt;
+      pp.y += pp.vy * dt;
+      g.globalAlpha = Math.max(0, 1 - pp.t / pp.life);
+      g.fillStyle = pp.bright ? '#ffe8a0' : '#8a7a5a';
+      g.fillRect(pp.x - pp.size / 2, pp.y - pp.size / 2, pp.size, pp.size);
+    }
+    g.globalAlpha = 1;
+
+    requestAnimationFrame(render);
+  }
+
+  requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>

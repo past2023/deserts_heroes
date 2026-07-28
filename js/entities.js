@@ -72,6 +72,11 @@
   allyTank02Art.wheels.src = 'assets/vehicles/ally_tank02/ally_tank02_wheels.png';
   allyTank02Art.turret.src = 'assets/vehicles/ally_tank02/ally_tank02_guntorretpng.png';
   allyTank02Art.drill.src = 'assets/vehicles/ally_tank02/ally_tank02_point.png';
+  const allyTank03Art = { full: new Image(), chassis: new Image(), wheels: new Image(), turret: new Image() };
+  allyTank03Art.full.src = 'assets/vehicles/ally_tank03/ally_tank03.png';
+  allyTank03Art.chassis.src = 'assets/vehicles/ally_tank03/ally_tank03_chassis.png';
+  allyTank03Art.wheels.src = 'assets/vehicles/ally_tank03/ally_tank03_wheel_chains.png';
+  allyTank03Art.turret.src = 'assets/vehicles/ally_tank03/ally_tank03_turrel.png';
   const destroyedHeliArt = { small:new Image(), big:new Image() };
   destroyedHeliArt.small.src = 'assets/vehicles/enemies/heli01_small_destroyed.png';
   destroyedHeliArt.big.src = 'assets/vehicles/enemies/heli01_big_destroyed.png';
@@ -674,10 +679,11 @@
   // ============================================================
   function spawnSlug(x, type) {
     type = type || 'ally_tank';
+    const hp = type === 'ally_tank03' ? 5 : type === 'ally_tank02' ? 4 : 3;
     G.slugs.push({
       x: x, y: Level.GROUND, vx: 0, vy: 0, facing: 1,
       type: type,
-      hp: type === 'ally_tank02' ? 4 : 3, maxHp: type === 'ally_tank02' ? 4 : 3,
+      hp: hp, maxHp: hp,
       tread: 0, occupied: false,
       drillSpin: 0,
       fireT: 0, cannonT: 0, recoil: 0, flash: 0, hitCd: 0,
@@ -944,7 +950,7 @@
         let mx, my, dirX, dirY, bulletType, muzzleStyle;
         if (up) {
           mx = s.x + s.facing * 2;
-          my = s.y - 112;
+          my = s.y - (s.type === 'ally_tank03' ? 88 : 112);
           dirX = rnd(-0.04, 0.04);
           dirY = -1;
           bulletType = 'mg';
@@ -958,6 +964,10 @@
             // Runtime scale 0.62 with bottom anchor => x +118.5, y -39.1.
             mx = s.x + s.facing * 119;
             my = s.y - 39;
+          } else if (s.type === 'ally_tank03') {
+            // Flame launcher: fire from the turret barrel tip
+            mx = s.x + s.facing * 54;
+            my = s.y - 63;
           } else {
             const socket = Sprites.getVehicleSocket('allyTank', 'mgFire', 'mainCannon', s.facing);
             mx = s.x + (socket ? socket.x : s.facing * 88);
@@ -966,22 +976,39 @@
           const aim = allyTankGroundAim(s, mx, my);
           dirX = aim.x;
           dirY = aim.y;
-          bulletType = 'tankLaser';
-          muzzleStyle = 'tankLaser';
-          SFX.tankLaser();
+          if (s.type === 'ally_tank03') {
+            bulletType = 'flame';
+            muzzleStyle = 'flame';
+            SFX.flame();
+          } else {
+            bulletType = 'tankLaser';
+            muzzleStyle = 'tankLaser';
+            SFX.tankLaser();
+          }
         }
-        const speed = bulletType === 'tankLaser' ? 1040 : 980;
-        G.pBullets.push({
-          x: mx, y: my,
-          vx: dirX * speed,
-          vy: dirY * speed,
-          life: 0.9, dmg: 1, type: bulletType,
-        });
-        muzzleBlast(mx, my, bulletType === 'tankLaser' ? 6 : 4,
-          dirX, dirY, muzzleStyle, bulletType === 'tankLaser' ? 1.05 : 0.9);
+        const speed = bulletType === 'tankLaser' ? 1040 : bulletType === 'flame' ? 520 : 980;
+        if (bulletType === 'flame') {
+          // Flame launcher: rapid short-range flame stream with slight spread
+          G.pBullets.push({
+            x: mx, y: my,
+            vx: dirX * speed + rnd(-28, 28),
+            vy: dirY * speed + rnd(-28, 28) - (dirY === 0 ? 20 : 0),
+            life: 0.4, dmg: 1, type: 'flame', t: 0, trailT: 0,
+          });
+          if (Math.random() < 0.35) SFX.flame();
+        } else {
+          G.pBullets.push({
+            x: mx, y: my,
+            vx: dirX * speed,
+            vy: dirY * speed,
+            life: 0.9, dmg: 1, type: bulletType,
+          });
+          muzzleBlast(mx, my, bulletType === 'tankLaser' ? 6 : 4,
+            dirX, dirY, muzzleStyle, bulletType === 'tankLaser' ? 1.05 : 0.9);
+        }
         if (s.mgAnimLeft <= 0) s.mgAnimT = 0;
         s.mgAnimLeft = 0.24;
-        s.fireT = bulletType === 'tankLaser' ? 0.11 : 0.09;
+        s.fireT = bulletType === 'tankLaser' ? 0.11 : bulletType === 'flame' ? 0.06 : 0.09;
       }
 
       // Main cannon from the supplied barrel socket.
@@ -1002,7 +1029,7 @@
         G.shake = Math.max(G.shake, 5);
         muzzleBlast(cx, cy, 10,
           up ? s.facing * 0.18 : s.facing, up ? -1 : -0.12, 'cannon', 1.2);
-        s.cannonT = 0.85;
+        s.cannonT = s.type === 'ally_tank03' ? 0.65 : 0.85;
       }
     }
     EntityUtils.removeDead(G.slugs);
@@ -1151,6 +1178,126 @@
     }
   }
 
+  function drawAllyTank03(g, sx, s) {
+    // Flame+grenade tank: smooth turret rotation, flame exhaust glow when firing
+    const facing = s.facing;
+    const time = (window.G ? G.time : 0);
+    const moveSpeed = Math.abs(s.vx);
+    const bob = Math.sin((s.tread || 0) * 0.08) * 1.0 + (moveSpeed > 10 ? Math.sin(time*14)*0.4 : 0);
+    const scale = 0.341;
+    const width = 400 * scale, height = 274 * scale;
+    const left = -width / 2, top = -height + bob;
+    if (!allyTank03Art.full || allyTank03Art.full.naturalWidth <= 0) {
+      Sprites.drawSlug(g, sx, s.y, facing, s.tread, s.flash > 0, s.occupied, Math.max(0, s.recoil));
+      return;
+    }
+    g.save();
+    g.translate(Math.round(sx), Math.round(s.y + bob));
+    if (facing < 0) g.scale(-1, 1);
+    if (s.flash > 0) g.filter = 'brightness(0) invert(1)';
+
+    // Chassis: gentle vibration when moving, smoother than drill tank
+    g.save();
+    const chassisVibX = moveSpeed > 2 ? Math.sin(time*16)*0.35 : Math.sin(time*8)*0.12;
+    const chassisVibY = moveSpeed > 2 ? Math.cos(time*20)*0.4 : Math.cos(time*12)*0.15;
+    g.translate(chassisVibX, chassisVibY);
+    if (allyTank03Art.chassis.naturalWidth > 0) g.drawImage(allyTank03Art.chassis, left, top, width, height);
+    else g.drawImage(allyTank03Art.full, left, top, width, height);
+    g.restore();
+
+    // Wheels: smooth rolling when moving
+    if (allyTank03Art.wheels.naturalWidth > 0) {
+      g.save();
+      const wheelBobY = moveSpeed > 4 ? Math.cos(time*18)*0.7 : 0;
+      g.translate(0, wheelBobY);
+      g.globalAlpha = 0.97;
+      g.drawImage(allyTank03Art.wheels, left, top, width, height);
+      g.restore();
+    }
+
+    // Turret: smooth recoil kick when firing grenade, vibration when firing flame
+    if (allyTank03Art.turret.naturalWidth > 0) {
+      g.save();
+      const rec = Math.max(0, s.recoil);
+      const recoilX = rec * 5.0;
+      const flameVib = s.mgAnimLeft > 0 ? Math.sin(time*36)*0.8 : 0;
+      const vibX = -recoilX + flameVib + (moveSpeed > 10 ? Math.sin(time*14)*0.3 : 0);
+      const vibY = (moveSpeed > 6 ? Math.cos(time*18)*0.35 : 0) + Math.sin(time*12)*0.15;
+      g.translate(vibX, vibY);
+      // Grenade muzzle glow
+      if (rec > 0.2) {
+        g.save(); g.globalCompositeOperation='lighter'; g.globalAlpha=0.55*rec/10;
+        g.fillStyle='#ffaa44'; g.beginPath(); g.arc(left+width*0.82, top+height*0.40, 14+rec*1.0, 0, Math.PI*2); g.fill(); g.restore();
+      }
+      g.drawImage(allyTank03Art.turret, left, top, width, height);
+      g.restore();
+    }
+
+    g.filter = 'none';
+    g.restore();
+
+    // Flame exhaust FX when primary fire (flame) is active
+    if (s.mgAnimLeft > 0 && s.occupied) {
+      const muzzleX = s.x + facing * 54;
+      const muzzleY = s.y - 63;
+      for (let i = 0; i < 3; i++) {
+        const spread = (Math.random() - 0.5) * 0.4;
+        const spd = 280 + Math.random() * 180;
+        G.particles.push({
+          kind: 'ember',
+          x: muzzleX + rnd(-4, 4), y: muzzleY + rnd(-4, 4),
+          vx: facing * Math.cos(spread) * spd + rnd(-30, 30),
+          vy: Math.sin(spread) * spd - 60,
+          t: 0, life: rnd(0.08, 0.22),
+          color: Math.random() < 0.4 ? '#ffee44' : Math.random() < 0.6 ? '#ff8822' : '#ff5511',
+          size: rnd(2, 5), grav: 40, drag: 0.85,
+        });
+      }
+      // Flame smoke puff
+      if (Math.random() < 0.35) {
+        G.particles.push({
+          kind: 'smoke',
+          x: muzzleX + rnd(-6, 6), y: muzzleY + rnd(-6, 6),
+          vx: facing * rnd(20, 60) + rnd(-15, 15), vy: rnd(-40, -10),
+          t: 0, life: rnd(0.25, 0.50),
+          color: '#4a3a30', size: rnd(3, 7), grav: -20, drag: 0.82,
+        });
+      }
+    }
+
+    // Exhaust: dual rear pipes + top stack smoke
+    const exhaustActive = s.occupied || moveSpeed > 2;
+    if (Math.random() < (exhaustActive ? 0.50 : 0.18) || moveSpeed > 40) {
+      G.particles.push({
+        kind: 'smoke', x: s.x - facing * 34, y: s.y - 29 + Math.sin(time*10)*1.5,
+        vx: -facing * rnd(24, 58) + rnd(-10, 10), vy: rnd(-46, -8),
+        t: 0, life: 0.50 + Math.random() * 0.45,
+        color: moveSpeed > 70 ? '#3d2e29' : '#3a3a42', size: 3.8 + Math.random() * 5.0, grav: -14, drag: 0.84
+      });
+      if (moveSpeed > 60 && Math.random() < 0.30) {
+        G.particles.push({
+          kind: 'ember', x: s.x - facing * 34, y: s.y - 28,
+          vx: -facing * rnd(18, 42) + rnd(-8, 8), vy: rnd(-28, -6),
+          t: 0, life: 0.20 + Math.random() * 0.22, color: '#ff8a24', size: 1.2 + Math.random() * 2.0, grav: -6, drag: 0.9
+        });
+      }
+    }
+    // Top exhaust pipes
+    if (Math.random() < (exhaustActive ? 0.60 : 0.20)) {
+      for (let k = 0; k < 2; k++) {
+        const offsetX = -26 + k * 8;
+        const offsetY = -66 + k * 4;
+        G.particles.push({
+          kind: 'smoke', x: s.x + facing * offsetX, y: s.y + offsetY + Math.sin(time * 8 + k) * 0.8,
+          vx: -facing * rnd(8, 26) + rnd(-8, 8) + (moveSpeed > 2 ? -facing * 5 : 0),
+          vy: rnd(-64, -20),
+          t: 0, life: 0.65 + Math.random() * 0.60,
+          color: k === 0 ? '#24211f' : '#34302b', size: 3.5 + Math.random() * 4.8, grav: -16, drag: 0.84
+        });
+      }
+    }
+  }
+
   function spawnSlugGroundDust(s) {
     if (!window.G || !G.particles || s.destroying || s.dead) return;
     const moveSpeed = Math.abs(s.vx || 0);
@@ -1182,6 +1329,8 @@
       if (sx < -260 || sx > 960 + 260) continue;
       if (s.type === 'ally_tank02') {
         drawAllyTank02(g, sx, s);
+      } else if (s.type === 'ally_tank03') {
+        drawAllyTank03(g, sx, s);
       } else {
         const visual = allyTankVisual(s);
         const spr = visual.frame !== undefined ?
@@ -1203,6 +1352,26 @@
 
       if (!s.occupied && s.hp > 0 && !s.destroying && G.player && !G.player.dead &&
           Math.abs(G.player.x - s.x) < 200) {
+        // Metal Slug-style bouncing arrow above tank
+        const arrowBounce = Math.abs(Math.sin(G.time * 4.5)) * 12;
+        const arrowY = s.y - 150 - arrowBounce;
+        g.save();
+        g.globalAlpha = 0.55 + Math.sin(G.time * 6) * 0.25;
+        g.fillStyle = '#ffdd44';
+        g.beginPath();
+        g.moveTo(sx, arrowY + 16);
+        g.lineTo(sx - 8, arrowY);
+        g.lineTo(sx + 8, arrowY);
+        g.closePath();
+        g.fill();
+        g.fillStyle = '#ffffff';
+        g.beginPath();
+        g.moveTo(sx, arrowY + 10);
+        g.lineTo(sx - 5, arrowY + 2);
+        g.lineTo(sx + 5, arrowY + 2);
+        g.closePath();
+        g.fill();
+        g.restore();
         if (Math.floor(G.time * 3) % 2 === 0) {
           g.fillStyle = '#ffffff';
           g.font = 'bold 7px "Press Start 2P", "Courier New", monospace';
@@ -1223,7 +1392,7 @@
 
   const ENEMY_PTS = {
     soldier: 100, knife: 150, grenadier: 150, bazooka: 200,
-    turret: 300, observer: 250, heli: 800, tank: 1000, gunship: 3000,
+    turret: 300, observer: 250, heli: 800, tank: 1000, spider_tank: 1200, gunship: 3000,
     space_fighter: 500,
   };
 
@@ -1326,6 +1495,8 @@
       base.fireT = 1.4; base.entering = true; base.shipIdx = Math.random() < 0.5 ? 0 : 1;
     } else if (type === 'tank') {
       base.hp = 14; base.fireT = 1.6; base.tread = 0;
+    } else if (type === 'spider_tank') {
+      base.hp = 18; base.fireT = 1.8; base.burst = 0;
     } else if (type === 'observer' || type === 'soldier06') {
       // New tutorial drone: hovering observer with laser camera
       base.type = 'observer';
@@ -1349,6 +1520,7 @@
     if (e.type === 'space_fighter') return { x: e.x - 44, y: e.y - 20, w: 88, h: 40 };
     if (e.type === 'gunship') return { x: e.x - 78, y: e.y - 36, w: 156, h: 72 };
     if (e.type === 'tank') return { x: e.x - 70, y: e.y - 70, w: 140, h: 70 };
+    if (e.type === 'spider_tank') return { x: e.x - 65, y: e.y - 65, w: 130, h: 65 };
     if (e.type === 'observer') return { x: e.x - 28, y: e.y - 72, w: 56, h: 72 };
     if (e.type === 'soldier') return { x: e.x - 18, y: e.y - 86, w: 36, h: 86 };
     if (e.type === 'grenadier') return { x: e.x - 28, y: e.y - 84, w: 56, h: 84 };
@@ -1466,6 +1638,13 @@
       G.corpses.push({ tank: true, vehicleWreck: true, x: e.x, y: e.y,
         vx: 0, vy: 0, angle: 0, spin: rnd(-0.25, 0.25), facing: e.facing,
         t: 0, life: 2.1, nextBoom: 0.2, boomCount: 0 });
+    } else if (e.type === 'spider_tank') {
+      spawnCoinAward(e.x, e.y - 58, 'tank');
+      explode(e.x, e.y - 30, 65, false, false);
+      spawnDestructionFire(e.x, e.y - 30, 1.2, 12);
+      G.corpses.push({ spiderTank: true, vehicleWreck: true, x: e.x, y: e.y,
+        vx: 0, vy: 0, angle: 0, spin: rnd(-0.25, 0.25), facing: e.facing,
+        t: 0, life: 2.1, nextBoom: 0.2, boomCount: 0 });
     }
   }
 
@@ -1477,7 +1656,7 @@
       e.fireT -= dt;
       if (e.flash > 0) e.flash -= dt;
       if (e.recoil > 0) e.recoil = Math.max(0, e.recoil - dt * 48);
-      if ((e.type === 'heli' || e.type === 'gunship' || e.type === 'tank' || e.type === 'space_fighter') &&
+      if ((e.type === 'heli' || e.type === 'gunship' || e.type === 'tank' || e.type === 'spider_tank' || e.type === 'space_fighter') &&
           e.hp > 0 && e.hp <= e.maxHp * 0.25 && Math.random() < dt * 9) {
         G.particles.push({ kind: Math.random() < 0.45 ? 'ember' : 'smoke',
           x: e.x + rnd(-24, 24), y: e.y - rnd(18, 48),
@@ -1697,7 +1876,7 @@
           else e.vx = 0;
           e.x += e.vx * dt;
           if (e.fireT <= 0 && !p.dead && adx < 760) {
-            const ft = 1.1; // tempo di volo del colpo (gravità 900, vy -480)
+            const ft = 1.1;
             G.grenades.push({
               kind: 'shell', x: e.x + e.facing * 70, y: e.y - 44,
               vx: (dx + rnd(-50, 50)) / ft, vy: -480, t: 99,
@@ -1707,8 +1886,74 @@
             e.recoil = 9;
             e.fireT = rnd(2.6, 3.4);
           }
-          // schiaccia il giocatore
           if (!p.dead && adx < 56 && p.y > e.y - 56) killPlayer();
+          break;
+        }
+        case 'spider_tank': {
+          e.facing = dx > 0 ? 1 : -1;
+          // Chase the player aggressively, stop at close range to vibrate+fire
+          if (adx > 90) {
+            const chaseSpeed = adx < 200 ? 14 : adx < 400 ? 26 : 38;
+            e.vx = e.facing * chaseSpeed;
+            e.x += e.vx * dt;
+            // Dust + spark particles at ground when legs hit
+            const wp = e.t * 5.5;
+            for (let li = 1; li <= 4; li++) {
+              const phase = (li === 1 || li === 4) ? wp : wp + Math.PI;
+              if (Math.cos(phase) > 0.95 && Math.random() < dt * 32) {
+                const lx = li <= 2 ? -28 : 28;
+                for (let pi = 0; pi < 5; pi++) {
+                  G.particles.push({ kind: 'smoke',
+                    x: e.x + lx + rnd(-12, 12), y: Level.GROUND - 2,
+                    vx: rnd(-22, 22), vy: rnd(-45, -10), t: 0, life: rnd(0.25, 0.55),
+                    color: '#8a7a5a', size: rnd(2, 6), grav: 22, drag: 0.9 });
+                }
+                for (let pi = 0; pi < 5; pi++) {
+                  G.particles.push({ kind: 'spark',
+                    x: e.x + lx + rnd(-8, 8), y: Level.GROUND - 1,
+                    vx: rnd(-35, 35), vy: rnd(-75, -18), t: 0, life: rnd(0.1, 0.3),
+                    color: '#c4a060', size: rnd(1, 2.5), grav: 100, drag: 0.94 });
+                }
+              }
+            }
+            // Trailing smoke while moving
+            if (Math.random() < dt * 12) {
+              G.particles.push({ kind: 'smoke',
+                x: e.x - e.facing * 30 + rnd(-10, 10), y: Level.GROUND - rnd(2, 6),
+                vx: -e.facing * rnd(5, 15), vy: rnd(-18, -6), t: 0, life: rnd(0.3, 0.6),
+                color: '#7a6a4a', size: rnd(3, 7), grav: 8, drag: 0.92 });
+            }
+          } else {
+            e.vx = 0;
+          }
+          if (e.fireT <= 0 && !p.dead && adx < 720) {
+            if (e.burst > 0) {
+              const ang = Math.atan2((p.y - 30) - (e.y - 40), dx);
+              G.eBullets.push({
+                x: e.x + e.facing * 55, y: e.y - 42,
+                vx: Math.cos(ang) * 380, vy: Math.sin(ang) * 380,
+                life: 2.2, style: 'enemyGunship', phase: rnd(0, Math.PI * 2), trailT: 0,
+              });
+              SFX.enemyShot('enemyGunship');
+              e.recoil = 4;
+              e.burst--;
+              e.fireT = e.burst === 0 ? rnd(2.0, 2.8) : 0.12;
+            } else if (Math.random() < 0.4) {
+              const ft = 1.0;
+              G.grenades.push({
+                kind: 'shell', x: e.x + e.facing * 60, y: e.y - 42,
+                vx: (dx + rnd(-40, 40)) / ft, vy: -460, t: 99,
+              });
+              SFX.tankShot();
+              muzzleBlast(e.x + e.facing * 64, e.y - 42, 8, e.facing, -0.08, 'cannon', 1.1);
+              e.recoil = 8;
+              e.fireT = rnd(2.8, 3.8);
+            } else {
+              e.burst = 3;
+              e.fireT = 0.1;
+            }
+          }
+          if (!p.dead && adx < 56 && p.y > e.y - 52) killPlayer();
           break;
         }
         case 'observer': {
@@ -2139,6 +2384,10 @@
     g.restore(); return true;
   }
 
+  function drawSpiderTankArt(g, x, y, facing, enemy, flash) {
+    SpiderTank.draw(g, x, y, facing, enemy, flash);
+  }
+
   function drawSoldier02(g, x, y, facing, enemy, corpse) {
     if (!soldier02Art.full || soldier02Art.full.naturalWidth <= 0) return false;
     const scale = 0.5, phase = (enemy ? enemy.t : G.time) * 8;
@@ -2328,10 +2577,12 @@
       } else if (e.type === 'tank') {
         if (!drawEnemyTankArt(g, sx, e.y, e.facing, e, e.flash > 0))
           Sprites.drawTank(g, sx, e.y, e.facing, e.tread * 10, e.flash > 0);
+      } else if (e.type === 'spider_tank') {
+        drawSpiderTankArt(g, sx, e.y, e.facing, e, e.flash > 0);
       }
-      if ((e.type === 'heli' || e.type === 'gunship' || e.type === 'tank' || e.type === 'space_fighter') &&
+      if ((e.type === 'heli' || e.type === 'gunship' || e.type === 'tank' || e.type === 'spider_tank' || e.type === 'space_fighter') &&
           e.hp > 0 && e.hp <= e.maxHp * 0.25) {
-        drawCriticalText(g, sx, e.type === 'tank' ? e.y - 82 : e.y - 74, e.t);
+        drawCriticalText(g, sx, e.type === 'tank' || e.type === 'spider_tank' ? e.y - 82 : e.y - 74, e.t);
       }
     }
   }
@@ -3270,13 +3521,13 @@
       c.t += dt;
       if (c.vehicleWreck && !c.wreckAdded && c.t > c.life - 0.08) {
         c.wreckAdded = true;
-        G.wrecks.push({ type:c.tank ? 'tank' : c.enemyHeliBig ? 'heliBig' : 'heliSmall',
-          x:c.x, y:c.tank ? c.y : Level.GROUND, facing:c.facing });
+        G.wrecks.push({ type:c.spiderTank ? 'spiderTank' : c.tank ? 'tank' : c.enemyHeliBig ? 'heliBig' : 'heliSmall',
+          x:c.x, y:(c.tank || c.spiderTank) ? c.y : Level.GROUND, facing:c.facing });
       }
       if (c.vehicleWreck && c.t >= c.nextBoom && c.boomCount < 5) {
         const finalBlast = c.boomCount === 4;
         const fireX = c.x + rnd(-45, 45);
-        const fireY = c.y - rnd(12, c.tank ? 55 : 35);
+        const fireY = c.y - rnd(12, (c.tank || c.spiderTank) ? 55 : 35);
         explode(fireX, fireY,
           finalBlast ? (c.tank ? 105 : 120) : rnd(32, 58), false, finalBlast);
         spawnDestructionFire(fireX, fireY, finalBlast ? 1.75 : 0.9,
@@ -3293,7 +3544,7 @@
         c.boomCount++;
         c.nextBoom += finalBlast ? 99 : rnd(0.22, 0.38);
       }
-      if (!c.tank) {
+      if (!c.tank && !c.spiderTank) {
         c.vy += GRAV * 0.7 * dt;
         c.x += c.vx * dt;
         c.y += c.vy * dt;
@@ -3512,6 +3763,18 @@
         } else if (!drawEnemyTankArt(g, 0, 0, c.facing, c, c.t < 0.15))
           Sprites.drawTank(g, 0, 0, c.facing, c.t * 12, c.t < 0.15);
         g.restore();
+      } else if (c.spiderTank) {
+        g.save();
+        g.globalAlpha = Math.max(0, 1 - c.t / c.life * 0.55);
+        g.translate(c.x - camX, c.y);
+        g.rotate(c.angle * 0.18);
+        c.tread = c.t * 12;
+        if (c.t > 1.35) {
+          SpiderTank.drawDestroyed(g, null, c.facing);
+        } else {
+          drawSpiderTankArt(g, 0, 0, c.facing, c, c.t < 0.15);
+        }
+        g.restore();
       } else if (c.heli) {
         g.save();
         // Ground clips the rotating crash body, preventing any angled wreck
@@ -3576,6 +3839,8 @@
       if (wreck.type === 'tank' && enemyTankArt.destroyed.naturalWidth > 0) {
         if (wreck.facing > 0) g.scale(-1, 1);
         g.drawImage(enemyTankArt.destroyed, -76, -76, 152, 76);
+      } else if (wreck.type === 'spiderTank') {
+        SpiderTank.drawDestroyed(g, null, wreck.facing);
       } else if (wreck.type === 'heliSmall' && destroyedHeliArt.small.naturalWidth > 0) {
         if (wreck.facing < 0) g.scale(-1, 1);
         g.drawImage(destroyedHeliArt.small, -71, -51, 142, 51);
